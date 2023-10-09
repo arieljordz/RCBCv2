@@ -40,6 +40,10 @@ namespace RCBC.Controllers
         public IActionResult CreateNewUser()
         {
             return LoadViews();
+        }    
+        public IActionResult UserApproval()
+        {
+            return LoadViews();
         }
         public IActionResult ResetPassword()
         {
@@ -49,6 +53,11 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult CreateNewRole()
+        {
+            return LoadViews();
+        }
+
         public IActionResult SendForgotPassword(string Username)
         {
             string salt = ""; //read from database

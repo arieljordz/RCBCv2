@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\RCBC\\RCBC\\RCBC.csproj": {}
+    "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj": {}
   },
   "projects": {
-    "D:\\RCBC\\RCBC\\RCBC.csproj": {
+    "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\RCBC\\RCBC\\RCBC.csproj",
+        "projectUniqueName": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj",
         "projectName": "RCBC",
-        "projectPath": "D:\\RCBC\\RCBC\\RCBC.csproj",
+        "projectPath": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj",
         "packagesPath": "C:\\Users\\ariel\\.nuget\\packages\\",
-        "outputPath": "D:\\RCBC\\RCBC\\obj\\",
+        "outputPath": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

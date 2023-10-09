@@ -9,85 +9,93 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = RCBC
 build_property.RootNamespace = RCBC
-build_property.ProjectDir = D:\RCBC\RCBC\
+build_property.ProjectDir = D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\
 build_property.RazorLangVersion = 7.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\RCBC\RCBC
+build_property.MSBuildProjectDirectory = D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/RCBC/RCBC/Views/Home/ChangePassword.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Home/Dashboard.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/Dashboard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEYXNoYm9hcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Home/FirstLogin.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/FirstLogin.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxGaXJzdExvZ2luLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Home/Index.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Maintenance/CreateNewUser.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/CreateNewRole.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcQ3JlYXRlTmV3Um9sZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/CreateNewUser.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcQ3JlYXRlTmV3VXNlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Maintenance/ForgotPassword.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcRm9yZ290UGFzc3dvcmQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Maintenance/ResetPassword.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcUmVzZXRQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Maintenance/ViewAllUsers.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/UserApproval.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcVXNlckFwcHJvdmFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Maintenance/ViewAllUsers.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcVmlld0FsbFVzZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Parameters/Parameters.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Parameters/Parameters.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGFyYW1ldGVyc1xQYXJhbWV0ZXJzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Recon/Recon.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Recon/Recon.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjb25cUmVjb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Reports/Reports.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Reports/Reports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xSZXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/Error.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/_Footer.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/_Footer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Gb290ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/_Header.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/_Header.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9IZWFkZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/_Layout.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/_SideBar.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/_SideBar.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9TaWRlQmFyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/Shared/_ValidationScriptsPartial.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/_ViewImports.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/RCBC/RCBC/Views/_ViewStart.cshtml]
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

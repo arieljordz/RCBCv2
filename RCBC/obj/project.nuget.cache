@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "51dI9r7YPGhokhH0nZfOOaKPprfsxamBeYcsQh/4ExUj7t5/gACxZ7N8eaH0KW9OcYkjvdVvobpiIP1bmM8UTg==",
+  "dgSpecHash": "Jedsk+IN/cs23ZMcXCocL2Qf7p25mnn0vz+CRsbCkURAdt4FarhMBDk8pc9B49u5EThF6V/uWZMTeTlhr3ISUQ==",
   "success": true,
-  "projectFilePath": "D:\\RCBC\\RCBC\\RCBC.csproj",
+  "projectFilePath": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ariel\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\7.0.11\\microsoft.aspnetcore.jsonpatch.7.0.11.nupkg.sha512",
     "C:\\Users\\ariel\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\7.0.11\\microsoft.aspnetcore.mvc.newtonsoftjson.7.0.11.nupkg.sha512",
