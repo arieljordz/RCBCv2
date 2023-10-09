@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+<div class="row d-flex justify-content-center" style="padding-top: 200px;">
+    <div class="card">
+        <div class="card-body bg-cyan p-5">
+            <div class="d-flex justify-content-center pl-3 pr-3 pt-3">
+                <h2>RCBC DPU TELLERLESS PORTAL</h2>
+            </div>
+            <section class="p-5 bg-white">
+                @using (Html.BeginForm("Login", "Home", FormMethod.Post, new { enctype = "multipart/form-data", id = "formLogin" }))
+                {
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Username" name="username" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" placeholder="Password" name="password" />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-md col-md-12" id="btnSubmit">Login</button>
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <a class="text-danger" href="@Url.Action("ForgotPassword", "Maintenance")">Forgot password?</a>
+                    </div>
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                }
+            </section>
+
+        </div>
+    </div>
+</div>
