@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RCBC.Models.UserModel
+@{
     ViewData["Title"] = "Create New User";
 }
 
@@ -38,37 +39,41 @@
                             <h3 class="card-title"><i class="fa fa-user pr-2"></i>Create New User</h3>
                         </div>
 
-                        <div class="card-body">
-                            <form id="frmRegister" class="p-2">
+                        <form id="frmRegister" class="p-2" novalidate="novalidate">
+                            <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>User ID</label>
-                                            <input type="text" id="username" class="form-control">
+                                            @Html.LabelForModel("User ID", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.UserId, new { @class = "form-control", placeholder = "User ID" })
+                                            @Html.ValidationMessageFor(x => x.UserId)
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Employee Name</label>
-                                            <input type="text" id="employeename" class="form-control">
+                                            @Html.LabelForModel("Employee Name", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.EmployeeName, new { @class = "form-control", placeholder = "Employee Name" })
+                                            @Html.ValidationMessageFor(x => x.EmployeeName)
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Email</label>
-                                            <input type="email" id="email" class="form-control">
+                                            @Html.LabelForModel("Email", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                            @Html.ValidationMessageFor(x => x.Email)
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Mobile Number</label>
-                                            <input type="number" id="mobileno" class="form-control">
+                                            @Html.LabelForModel("MobileNumber", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "Mobile Number" })
+                                            @Html.ValidationMessageFor(x => x.MobileNumber)
                                         </div>
                                     </div>
                                 </div>
@@ -76,8 +81,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label>Group/Department</label>
-                                            <select class="form-control" id="groupdept">
-                                                <option slected></option>
+                                            <select class="form-control" name="GroupDept">
                                                 <option>GTB-BizSol</option>
                                             </select>
                                         </div>
@@ -87,20 +91,19 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label>Role</label>
-                                            <select class="form-control" id="role">
-                                                <option slected></option>
+                                            <select class="form-control" name="UserRole">
                                                 <option>Maker</option>
                                             </select>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                            </div>
+                        </form>
 
-                        <div class="card-footer">
-                            <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                            <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                        </div>
                     </div>
                 </div>
 
@@ -114,33 +117,80 @@
     {
     <script>
         $(document).ready(function () {
-            $('#btnSubmit').click(function () {
-                if ($('#username').val() == "" || $('#employeename').val() == "" || $('#email').val() == "" || $('#mobileno').val() == "" || $('#groupdept').val() == ""
-                    || $('#role').val() == "") {
-                    Swal.fire('Error!', 'Incomplete Data.', 'error');
-                }
-                else {
-                    Register();
-                }
-            })
+
+            ValidateForm();
+            function ValidateForm() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        Register();
+                    }
+                });
+                $('#frmRegister').validate({
+                    rules: {
+                        UserId: {
+                            required: true
+                        },
+                        EmployeeName: {
+                            required: true
+                        },
+                        Email: {
+                            required: true
+                        },
+                        MobileNumber: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        UserId: {
+                            required: "This field is required"
+                        },
+                        EmployeeName: {
+                            required: "This field is required"
+                        },
+                        Email: {
+                            required: "This field is required"
+                        },
+                        MobileNumber: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
 
             $('#btnCancel').click(function () {
                 $("#frmRegister").trigger("reset");
             })
 
             function Register() {
+
+                var formData = $("#frmRegister").serialize();
+
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Register", "Maintenance")',
-                    data: {
-                        "Username": $('#username').val(),
-                        "Password": "Pass1234.",
-                        "EmployeeName": $('#employeename').val(),
-                        "Email": $('#email').val(),
-                        "Mobileno": $('#mobileno').val(),
-                        "GrpDept": $('#groupdept').val(),
-                        "Role": $('#role').val(),
-                    },
+                    //data: {
+                    //    "Username": $('#username').val(),
+                    //    "Password": "Pass1234.",
+                    //    "EmployeeName": $('#employeename').val(),
+                    //    "Email": $('#email').val(),
+                    //    "Mobileno": $('#mobileno').val(),
+                    //    "GrpDept": $('#groupdept').val(),
+                    //    "Role": $('#role').val(),
+                    //},
+                    data: formData,
                     success: function (response) {
                         if (response.success == true) {
 

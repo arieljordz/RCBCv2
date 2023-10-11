@@ -96,12 +96,12 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult Register(string Username, string Password, string EmployeeName, string Email, string Mobileno, string GrpDept, string Role)
+        public IActionResult Register(UserModel user)
         {
             try
             {
                 string Salt = Crypto.GenerateSalt();
-                string password = Password + Salt;
+                string password = "Pass1234." + Salt;
                 string HashPassword = Crypto.HashPassword(password);
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
@@ -121,14 +121,14 @@ namespace RCBC.Controllers
                                 "VALUES(@UserId, @HashPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)" +
                                 "END " +
                             "END";
-                        cmd.Parameters.AddWithValue("@UserId", Username.Replace("\'", "\''"));
+                        cmd.Parameters.AddWithValue("@UserId", user.UserId.Replace("\'", "\''"));
                         cmd.Parameters.AddWithValue("@HashPassword", HashPassword);
                         cmd.Parameters.AddWithValue("@Salt", Salt);
-                        cmd.Parameters.AddWithValue("@EmployeeName", EmployeeName);
-                        cmd.Parameters.AddWithValue("@Email", Email);
-                        cmd.Parameters.AddWithValue("@MobileNumber", Mobileno);
-                        cmd.Parameters.AddWithValue("@GroupDept", GrpDept);
-                        cmd.Parameters.AddWithValue("@UserRole", Role);
+                        cmd.Parameters.AddWithValue("@EmployeeName", user.EmployeeName);
+                        cmd.Parameters.AddWithValue("@Email", user.Email);
+                        cmd.Parameters.AddWithValue("@MobileNumber", user.MobileNumber);
+                        cmd.Parameters.AddWithValue("@GroupDept", user.GroupDept);
+                        cmd.Parameters.AddWithValue("@UserRole", user.UserRole);
                         cmd.Parameters.AddWithValue("@UserStatus", "0");
                         cmd.Parameters.AddWithValue("@DateAdded", DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"));
                         cmd.Parameters.AddWithValue("@LoginAttempt", "0");
@@ -285,10 +285,10 @@ namespace RCBC.Controllers
 
                 if (result)
                 {
-                    bool accepted = global.IsStrongPassword(obj.NewPassword);
+                    //bool accepted = global.IsStrongPassword(obj.NewPassword);
                     ModelState.AddModelError("", "Strong Password.");
 
-                    if (accepted)
+                    if (true)
                     {
                         var finalString = new string(obj.NewPassword);
 
@@ -356,7 +356,7 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError("", "Weak Password.");
+                        //ModelState.AddModelError("", "Weak Password.");
                         return RedirectToAction("ChangePassword", "Home");
                     }
                 }
