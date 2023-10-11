@@ -83,6 +83,8 @@
                                             <label>Group/Department</label>
                                             <select class="form-control" name="GroupDept">
                                                 <option>GTB-BizSol</option>
+                                                <option>GTB-DBM</option>
+                                                <option>Operations</option>
                                             </select>
                                         </div>
                                     </div>
@@ -92,7 +94,11 @@
                                         <div class="form-group">
                                             <label>Role</label>
                                             <select class="form-control" name="UserRole">
-                                                <option>Maker</option>
+                                                <option>System Admin</option>
+                                                <option>Admin (User)</option>
+                                                <option>Maker/Approver</option>
+                                                <option>Operations</option>
+                                                <option>IT Support</option>
                                             </select>
                                         </div>
                                     </div>
@@ -181,15 +187,6 @@
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Register", "Maintenance")',
-                    //data: {
-                    //    "Username": $('#username').val(),
-                    //    "Password": "Pass1234.",
-                    //    "EmployeeName": $('#employeename').val(),
-                    //    "Email": $('#email').val(),
-                    //    "Mobileno": $('#mobileno').val(),
-                    //    "GrpDept": $('#groupdept').val(),
-                    //    "Role": $('#role').val(),
-                    //},
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {

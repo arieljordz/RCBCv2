@@ -14,35 +14,35 @@
 
     <!-- Right navbar links -->
     <ul class="navbar-nav ml-auto">
-@*
+        @*
         <li class="nav-item">
-            <a class="nav-link text-bold text-blink">
-                Date: @ViewBag.DateNow.ToString("MMMM dd, yyyy")
-            </a>
+        <a class="nav-link text-bold text-blink">
+        Date: @ViewBag.DateNow.ToString("MMMM dd, yyyy")
+        </a>
         </li>*@
         <li class="nav-item dropdown show">
             <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="true">
                 @ViewBag.UserId
-                <i class="fa fa-user-circle"></i>
+                <i class="fa fa-user-circle ml-2"></i>
             </a>
             <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right" style="left: inherit; right: 0px;">
 
-                <a href="#" class="dropdown-item">
+                <a href="#" class="dropdown-item text-sm">
                     Profile
                     <span class="float-right text-muted text-sm"> <i class="fa fa-user-circle mr-2"></i></span>
                 </a>
                 <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item">
+                <a href="#" class="dropdown-item text-sm">
                     Settings
                     <span class="float-right text-muted text-sm"> <i class="fa fa-gear mr-2"></i></span>
                 </a>
                 <div class="dropdown-divider"></div>
-                <a href="#" class="dropdown-item">
-                    Help
-                    <span class="float-right text-muted text-sm"> <i class="fa fa-question-circle-o mr-2"></i></span>
+                <a href="@Url.Content("~/Home/ChangePassword")" class="dropdown-item text-sm">
+                    Change Password
+                    <span class="float-right text-muted text-sm"> <i class="fa fa-lock mr-2"></i></span>
                 </a>
                 <div class="dropdown-divider"></div>
-                <a href="@Url.Content("~/Home/Logout")" class="dropdown-item">
+                <a href="@Url.Content("~/Home/Logout")" class="dropdown-item text-sm">
                     Log Out
                     <span class="float-right text-muted text-sm"> <i class="fa fa-sign-out mr-2"></i></span>
                 </a>

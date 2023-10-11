@@ -23,8 +23,9 @@ namespace RCBC.Controllers
         public IActionResult LoadViews()
         {
             ViewBag.DateNow = DateTime.Now;
-            ViewBag.Username = Request.Cookies["rcbctellerlessusername"];
-            ViewBag.UserId = Request.Cookies["rcbctellername"];
+            ViewBag.Username = Request.Cookies["Username"];
+            ViewBag.UserId = Request.Cookies["EmployeeName"];
+            ViewBag.UserRole = Request.Cookies["UserRole"];
 
             return View();
         }
@@ -46,12 +47,41 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult ContinueLogin()
+        {
+            return LoadViews();
+        }
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("rcbctellerlessusername");
-            Response.Cookies.Delete("rcbctellerlogin");
-            Response.Cookies.Delete("rcbctellername");
+            Response.Cookies.Delete("Username");
+            Response.Cookies.Delete("LastLogin");
+            Response.Cookies.Delete("EmployeeName");
             return RedirectToAction("Index");
+        }
+        public IActionResult LoginProceed()
+        {
+            var UserRole = Request.Cookies["UserRole"];
+
+            if (UserRole == "System Admin")
+            {
+                return RedirectToAction("Dashboard", "Home");
+            }
+            else if (UserRole == "Admin (User)")
+            {
+                return RedirectToAction("ViewAllUsers", "Maintenance");
+            }
+            else if (UserRole == "Maker/Approver")
+            {
+                return RedirectToAction("CreateNewRole", "Maintenance");
+            }
+            else if (UserRole == "Operations")
+            {
+                return RedirectToAction("Reports", "Reports");
+            }
+            else //IT Support
+            {
+                return RedirectToAction("Reports", "Reports");
+            }
         }
 
         public IActionResult Login(string Username, string Password)
@@ -61,6 +91,7 @@ namespace RCBC.Controllers
             string PlainPass = Password;
             bool result;
             string EmployeeName = "";
+            string UserRole = "";
             int LoginAttempt = 0;
             string LastLogin = DateTime.Now.ToString("dd MMMM yyyy hh:mm tt");
             UserModel _userModel = new UserModel();
@@ -74,6 +105,7 @@ namespace RCBC.Controllers
                     salt = sdr["Salt"].ToString();
                     HashedPass = sdr["HashPassword"].ToString();
                     EmployeeName = Convert.ToString(sdr["EmployeeName"]);
+                    UserRole = Convert.ToString(sdr["UserRole"]);
                     LoginAttempt = Convert.ToInt32(sdr["LoginAttempt"]);
                 }
                 con.Close();
@@ -91,9 +123,10 @@ namespace RCBC.Controllers
             };
 
             // Add the cookie to the response
-            Response.Cookies.Append("rcbctellerlessusername", Username, cookieOptions);
-            Response.Cookies.Append("rcbctellerlogin", LastLogin, cookieOptions);
-            Response.Cookies.Append("rcbctellername", EmployeeName, cookieOptions);
+            Response.Cookies.Append("Username", Username, cookieOptions);
+            Response.Cookies.Append("LastLogin", LastLogin, cookieOptions);
+            Response.Cookies.Append("EmployeeName", EmployeeName, cookieOptions);
+            Response.Cookies.Append("UserRole", UserRole, cookieOptions);
 
             if (result == true)
             {
@@ -101,11 +134,29 @@ namespace RCBC.Controllers
                 {
                     return RedirectToAction("FirstLogin", "Home");
                 }
-                else if (LoginAttempt >= 1)
+                else
                 {
-                    return RedirectToAction("Dashboard", "Home");
+                    if (UserRole == "System Admin")
+                    {
+                        return RedirectToAction("Dashboard", "Home");
+                    }
+                    else if (UserRole == "Admin (User)")
+                    {
+                        return RedirectToAction("ViewAllUsers", "Maintenance");
+                    }
+                    else if (UserRole == "Maker/Approver")
+                    {
+                        return RedirectToAction("CreateNewRole", "Maintenance");
+                    }
+                    else if (UserRole == "Operations")
+                    {
+                        return RedirectToAction("Reports", "Reports");
+                    }
+                    else //IT Support
+                    {
+                        return RedirectToAction("Reports", "Reports");
+                    }
                 }
-                return RedirectToAction("Dashboard", "Home");
             }
             else
             {

@@ -28,8 +28,9 @@ namespace RCBC.Controllers
         public IActionResult LoadViews()
         {
             ViewBag.DateNow = DateTime.Now;
-            ViewBag.Username = Request.Cookies["rcbctellerlessusername"];
-            ViewBag.UserId = Request.Cookies["rcbctellername"];
+            ViewBag.Username = Request.Cookies["Username"];
+            ViewBag.UserId = Request.Cookies["EmployeeName"];
+            ViewBag.UserRole = Request.Cookies["UserRole"];
 
             return View();
         }
@@ -346,7 +347,7 @@ namespace RCBC.Controllers
                                 }
                                 connection.Close();
                             }
-                            return RedirectToAction("Dashboard", "Home");
+                            return RedirectToAction("ContinueLogin", "Home");
                         }
                         catch (Exception ex)
                         {

@@ -16,8 +16,16 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC
 build_property._RazorSourceGeneratorDebug = 
 
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/CorporateManagement/CorporateManagement.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ29ycG9yYXRlTWFuYWdlbWVudFxDb3Jwb3JhdGVNYW5hZ2VtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDaGFuZ2VQYXNzd29yZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/ContinueLogin.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250aW51ZUxvZ2luLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/MY PROJECTS/GIT-RCBCv2/RCBCv2/RCBC/Views/Home/Dashboard.cshtml]
