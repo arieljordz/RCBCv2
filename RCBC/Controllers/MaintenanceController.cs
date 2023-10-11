@@ -244,7 +244,7 @@ namespace RCBC.Controllers
                         }
                         connection.Close();
                     }
-                    return Json(new { success = true });
+                    return Json(new { success = true, password = finalString });
                 }
                 catch (Exception ex)
                 {
