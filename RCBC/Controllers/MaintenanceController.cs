@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Net;
 using System.Web.Helpers;
 using RCBC.Interface;
+using System.Reflection;
 
 namespace RCBC.Controllers
 {
@@ -259,118 +260,6 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult UpdatePassword(UpdatePasswordModel obj)
-        {
-            try
-            {
-                string salt = Empty.ToString();
-                string OldPassword = Empty.ToString();
-                int LoginAttempt = 0;
-                bool result;
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + obj.Username + "'", con);
-                    con.Open();
-                    SqlDataReader sdr = cmd.ExecuteReader();
-                    while (sdr.Read())
-                    {
-                        salt = sdr["Salt"].ToString();
-                        OldPassword = sdr["HashPassword"].ToString();
-                        LoginAttempt = Convert.ToInt32(sdr["LoginAttempt"]);
-                    }
-                    con.Close();
-                    obj.OldPassword = obj.OldPassword + salt;
-                    result = Crypto.VerifyHashedPassword(OldPassword, obj.OldPassword);
-                }
-
-                if (result)
-                {
-                    //bool accepted = global.IsStrongPassword(obj.NewPassword);
-                    ModelState.AddModelError("", "Strong Password.");
-
-                    if (true)
-                    {
-                        var finalString = new string(obj.NewPassword);
-
-                        string Salt = Crypto.GenerateSalt();
-                        string password = finalString + Salt;
-                        string HashPassword = Crypto.HashPassword(password);
-
-                        string bodyMsg = "<head>" +
-                                   "<style>" +
-                                   "body{" +
-                                       "font-family: calibri;" +
-                                       "}" +
-                                    "</style>" +
-                                   "</head>" +
-                                   "<body>" +
-                                       "<p>Good Day!<br>" +
-                                        "<br>" +
-                                        "User ID: " + obj.Username + "<br>" +
-                                        "New Password: <font color=red>" + finalString + "</font> <br>" +
-                                        "<br>" +
-                                        "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
-                                        "</p>" +
-                                     "</body>";
-
-                        MailMessage mailMessage = new MailMessage();
-                        mailMessage.From = new MailAddress("arlene@yuna.somee.com");
-                        mailMessage.To.Add("arlene.lunar11@gmail.com");
-                        mailMessage.Subject = "Subject";
-                        mailMessage.Body = bodyMsg;
-                        mailMessage.IsBodyHtml = true;
-
-                        SmtpClient smtpClient = new SmtpClient();
-                        smtpClient.Host = "smtp.yuna.somee.com";
-                        smtpClient.Port = 26;
-                        smtpClient.UseDefaultCredentials = false;
-                        smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
-                        smtpClient.EnableSsl = false;
-                        smtpClient.Send(mailMessage);
-                        Trace.WriteLine("Email Sent Successfully.");
-
-                        try
-                        {
-                            //update password in Database
-                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where UserId='" + obj.Username + "'";
-                            using (var connection = new SqlConnection(GetConnectionString()))
-                            {
-                                using (var command = new SqlCommand(sql, connection))
-                                {
-                                    command.Parameters.AddWithValue("@HashPassword", HashPassword);
-                                    command.Parameters.AddWithValue("@Salt", Salt);
-                                    command.Parameters.AddWithValue("@LoginAttempt", LoginAttempt + 1);
-                                    // repeat for all variables....
-                                    connection.Open();
-                                    command.ExecuteNonQuery();
-                                }
-                                connection.Close();
-                            }
-                            return RedirectToAction("ContinueLogin", "Home");
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine("Error: " + ex.Message);
-                            return RedirectToAction("Index", "Home");
-                        }
-                    }
-                    else
-                    {
-                        //ModelState.AddModelError("", "Weak Password.");
-                        return RedirectToAction("ChangePassword", "Home");
-                    }
-                }
-                else
-                {
-                    return RedirectToAction("Index", "Home");
-                }
-            }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-        }
         public IActionResult LoadUsers()
         {
 

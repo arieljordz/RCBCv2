@@ -36,3 +36,7 @@ body {
 .card-light-blue:not(.card-outline) > .card-header {
     background-color: #38b7fe !important;
 }
+
+.hide-el {
+    display: none !important;
+}

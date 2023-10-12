@@ -27,6 +27,27 @@ function ActiveMenu(id) {
     }, 100);
 }
 
+function IsStrongPassword(password) {
+    // Define criteria for a strong password
+    const minLength = 8; // Minimum length
+    const minDigitCount = 1; // Minimum number of digits
+    const minUpperCount = 1; // Minimum number of uppercase letters
+    const minLowerCount = 1; // Minimum number of lowercase letters
+    const minSpecialCount = 1; // Minimum number of special characters
+    const specialCharacters = "!@#$%^&*()_+[]{}|;:,.<>?";
+
+    // Check if the password meets the criteria
+    if (password.length < minLength) return false;
+    if ((password.match(/\d/g) || []).length < minDigitCount) return false;
+    if ((password.match(/[A-Z]/g) || []).length < minUpperCount) return false;
+    if ((password.match(/[a-z]/g) || []).length < minLowerCount) return false;
+    if ((password.split('').filter(c => specialCharacters.includes(c)).length) < minSpecialCount) return false;
+
+    // You can add more complex checks as needed, such as checking for common passwords, dictionary words, or patterns.
+
+    return true;
+}
+
 function SelectedValue(DataTableID, rowData) {
     var row = $("#" + DataTableID).find(".dtactive");
     if (row.length > 0) {
