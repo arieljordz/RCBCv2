@@ -1,13 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using RCBC.Interface;
 
 namespace RCBC.Controllers
 {
     public class ReconController : Controller
     {
         private readonly IConfiguration Configuration;
-        public ReconController(IConfiguration _configuration)
+        private readonly IGlobalRepository global;
+
+        public ReconController(IConfiguration _configuration, IGlobalRepository _global)
         {
             Configuration = _configuration;
+            global = _global;
         }
         private string GetConnectionString()
         {
@@ -15,10 +20,18 @@ namespace RCBC.Controllers
         }
         public IActionResult LoadViews()
         {
+
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
+
+            string UserRole = Request.Cookies["UserRole"].ToString();
+
+            ViewBag.Modules = global.GetModules(UserRole);
+            ViewBag.SubModules = global.GetSubModules(UserRole);
+            ViewBag.ChildModules = global.GetChildModules(UserRole);
+            ViewBag.AccessModules = global.GetAccessModules();
 
             return View();
         }

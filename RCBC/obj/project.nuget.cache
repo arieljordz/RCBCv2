@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "Jedsk+IN/cs23ZMcXCocL2Qf7p25mnn0vz+CRsbCkURAdt4FarhMBDk8pc9B49u5EThF6V/uWZMTeTlhr3ISUQ==",
+  "dgSpecHash": "A7T2pxI8XnDsJSfPj0rD6eihRCqLR/gAMEPG7man7fN7NsIcZQAh/a/KdGf7QwoWJCsyUc+KPdYXqOVYQZ60Vg==",
   "success": true,
   "projectFilePath": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\RCBC.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\ariel\\.nuget\\packages\\dapper\\2.1.4\\dapper.2.1.4.nupkg.sha512",
     "C:\\Users\\ariel\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\7.0.11\\microsoft.aspnetcore.jsonpatch.7.0.11.nupkg.sha512",
     "C:\\Users\\ariel\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\7.0.11\\microsoft.aspnetcore.mvc.newtonsoftjson.7.0.11.nupkg.sha512",
     "C:\\Users\\ariel\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",

@@ -7,6 +7,9 @@ using System.Net.Mail;
 using System.Net;
 using System.Web.Helpers;
 using RCBC.Interface;
+using System.Data;
+using Dapper;
+using System.Reflection;
 
 namespace RCBC.Controllers
 {
@@ -26,10 +29,18 @@ namespace RCBC.Controllers
         }
         public IActionResult LoadViews()
         {
+
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
+
+            string UserRole = Request.Cookies["UserRole"] == null? "System Admin" : Request.Cookies["UserRole"].ToString();
+
+            ViewBag.Modules = global.GetModules(UserRole);
+            ViewBag.SubModules = global.GetSubModules(UserRole);
+            ViewBag.ChildModules = global.GetChildModules(UserRole);
+            ViewBag.AccessModules = global.GetAccessModules();
 
             return View();
         }
@@ -132,6 +143,9 @@ namespace RCBC.Controllers
             Response.Cookies.Append("EmployeeName", EmployeeName, cookieOptions);
             Response.Cookies.Append("UserRole", UserRole, cookieOptions);
 
+            var SubModules = global.GetSubModules(UserRole).FirstOrDefault();
+            var ChildModules = global.GetChildModules(UserRole).FirstOrDefault();
+
             if (result == true)
             {
                 if (LoginAttempt == 0)
@@ -140,25 +154,19 @@ namespace RCBC.Controllers
                 }
                 else
                 {
-                    if (UserRole == "System Admin")
+                    if (SubModules != null)
                     {
-                        return RedirectToAction("Dashboard", "Home");
+                        string input = SubModules.Link;
+                        string[] Link = input.Split('/');
+
+                        return RedirectToAction(Link[2], Link[1]);
                     }
-                    else if (UserRole == "Admin (User)")
+                    else
                     {
-                        return RedirectToAction("ViewAllUsers", "Maintenance");
-                    }
-                    else if (UserRole == "Maker/Approver")
-                    {
-                        return RedirectToAction("CreateNewRole", "Maintenance");
-                    }
-                    else if (UserRole == "Operations")
-                    {
-                        return RedirectToAction("Reports", "Reports");
-                    }
-                    else //IT Support
-                    {
-                        return RedirectToAction("Reports", "Reports");
+                        string input = ChildModules.Link;
+                        string[] Link = input.Split('/');
+
+                        return RedirectToAction(Link[2], Link[1]);
                     }
                 }
             }
@@ -306,7 +314,7 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        return Json(new { success = false , message = "Weak Password." });
+                        return Json(new { success = false, message = "Weak Password." });
                     }
                 }
                 else

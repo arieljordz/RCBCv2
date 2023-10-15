@@ -9,6 +9,9 @@ using System.Net;
 using System.Web.Helpers;
 using RCBC.Interface;
 using System.Reflection;
+using Dapper;
+using System.Transactions;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace RCBC.Controllers
 {
@@ -28,10 +31,24 @@ namespace RCBC.Controllers
         }
         public IActionResult LoadViews()
         {
+
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
+
+            string UserRole = Request.Cookies["UserRole"].ToString();
+
+            ViewBag.Modules = global.GetModules(UserRole);
+            ViewBag.SubModules = global.GetSubModules(UserRole);
+            ViewBag.ChildModules = global.GetChildModules(UserRole);
+            ViewBag.AccessModules = global.GetAccessModules();
+
+            var UserRoles = global.GetUserRoles();
+            ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+
+            var Departments = global.GetDepartments();
+            ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
             return View();
         }
@@ -42,7 +59,7 @@ namespace RCBC.Controllers
         public IActionResult CreateNewUser()
         {
             return LoadViews();
-        }    
+        }
         public IActionResult UserApproval()
         {
             return LoadViews();
@@ -51,11 +68,19 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult UserAccess()
+        {
+            return LoadViews();
+        }
         public IActionResult ForgotPassword()
         {
             return LoadViews();
         }
         public IActionResult CreateNewRole()
+        {
+            return LoadViews();
+        }
+        public IActionResult CreateNewDepartment()
         {
             return LoadViews();
         }
@@ -102,51 +127,101 @@ namespace RCBC.Controllers
         {
             try
             {
-                string Salt = Crypto.GenerateSalt();
-                string password = "Pass1234." + Salt;
-                string HashPassword = Crypto.HashPassword(password);
+                string salt = Crypto.GenerateSalt();
+                string password = "Pass1234." + salt;
+                string hashedPassword = Crypto.HashPassword(password);
+                string msg = string.Empty;
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    using (SqlCommand cmd = new SqlCommand())
+                    con.Open();
+                    using (var transaction = con.BeginTransaction())
                     {
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Connection = con;
-                        cmd.Parameters.Clear();
-                        cmd.CommandText = "" +
-                            "BEGIN " +
-                                "IF NOT EXISTS (SELECT * FROM UsersInformation " +
-                                "WHERE UserId = @UserId) " +
-                            "BEGIN " +
-                                "INSERT INTO UsersInformation (UserId, HashPassword, Salt, EmployeeName, Email, " +
-                                "MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt) " +
-                                "VALUES(@UserId, @HashPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)" +
-                                "END " +
-                            "END";
-                        cmd.Parameters.AddWithValue("@UserId", user.UserId.Replace("\'", "\''"));
-                        cmd.Parameters.AddWithValue("@HashPassword", HashPassword);
-                        cmd.Parameters.AddWithValue("@Salt", Salt);
-                        cmd.Parameters.AddWithValue("@EmployeeName", user.EmployeeName);
-                        cmd.Parameters.AddWithValue("@Email", user.Email);
-                        cmd.Parameters.AddWithValue("@MobileNumber", user.MobileNumber);
-                        cmd.Parameters.AddWithValue("@GroupDept", user.GroupDept);
-                        cmd.Parameters.AddWithValue("@UserRole", user.UserRole);
-                        cmd.Parameters.AddWithValue("@UserStatus", "0");
-                        cmd.Parameters.AddWithValue("@DateAdded", DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"));
-                        cmd.Parameters.AddWithValue("@LoginAttempt", "0");
-                        con.Open();
-                        cmd.ExecuteNonQuery();
-                        con.Close();
+                        try
+                        {
+                            if (user.Id == 0)
+                            {
+                                // Insert into UsersInformation table
+                                string insertUsersInfoQuery = @"
+                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (UserId, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt)
+                                    OUTPUT INSERTED.Id
+                                    VALUES(@UserId, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)";
+
+                                var usersInfoParameters = new
+                                {
+                                    UserId = user.UserId.Replace("'", "''"),
+                                    HashedPassword = hashedPassword,
+                                    Salt = salt,
+                                    EmployeeName = user.EmployeeName,
+                                    Email = user.Email,
+                                    MobileNumber = user.MobileNumber,
+                                    GroupDept = user.GroupDept,
+                                    UserRole = user.UserRole,
+                                    UserStatus = "0",
+                                    DateAdded = DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"),
+                                    LoginAttempt = "0"
+                                };
+
+                                // Execute the query and retrieve the inserted Id
+                                int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
+
+
+                                // Insert into UserRoleAccess table
+                                string insertUserRoleAccessQuery = @"
+                                INSERT INTO [RCBC].[dbo].[UserRoleAccess] (UserId, UserRole)
+                                VALUES(@UserId, @UserRole)";
+
+                                var userRoleAccessParameters = new
+                                {
+                                    UserId = insertedId,
+                                    UserRole = user.UserRole,
+                                };
+
+                                con.Execute(insertUserRoleAccessQuery, userRoleAccessParameters, transaction);
+
+                                msg = "Successfully Saved.";
+                            }
+                            else
+                            {
+                                // Update user information
+                                string updateUsersInfoQuery = @"
+                                UPDATE [RCBC].[dbo].[UsersInformation]
+                                SET EmployeeName = @EmployeeName, Email = @Email, MobileNumber = @MobileNumber, GroupDept = @GroupDept, UserRole = @UserRole
+                                WHERE Id = @Id";
+
+                                var usersInfoParameters = new
+                                {
+                                    Id = user.Id,
+                                    EmployeeName = user.EmployeeName,
+                                    Email = user.Email,
+                                    MobileNumber = user.MobileNumber,
+                                    GroupDept = user.GroupDept,
+                                    UserRole = user.UserRole,
+                                };
+
+                                con.Execute(updateUsersInfoQuery, usersInfoParameters, transaction);
+
+                                msg = "Successfully Updated.";
+                            }
+
+                            transaction.Commit();
+
+                            return Json(new { success = true, message = msg });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Json(new { success = false, message = ex.Message });
+                        }
                     }
                 }
-                return Json(new { success = true });
-
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
         public IActionResult SearchUser(string Username)
         {
             try
@@ -289,6 +364,291 @@ namespace RCBC.Controllers
             return Json(new { data = data });
         }
 
+        public IActionResult UpdateUser(int Id)
+        {
+            try
+            {
+                UserModel data = new UserModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<UserModel>(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveUser(int Id)
+        {
+            try
+            {
+                UserModel data = new UserModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult SaveUserRole(UserRoleModel role)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (role.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[UserRole] (UserRole)
+                        VALUES(@UserRole)";
+
+                        var parameters = new
+                        {
+                            UserRole = role.UserRole,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"UPDATE [RCBC].[dbo].[UserRole] SET UserRole = @UserRole WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = role.Id,
+                            UserRole = role.UserRole,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult UpdateUserRoles(int Id)
+        {
+            try
+            {
+                UserRoleModel data = new UserRoleModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[UserRole] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<UserRoleModel>(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveUserRole(int Id)
+        {
+            try
+            {
+                UserRoleModel data = new UserRoleModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[UserRole] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult LoadUserRoles()
+        {
+            try
+            {
+                IEnumerable<UserRoleModel> data = new List<UserRoleModel>();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[UserRole]";
+                    data = con.Query<UserRoleModel>(query);
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
+
+        public IActionResult SaveDepartment(DepartmentModel dept)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (dept.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[Department] (GroupDept)
+                        VALUES(@GroupDept)";
+
+                        var parameters = new
+                        {
+                            GroupDept = dept.GroupDept,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"UPDATE [RCBC].[dbo].[Department] SET GroupDept = @GroupDept WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = dept.Id,
+                            GroupDept = dept.GroupDept,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult UpdateDepartment(int Id)
+        {
+            try
+            {
+                DepartmentModel data = new DepartmentModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Department] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<DepartmentModel>(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveDepartment(int Id)
+        {
+            try
+            {
+                UserRoleModel data = new UserRoleModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[Department] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult LoadDepartment()
+        {
+            try
+            {
+                IEnumerable<DepartmentModel> data = new List<DepartmentModel>();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Department]";
+                    data = con.Query<DepartmentModel>(query);
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
+
 
     } //end
+
 }

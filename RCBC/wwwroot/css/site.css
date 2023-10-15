@@ -37,6 +37,34 @@ body {
     background-color: #38b7fe !important;
 }
 
-.hide-el {
-    display: none !important;
+.dtactive {
+    background-color: #bfbfbb !important;
 }
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 250px;
+        margin: 1.75rem auto;
+    }
+}
+
+.modal-xsm {
+    max-width: 250px;
+}
+
+.modal-sm {
+    max-width: 470px;
+}
+
+.modal-md {
+    max-width: 820px;
+}
+
+.modal-ms {
+    max-width: 858px;
+}
+
+.modal-lg {
+    max-width: 1140px;
+}
+

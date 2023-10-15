@@ -63,7 +63,7 @@
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             @Html.LabelForModel("Email", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type="email", placeholder = "Email" })
                                             @Html.ValidationMessageFor(x => x.Email)
                                         </div>
                                     </div>
@@ -80,33 +80,27 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Group/Department</label>
-                                            <select class="form-control" name="GroupDept">
-                                                <option>GTB-BizSol</option>
-                                                <option>GTB-DBM</option>
-                                                <option>Operations</option>
-                                            </select>
+                                            @Html.LabelForModel("Group/Department", new { @class = "label-control" })
+                                            @Html.DropDownList("GroupDept", ViewBag.cmbDepartments as SelectList, new { @class = "form-control" })
+                                            @Html.ValidationMessageFor(x => x.GroupDept)
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <label>Role</label>
-                                            <select class="form-control" name="UserRole">
-                                                <option>System Admin</option>
-                                                <option>Admin (User)</option>
-                                                <option>Maker/Approver</option>
-                                                <option>Operations</option>
-                                                <option>IT Support</option>
-                                            </select>
+                                            @Html.LabelForModel("User Role", new { @class = "label-control" })
+                                            @Html.DropDownList("UserRole", ViewBag.cmbUserRoles as SelectList, new { @class = "form-control" })
+                                            @Html.ValidationMessageFor(x => x.UserRole)
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
+                                    <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                                </div>
                             </div>
                         </form>
 

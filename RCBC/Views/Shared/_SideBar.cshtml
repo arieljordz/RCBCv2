@@ -20,373 +20,110 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-                @if (@ViewBag.UserRole == "System Admin")
+                @foreach (ModuleModel item in ViewBag.Modules)
                 {
-                    <!-- DASHBOARD -->
                     <li class="nav-item menu-open">
                         <a href="#" class="nav-link active">
-                            <i class="nav-icon fa fa-shopping-bag"></i>
+                            <i class="@item.ModuleIcon"></i>
                             <p>
-                                Dashboard
+                                @item.Module
                                 <i class="right fas fa-angle-left"></i>
                             </p>
                         </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a id="dashboard" href="@Url.Content("~/Home/Dashboard")" class="nav-link active">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Dashboard</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
 
-                    <!-- MAINTENANCE -->
+                        @*                     @if (item.Link != null)
+                    {
+                    <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-folder-open-o"></i>
-                            <p>
-                                Maintenance
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="maintenance" href="#" class="nav-link">
-                                    <i class="fa fa-user nav-icon ml-2"></i>
-                                    <p>
-                                        User Maintenance
-                                        <i class="fas fa-angle-left right"></i>
-                                    </p>
-                                </a>
-                                <ul class="nav nav-treeview" style="display: none;">
-                                    <li class="nav-item">
-                                        <a id="view_users" href="@Url.Content("~/Maintenance/ViewAllUsers")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>View All Users</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="create_user" href="@Url.Content("~/Maintenance/CreateNewUser")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>Create New User</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="user_approval" href="@Url.Content("~/Maintenance/UserApproval")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>User Approval</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="reset_password" href="@Url.Content("~/Maintenance/ResetPassword")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>User Password Reset</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="role" href="#" class="nav-link">
-                                    <i class="fa fa-user-times nav-icon ml-2"></i>
-                                    <p>
-                                        Role Maintenance
-                                        <i class="fas fa-angle-left right"></i>
-                                    </p>
-                                </a>
-                                <ul class="nav nav-treeview" style="display: none;">
-                                    <li class="nav-item">
-                                        <a id="create_role" href="@Url.Content("~/Maintenance/CreateNewRole")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>Create New Role</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-
+                    <a id="@item.DivId" href="@Url.Content(item.Link)" class="nav-link">
+                    <i class="@item.SubModuleIcon"></i>
+                    <p>@item.SubModule</p>
+                    </a>
                     </li>
-
-                    <!-- CORPORATE CLIENT MANAGEMENT -->
+                    </ul>
+                    }
+                    else
+                    {
+                    <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-calendar-o"></i>
-                            <p>
-                                Corporate Management
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="corporate" href="@Url.Content("~/CorporateManagement/CorporateManagement")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Corporate Management</p>
-                                </a>
-                            </li>
-                        </ul>
+                    <a id="@item.DivId" href="#" class="nav-link">
+                    <i class="@item.SubModuleIcon"></i>
+                    <p>
+                    @item.SubModule
+                    <i class="fas fa-angle-left right"></i>
+                    </p>
+                    </a>
+                    @foreach (ChildModuleModel child in ViewBag.ChildModules)
+                    {
+                    if (@item.SubModuleId == child.SubModuleId)
+                    {
+                    <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                    <a id="@child.DivId" href="@Url.Content(child.Link)" class="nav-link">
+                    <i class="@child.ChildModuleIcon"></i>
+                    <p>@child.ChildModule</p>
+                    </a>
+                    </li>
+                    </ul>
+                    }
+
+                    }
+
+                    </li>
+                    </ul>
+                    }*@
+
+                        @foreach (SubModuleModel sub in ViewBag.SubModules)
+                        {
+                            @if (@item.ModuleId == sub.ModuleId)
+                            {
+                                if (sub.Link != null)
+                                {
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a id="@sub.DivId" href="@Url.Content(sub.Link)" class="nav-link">
+                                                <i class="@sub.SubModuleIcon"></i>
+                                                <p>@sub.SubModule</p>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a id="@sub.DivId" href="#" class="nav-link">
+                                                <i class="@sub.SubModuleIcon"></i>
+                                                <p>
+                                                    @sub.SubModule
+                                                    <i class="fas fa-angle-left right"></i>
+                                                </p>
+                                            </a>
+                                            @foreach (ChildModuleModel child in ViewBag.ChildModules)
+                                            {
+                                                if (@sub.SubModuleId == child.SubModuleId)
+                                                {
+                                                    <ul class="nav nav-treeview">
+                                                        <li class="nav-item">
+                                                            <a id="@child.DivId" href="@Url.Content(child.Link)" class="nav-link">
+                                                                <i class="@child.ChildModuleIcon"></i>
+                                                                <p>@child.ChildModule</p>
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                }
+                                            }
+
+                                        </li>
+                                    </ul>
+                                }
+                            }
+                        }
+
                     </li>
 
-                    <!-- REPORTS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-file-o"></i>
-                            <p>
-                                Reports
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="reports" href="@Url.Content("~/Reports/Reports")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Reports</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- SYSTEM PARAMETERS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-tasks"></i>
-                            <p>
-                                System Parameters
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="parameters" href="@Url.Content("~/Parameters/Parameters")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Parameters</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- RECON -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-refresh"></i>
-                            <p>
-                                Recon
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="recon" href="@Url.Content("~/Recon/Recon")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Recon</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                 }
-                else if (@ViewBag.UserRole == "Admin (User)")
-                {
-                    <!-- MAINTENANCE -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-folder-open-o"></i>
-                            <p>
-                                Maintenance
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="maintenance" href="#" class="nav-link">
-                                    <i class="fa fa-user nav-icon ml-2"></i>
-                                    <p>
-                                        User Maintenance
-                                        <i class="fas fa-angle-left right"></i>
-                                    </p>
-                                </a>
-                                <ul class="nav nav-treeview" style="display: none;">
-                                    <li class="nav-item">
-                                        <a id="view_users" href="@Url.Content("~/Maintenance/ViewAllUsers")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>View All Users</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="create_user" href="@Url.Content("~/Maintenance/CreateNewUser")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>Create New User</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="user_approval" href="@Url.Content("~/Maintenance/UserApproval")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>User Approval</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a id="reset_password" href="@Url.Content("~/Maintenance/ResetPassword")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>User Password Reset</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                     
-                    </li>
 
-                    <!-- REPORTS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-file-o"></i>
-                            <p>
-                                Reports
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="reports" href="@Url.Content("~/Reports/Reports")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Reports</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                }
-                else if (@ViewBag.UserRole == "Maker/Approver")
-                {
-                    <!-- MAINTENANCE -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-folder-open-o"></i>
-                            <p>
-                                Maintenance
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="role" href="#" class="nav-link">
-                                    <i class="fa fa-user-times nav-icon ml-2"></i>
-                                    <p>
-                                        Role Maintenance
-                                        <i class="fas fa-angle-left right"></i>
-                                    </p>
-                                </a>
-                                <ul class="nav nav-treeview" style="display: none;">
-                                    <li class="nav-item">
-                                        <a id="create_role" href="@Url.Content("~/Maintenance/CreateNewRole")" class="nav-link">
-                                            <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                            <p>Create New Role</p>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-
-                    </li>
-
-                    <!-- CORPORATE CLIENT MANAGEMENT -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-calendar-o"></i>
-                            <p>
-                                Corporate Management
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="corporate" href="@Url.Content("~/CorporateManagement/CorporateManagement")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Corporate Management</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                }
-                else if (@ViewBag.UserRole == "Operations")
-                {
-                    <!-- REPORTS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-file-o"></i>
-                            <p>
-                                Reports
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="reports" href="@Url.Content("~/Reports/Reports")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Reports</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- RECON -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-refresh"></i>
-                            <p>
-                                Recon
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="recon" href="@Url.Content("~/Recon/Recon")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Recon</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                }
-                else if (@ViewBag.UserRole == "IT Support")
-                {
-                    <!-- REPORTS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-file-o"></i>
-                            <p>
-                                Reports
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="reports" href="@Url.Content("~/Reports/Reports")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Reports</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <!-- SYSTEM PARAMETERS -->
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="nav-icon fa fa-tasks"></i>
-                            <p>
-                                System Parameters
-                                <i class="right fas fa-angle-left"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview" style="display: none;">
-                            <li class="nav-item">
-                                <a id="parameters" href="@Url.Content("~/Parameters/Parameters")" class="nav-link">
-                                    <i class="fa fa-arrow-right nav-icon ml-2"></i>
-                                    <p>Parameters</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                }
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
