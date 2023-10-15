@@ -8,5 +8,6 @@
         public string Link { get; set; }
         public int SubModuleId { get; set; }
         public int ModuleOrder { get; set; }
+        public bool IsActive { get; set;}
     }
 }

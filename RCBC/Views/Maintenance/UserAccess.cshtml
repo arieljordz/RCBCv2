@@ -52,7 +52,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <label>User ID: </label><label class="text-primary ml-2" id="UserID"></label>
+                                    <label>User ID: </label><label class="text-primary ml-2" id="Username"></label>
                                 </div>
                                 <div class="col-md-4">
                                     <label>Employee Name: </label><label class="text-primary ml-2" id="EmployeeName"></label>
@@ -87,46 +87,64 @@
                             <h3 class="card-title"><i class="fa fa-address-card-o pr-2"></i>User Access</h3>
                         </div>
 
-                        <div class="card-body">
+                        <form id="frmAccess" class="p-2" novalidate="novalidate">
+                            <input type="hidden" name="UserId" id="UserId" />
+                            <div class="card-body" id="div_access">
 
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <!-- checkbox -->
-                                    @foreach (AccessModuleModel sub in ViewBag.AccessModules)
-                                    {
-                                        <div class="form-group clearfix">
-                                            <div class="icheck-primary d-inline">
-                                                <input type="checkbox" id="@sub.SubModuleId">
+                                @foreach (AccessModuleModel sub in ViewBag.ActiveAccess)
+                                {
+                                    <div class="row">
+                                        <div class="col-sm-12">
+                                            <!-- checkbox -->
 
-                                                @if (@sub.ChildModule == null)
-                                                {
-                                                    <label for="@sub.SubModuleId">
-                                                        @sub.Module > @sub.SubModule
-                                                    </label>
-                                                }
-                                                else
-                                                {
-                                                    <label for="@sub.SubModuleId">
-                                                        @sub.Module > @sub.SubModule > @sub.ChildModule
-                                                    </label>
-                                                }
-
+                                            <div class="form-group clearfix">
+                                                <div class="icheck-primary d-inline">
+                                                    @if (sub.IsActive == true)
+                                                    {
+                                                        <input type="checkbox" class="check_access" id="@sub.SubModuleId" checked="checked">
+                                                        @if (@sub.ChildModule == null)
+                                                        {
+                                                            <label for="@sub.SubModuleId">
+                                                                @sub.Module > @sub.SubModule
+                                                            </label>
+                                                        }
+                                                        else
+                                                        {
+                                                            <label for="@sub.SubModuleId">
+                                                                @sub.Module > @sub.SubModule > @sub.ChildModule
+                                                            </label>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="checkbox" class="check_access" id="@sub.SubModuleId">
+                                                        @if (@sub.ChildModule == null)
+                                                        {
+                                                            <label for="@sub.SubModuleId">
+                                                                @sub.Module > @sub.SubModule
+                                                            </label>
+                                                        }
+                                                        else
+                                                        {
+                                                            <label for="@sub.SubModuleId">
+                                                                @sub.Module > @sub.SubModule > @sub.ChildModule
+                                                            </label>
+                                                        }
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+                                }
+                            </div>
 
-                                    }
-
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary" id="btnSave">Save</button>
+                                    <button type="button" class="btn btn-danger ml-3" id="btnCancel">Cancel</button>
                                 </div>
                             </div>
-
-                        </div>
-
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary">Save</button>
-                                <button type="button" class="btn btn-danger ml-3" id="btnCancel">Cancel</button>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -149,16 +167,25 @@
                     },
                     success: function (response) {
                         console.log(JSON.stringify(response.data))
-                        $('#UserID').html(response.data.userId);
-                        $('#EmployeeName').html(response.data.employeeName);
-                        $('#Email').html(response.data.email);
-                        $('#MobileNumber').html(response.data.mobileNumber);
-                        $('#GroupDept').html(response.data.groupDept);
-                        $('#UserRole').html(response.data.userRole);
 
                         if (response.data.userId == null) {
                             Swal.fire('Information!', 'No records found!.', 'info');
                         }
+                        else {
+                            $('#Username').html(response.data.userId);
+                            $('#EmployeeName').html(response.data.employeeName);
+                            $('#Email').html(response.data.email);
+                            $('#MobileNumber').html(response.data.mobileNumber);
+                            $('#GroupDept').html(response.data.groupDept);
+                            $('#UserRole').html(response.data.userRole);
+                            $('#UserRole').val(response.data.userRole);
+                            $('#UserId').val(response.data.id);
+
+                            //$("#div_access").load("/Maintenance/UserAccess");
+                            //$("#div_access").load('/Maintenance/UserAccess', function () {
+                            //});
+                        }
+
                     },
                     failure: function (response) {
                         alert(response.responseText);
@@ -174,6 +201,49 @@
                     $('#btnSearch').click();
                 }
             });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+                if ($('#UserId').val() == "" || $('#UserRole').val() == "") {
+                    Swal.fire('Warning!', 'Search an user first.', 'warning');
+                }
+                else {
+                    SaveUserAccess();
+                }
+            });
+
+            function SaveUserAccess() {
+                var selectedModules = [];
+
+                $('.check_access:checked').each(function () {
+                    selectedModules.push($(this).attr('id'));
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveUserAccess", "Maintenance")',
+                    data: {
+                        userId: $('#UserId').val(),
+                        userRole: $('#UserRole').val(),
+                        moduleIds: selectedModules
+                    },
+                    success: function (response) {
+                        if (response.success == true) {
+                            Swal.fire('Success!', response.message, 'success');
+                            $("#frmAccess").trigger("reset");
+                        }
+                        else {
+                            Swal.fire('Warning!', response.message, 'warning');
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            }
 
         });
 

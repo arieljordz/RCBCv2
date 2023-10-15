@@ -35,7 +35,7 @@ namespace RCBC.Controllers
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
-            string UserRole = Request.Cookies["UserRole"] == null? "System Admin" : Request.Cookies["UserRole"].ToString();
+            string UserRole = Request.Cookies["UserRole"] == null ? "System Admin" : Request.Cookies["UserRole"].ToString();
 
             ViewBag.Modules = global.GetModules(UserRole);
             ViewBag.SubModules = global.GetSubModules(UserRole);
@@ -101,81 +101,61 @@ namespace RCBC.Controllers
 
         public IActionResult Login(string Username, string Password)
         {
-            string salt = ""; //read from database
-            string HashedPass = ""; //read from database
-            string PlainPass = Password;
-            bool result;
-            string EmployeeName = "";
-            string UserRole = "";
-            int LoginAttempt = 0;
-            string LastLogin = DateTime.Now.ToString("dd MMMM yyyy hh:mm tt");
-            UserModel _userModel = new UserModel();
+            UserModel _userModel;
+
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
-                SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + Username + "'", con);
                 con.Open();
-                SqlDataReader sdr = cmd.ExecuteReader();
-                while (sdr.Read())
+
+                _userModel = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserId LIKE '%' + @Username + '%'", new { Username });
+
+                if (_userModel != null)
                 {
-                    salt = sdr["Salt"].ToString();
-                    HashedPass = sdr["HashPassword"].ToString();
-                    EmployeeName = Convert.ToString(sdr["EmployeeName"]);
-                    UserRole = Convert.ToString(sdr["UserRole"]);
-                    LoginAttempt = Convert.ToInt32(sdr["LoginAttempt"]);
-                }
-                con.Close();
-                PlainPass = PlainPass + salt; // append salt key
-                result = Crypto.VerifyHashedPassword(HashedPass, PlainPass); //verify password
-            }
-            Trace.WriteLine(result);
+                    // Combine the provided password with the salt
+                    string PlainPass = Password + _userModel.Salt;
 
-            var cookieOptions = new CookieOptions
-            {
-                // Set additional options if needed
-                Expires = DateTime.Now.AddMinutes(30),
-                Secure = true,
-                HttpOnly = true
-            };
+                    // Verify the hashed password
+                    bool result = Crypto.VerifyHashedPassword(_userModel.HashPassword, PlainPass);
 
-            // Add the cookie to the response
-            Response.Cookies.Append("Username", Username, cookieOptions);
-            Response.Cookies.Append("LastLogin", LastLogin, cookieOptions);
-            Response.Cookies.Append("EmployeeName", EmployeeName, cookieOptions);
-            Response.Cookies.Append("UserRole", UserRole, cookieOptions);
-
-            var SubModules = global.GetSubModules(UserRole).FirstOrDefault();
-            var ChildModules = global.GetChildModules(UserRole).FirstOrDefault();
-
-            if (result == true)
-            {
-                if (LoginAttempt == 0)
-                {
-                    return RedirectToAction("FirstLogin", "Home");
-                }
-                else
-                {
-                    if (SubModules != null)
+                    if (result)
                     {
-                        string input = SubModules.Link;
-                        string[] Link = input.Split('/');
+                        var cookieOptions = new CookieOptions
+                        {
+                            // Set additional options if needed
+                            Expires = DateTime.Now.AddMinutes(30),
+                            Secure = true,
+                            HttpOnly = true
+                        };
 
-                        return RedirectToAction(Link[2], Link[1]);
-                    }
-                    else
-                    {
-                        string input = ChildModules.Link;
-                        string[] Link = input.Split('/');
+                        // Add the cookie to the response
+                        Response.Cookies.Append("Username", Username, cookieOptions);
+                        Response.Cookies.Append("LastLogin", DateTime.Now.ToString("dd MMMM yyyy hh:mm tt"), cookieOptions);
+                        Response.Cookies.Append("EmployeeName", _userModel.EmployeeName, cookieOptions);
+                        Response.Cookies.Append("UserRole", _userModel.UserRole, cookieOptions);
 
-                        return RedirectToAction(Link[2], Link[1]);
+                        // Fetch SubModules and ChildModules as needed
+                        var SubModules = global.GetSubModules(_userModel.UserRole).FirstOrDefault();
+                        var ChildModules = global.GetChildModules(_userModel.UserRole).FirstOrDefault();
+
+                        if (_userModel.LoginAttempt == 0)
+                        {
+                            return RedirectToAction("FirstLogin", "Home");
+                        }
+                        else
+                        {
+                            string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                            string[] Link = input.Split('/');
+
+                            return RedirectToAction(Link[2], Link[1]);
+                        }
                     }
                 }
             }
-            else
-            {
-                ModelState.AddModelError("", "Invalid login attempt.");
-                return View("Index");
-            }
+
+            ModelState.AddModelError("", "Invalid login attempt.");
+            return View("Index");
         }
+
 
         public IActionResult SendResetPasswordLink(string UserID)
         {

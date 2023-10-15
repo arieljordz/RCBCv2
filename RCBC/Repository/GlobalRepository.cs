@@ -28,17 +28,16 @@ namespace RCBC.Repository
             List<ModuleModel> modules = new List<ModuleModel>();
 
             var qry = @"SELECT
-                        a.UserId,
                         a.Id as UserRoleId,
                         a.UserRole,
                         c.Id as ModuleId,
                         c.Description as Module,
 						c.Icon as ModuleIcon
-                    FROM [RCBC].[dbo].[UserRoleAccess] a
+                    FROM [RCBC].[dbo].[UserRole] a
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
                     INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
-					WHERE a.UserRole = @UserRole
-					GROUP BY a.UserId, a.Id, a.UserRole, c.Id, c.Description,c.Icon
+					WHERE a.UserRole = @UserRole AND b.Active = 1
+					GROUP BY a.Id, a.UserRole, c.Id, c.Description,c.Icon
 					ORDER BY c.Id";
 
             modules = con.Query<ModuleModel>(qry, new { UserRole }).ToList();
@@ -53,7 +52,6 @@ namespace RCBC.Repository
             List<SubModuleModel> modules = new List<SubModuleModel>();
 
             var qry = @"SELECT
-                        a.UserId,
                         a.Id as UserRoleId,
                         a.UserRole,
                         c.Id as ModuleId,
@@ -64,11 +62,11 @@ namespace RCBC.Repository
 						d.Icon as SubModuleIcon,
 						d.Link,
 						d.DivId
-                    FROM [RCBC].[dbo].[UserRoleAccess] a
+                    FROM [RCBC].[dbo].[UserRole] a
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
                     INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
 					INNER JOIN [RCBC].[dbo].[SubModule] d ON b.SubModuleId = d.Id
-					WHERE a.UserRole = @UserRole
+					WHERE a.UserRole = @UserRole AND b.Active = 1
 					ORDER BY c.Id";
 
             modules = con.Query<SubModuleModel>(qry, new { UserRole }).ToList();
@@ -91,10 +89,10 @@ namespace RCBC.Repository
                             ,c.[DivId]
                             ,c.[Sequence] as ChildModuleOrder
                             ,c.[Active]
-					FROM [RCBC].[dbo].[UserRoleAccess] a
+					FROM [RCBC].[dbo].[UserRole] a
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
 					INNER JOIN [RCBC].[dbo].[ChildModule] c ON b.SubModuleId = c.SubModuleId
-					WHERE a.UserRole = @UserRole
+					WHERE a.UserRole = @UserRole AND b.Active = 1
 					ORDER BY c.Sequence";
 
             modules = con.Query<ChildModuleModel>(qry, new { UserRole }).ToList();
@@ -102,6 +100,34 @@ namespace RCBC.Repository
 
             return modules;
         }
+
+        public List<AccessModuleModel> GetAccessPerRole(string UserRole)
+        {
+            using IDbConnection con = new SqlConnection(GetConnectionString());
+
+            List<AccessModuleModel> modules = new List<AccessModuleModel>();
+
+            var qry = @"SELECT 
+                            a.Description as Module, 
+                            b.SubModule,
+                            b.Id as SubModuleId,
+                            a.Sequence as ModuleOrder, 
+                            b.Link
+                        FROM [RCBC].[dbo].[Module] a
+                        INNER JOIN [RCBC].[dbo].[SubModule] b
+                        ON a.Id = b.ModuleId
+				        INNER JOIN [RCBC].[dbo].[UserAccessModules] c
+				        ON b.Id = c.SubModuleId
+				        INNER JOIN [RCBC].[dbo].[UserRole] d
+				        ON c.RoleId = d.Id
+				        WHERE d.UserRole = @UserRole
+                        ORDER BY a.Sequence";
+
+            modules = con.Query<AccessModuleModel>(qry, new { UserRole }).ToList();
+
+            return modules;
+        }
+
 
         public List<AccessModuleModel> GetAccessModules()
         {
@@ -121,6 +147,30 @@ namespace RCBC.Repository
                         ORDER BY a.Sequence";
 
             modules = con.Query<AccessModuleModel>(qry).ToList();
+
+            return modules;
+        }
+
+        public List<AccessModuleModel> GetActiveAccess(string UserRole)
+        {
+            List<AccessModuleModel> modules = new List<AccessModuleModel>();
+
+            var AccessPerRole = GetAccessPerRole(UserRole);
+            var AccessModules = GetAccessModules();
+
+            foreach (var module in AccessModules)
+            {
+                var IsActive = AccessPerRole.Where(x => x.SubModuleId == module.SubModuleId).FirstOrDefault();
+
+                AccessModuleModel access = new AccessModuleModel();
+                access.Module = module.Module;
+                access.SubModule = module.SubModule;
+                access.SubModuleId = module.SubModuleId;
+                access.ModuleOrder = module.ModuleOrder;
+                access.Link = module.Link;
+                access.IsActive = IsActive != null ? true : false;
+                modules.Add(access);
+            }
 
             return modules;
         }
@@ -147,6 +197,54 @@ namespace RCBC.Repository
             return true;
         }
 
+
+        public List<ModuleModel> GetAllModules()
+        {
+            List<ModuleModel> data = new List<ModuleModel>();
+
+            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                string qry = @"SELECT Id as ModuleId, Description as Module, Icon as ModuleIcon, Sequence as ModuleOrder, Active FROM [RCBC].[dbo].[Module]";
+                data = con.Query<ModuleModel>(qry).ToList();
+
+                con.Close();
+            }
+            return data;
+        }
+
+        public List<SubModuleModel> GetAllSubModules()
+        {
+            List<SubModuleModel> data = new List<SubModuleModel>();
+
+            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                string qry = @"SELECT Id as SubModuleId, SubModule, ModuleId, Icon as SubModuleIcon, Link, DivId, Sequence as SubModuleOrder, Active FROM [RCBC].[dbo].[SubModule]";
+                data = con.Query<SubModuleModel>(qry).ToList();
+
+                con.Close();
+            }
+            return data;
+        }
+        public List<ChildModuleModel> GetAllChildModules()
+        {
+            List<ChildModuleModel> data = new List<ChildModuleModel>();
+
+            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                string qry = @"SELECT Id as ChildModuleId, ChildModule, SubModuleId, Icon as ChildModuleIcon, Link, DivId, Sequence as ChildModuleOrder, Active FROM [RCBC].[dbo].[ChildModule]";
+                data = con.Query<ChildModuleModel>(qry).ToList();
+
+                con.Close();
+            }
+            return data;
+        }
+
         public List<UserRoleModel> GetUserRoles()
         {
             List<UserRoleModel> data = new List<UserRoleModel>();
@@ -157,6 +255,22 @@ namespace RCBC.Repository
 
                 string qry = @"SELECT * FROM [RCBC].[dbo].[UserRole]";
                 data = con.Query<UserRoleModel>(qry).ToList();
+
+                con.Close();
+            }
+            return data;
+        }
+
+        public List<UserRoleModel> GetRoleIdByRole(string UserRole)
+        {
+            List<UserRoleModel> data = new List<UserRoleModel>();
+
+            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                string qry = @"SELECT * FROM [RCBC].[dbo].[UserRole] WHERE UserRole LIKE '%' + @UserRole + '%'";
+                data = con.Query<UserRoleModel>(qry, new { UserRole = UserRole }).ToList();
 
                 con.Close();
             }

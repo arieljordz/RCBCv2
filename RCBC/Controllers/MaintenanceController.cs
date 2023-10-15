@@ -42,7 +42,9 @@ namespace RCBC.Controllers
             ViewBag.Modules = global.GetModules(UserRole);
             ViewBag.SubModules = global.GetSubModules(UserRole);
             ViewBag.ChildModules = global.GetChildModules(UserRole);
-            ViewBag.AccessModules = global.GetAccessModules();
+            //ViewBag.AccessModules = global.GetAccessModules();
+            //ViewBag.AccessPerRole = global.GetAccessPerRole(UserRole);
+            ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
 
             var UserRoles = global.GetUserRoles();
             ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -165,20 +167,6 @@ namespace RCBC.Controllers
                                 // Execute the query and retrieve the inserted Id
                                 int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
 
-
-                                // Insert into UserRoleAccess table
-                                string insertUserRoleAccessQuery = @"
-                                INSERT INTO [RCBC].[dbo].[UserRoleAccess] (UserId, UserRole)
-                                VALUES(@UserId, @UserRole)";
-
-                                var userRoleAccessParameters = new
-                                {
-                                    UserId = insertedId,
-                                    UserRole = user.UserRole,
-                                };
-
-                                con.Execute(insertUserRoleAccessQuery, userRoleAccessParameters, transaction);
-
                                 msg = "Successfully Saved.";
                             }
                             else
@@ -226,31 +214,35 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserModel _userModel = new UserModel();
+                UserModel _user;
+                UserAccessModel _access;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + Username + "'", con);
                     con.Open();
-                    SqlDataReader sdr = cmd.ExecuteReader();
-                    while (sdr.Read())
-                    {
-                        _userModel.UserId = Convert.ToString(sdr["UserId"]);
-                        _userModel.EmployeeName = Convert.ToString(sdr["EmployeeName"]);
-                        _userModel.Email = Convert.ToString(sdr["Email"]);
-                        _userModel.MobileNumber = Convert.ToString(sdr["MobileNumber"]);
-                        _userModel.GroupDept = Convert.ToString(sdr["GroupDept"]);
-                        _userModel.UserRole = Convert.ToString(sdr["UserRole"]);
-                    }
+
+                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserId LIKE '%' + @Username + '%'", new { Username });
+
+                    int UserId = _user != null? _user.Id : 0;
+
+                    _access = con.QueryFirstOrDefault<UserAccessModel>(@"SELECT * FROM [RCBC].[dbo].[UserAccessModules] WHERE UserId = @UserId", new { UserId });
+
                     con.Close();
                 }
-                Trace.WriteLine(JsonConvert.SerializeObject(_userModel));
-                return Json(new { success = true, data = _userModel });
+
+                if (_user != null)
+                {
+                    return Json(new { success = true, data = _user, access = _access });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "User not found" });
+                }
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
-
         }
 
         public IActionResult RegeneratePassword(string Username, string Password, string EmployeeName, string Email, string Mobileno, string GrpDept, string Role)
@@ -528,6 +520,72 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
 
+        }
+
+        public IActionResult SaveUserAccess(int userId, string userRole, int[] moduleIds)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    UserAccessModel _userAccess;
+
+                    _userAccess = con.QueryFirstOrDefault<UserAccessModel>(@"SELECT * FROM [RCBC].[dbo].[UserAccessModules] WHERE UserId = @userId", new { userId });
+
+                    if (moduleIds.Length > 0)
+                    {
+                        foreach (var SubModuleId in moduleIds)
+                        {
+                            var Roles = global.GetUserRoles().Where(x => x.UserRole == userRole).FirstOrDefault();
+                            var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+
+                            if (_userAccess == null)
+                            {
+                                string insertQuery = @"
+                                INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId, Active)
+                                VALUES(@UserId, @RoleId, @ModuleId, @SubModuleId, @Active)";
+
+                                var parameters = new
+                                {
+                                    UserId = userId,
+                                    RoleId = Roles != null ? Roles.Id : 0,
+                                    ModuleId = Modules != null ? Modules.ModuleId : 0,
+                                    SubModuleId = SubModuleId,
+                                    Active = false,
+                                };
+
+                                con.Execute(insertQuery, parameters);
+                                msg = "Successfully saved.";
+                            }
+                            else
+                            {
+                                string updateQuery = @"UPDATE [RCBC].[dbo].[UserAccessModules] SET Active = @Active WHERE SubModuleId = @SubModuleId AND UserId = @UserId";
+
+                                var parameters = new
+                                {
+                                    UserId = userId,
+                                    SubModuleId = SubModuleId,
+                                    Active = false,
+                                };
+
+                                con.Execute(updateQuery, parameters);
+
+                                msg = "Successfully updated.";
+                            }
+                        }
+                        return Json(new { success = true, message = msg });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "No selected Modules." });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         public IActionResult SaveDepartment(DepartmentModel dept)

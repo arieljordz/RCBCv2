@@ -31,48 +31,6 @@
                             </p>
                         </a>
 
-                        @*                     @if (item.Link != null)
-                    {
-                    <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                    <a id="@item.DivId" href="@Url.Content(item.Link)" class="nav-link">
-                    <i class="@item.SubModuleIcon"></i>
-                    <p>@item.SubModule</p>
-                    </a>
-                    </li>
-                    </ul>
-                    }
-                    else
-                    {
-                    <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                    <a id="@item.DivId" href="#" class="nav-link">
-                    <i class="@item.SubModuleIcon"></i>
-                    <p>
-                    @item.SubModule
-                    <i class="fas fa-angle-left right"></i>
-                    </p>
-                    </a>
-                    @foreach (ChildModuleModel child in ViewBag.ChildModules)
-                    {
-                    if (@item.SubModuleId == child.SubModuleId)
-                    {
-                    <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                    <a id="@child.DivId" href="@Url.Content(child.Link)" class="nav-link">
-                    <i class="@child.ChildModuleIcon"></i>
-                    <p>@child.ChildModule</p>
-                    </a>
-                    </li>
-                    </ul>
-                    }
-
-                    }
-
-                    </li>
-                    </ul>
-                    }*@
-
                         @foreach (SubModuleModel sub in ViewBag.SubModules)
                         {
                             @if (@item.ModuleId == sub.ModuleId)

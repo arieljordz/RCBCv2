@@ -12,7 +12,17 @@ namespace RCBC.Interface
 
         List<AccessModuleModel> GetAccessModules();
 
+        List<AccessModuleModel> GetAccessPerRole(string UserRole);
+
+        List<AccessModuleModel> GetActiveAccess(string UserRole);
+
         bool IsStrongPassword(string password);
+
+        List<ModuleModel> GetAllModules();
+
+        List<SubModuleModel> GetAllSubModules();
+
+        List<ChildModuleModel> GetAllChildModules();
 
         List<UserRoleModel> GetUserRoles();
 
