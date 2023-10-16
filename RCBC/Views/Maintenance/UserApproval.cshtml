@@ -39,16 +39,29 @@
                         </div>
 
                         <div class="card-body">
-                            <form id="frmRegister" class="p-2">
+                            <form id="frmAccess" class="p-2" novalidate="novalidate">
+                                <input type="hidden" name="UserId" id="UserId" />
+                                <div class="card-body" id="div_access">
+
+                                    <div class="row pb-3 pt-3">
+                                        <div class="col-md-12">
+                                            <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                                <table id="tbl_access" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-primary" id="btnSave">Save</button>
+                                        <button type="button" class="btn btn-danger ml-3" id="btnCancel">Cancel</button>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -62,6 +75,116 @@
     {
     <script>
         $(document).ready(function () {
+
+            $('#btnSearch').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SearchUser", "Maintenance")',
+                    data: {
+                        "Username": $('#usernameSearch').val(),
+                    },
+                    success: function (response) {
+                        console.log(response.data);
+
+                        if (response.success == false) {
+                            LoadAccessByRole(null);
+                            $('#Username').html("");
+                            $('#EmployeeName').html("");
+                            $('#Email').html("");
+                            $('#MobileNumber').html("");
+                            $('#GroupDept').html("");
+                            $('#UserRole').html("");
+                            $('#UserRole').val("");
+                            $('#UserId').val(0);
+                            Swal.fire('Information!', 'No records found!.', 'info');
+                        }
+                        else {
+                            $('#Username').html(response.data.userId);
+                            $('#EmployeeName').html(response.data.employeeName);
+                            $('#Email').html(response.data.email);
+                            $('#MobileNumber').html(response.data.mobileNumber);
+                            $('#GroupDept').html(response.data.groupDept);
+                            $('#UserRole').html(response.data.userRole);
+                            $('#UserRole').val(response.data.userRole);
+                            $('#UserId').val(response.data.id);
+
+                            LoadAccessByRole(response.data.userRole);
+                        }
+                    },
+                    failure: function (response) {
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        alert(response.responseText);
+                    }
+                });
+            });
+
+            $('#usernameSearch').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    $('#btnSearch').click();
+                }
+            });
+
+            $('#btnSave').click(function (e) {
+                e.preventDefault();
+                if ($('#UserId').val() == "" || $('#UserRole').val() == "") {
+                    Swal.fire('Warning!', 'Search an user first.', 'warning');
+                }
+                else {
+                    SaveUserAccess();
+                }
+            });
+
+            LoadAccessByRole("");
+            function LoadAccessByRole(UserRole) {
+                $('#tbl_access').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    ajax: {
+                        "url": "../Maintenance/LoadAccessByRole",
+                        "type": "GET",
+                        "data": { UserRole: UserRole },
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            {
+                                data: "isActive", title: "Active", sClass: "dt-body-center", render: function (data, type, row) {
+                                    var subModuleId = row.subModuleId;
+                                    if (data == true) {
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
+                                    }
+                                    else {
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
+                                    }
+                                }
+                            },
+                            { "data": "subModuleId", visible: false, "orderable": false },
+                            { "data": "module", title: "Module", sClass: "dt-body-left", orderable: false },
+                            { "data": "subModule", title: "Sub Module", sClass: "dt-body-left", orderable: false },
+                        ]
+                });
+
+                $('#tbl_access tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(this).hasClass("dtactive")) {
+                        $(this).parent().find("tr").removeClass("dtactive");
+                        $(this).addClass("dtactive");
+                        Id = SelectedValue("tbl_access", "id");
+
+                        var row = table.row(this);
+                        var checkbox = row.nodes().to$().find('input[type="checkbox"]');
+
+                        checkbox.prop('checked', !checkbox.prop('checked'));
+
+                    } else {
+                        $(this).removeClass("dtactive");
+                        checkbox.prop('checked', false);
+                    }
+                });
+            }
 
         });
 

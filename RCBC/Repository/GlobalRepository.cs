@@ -21,7 +21,7 @@ namespace RCBC.Repository
             return Configuration.GetConnectionString("DefaultConnection");
         }
 
-        public List<ModuleModel> GetModules(string UserRole)
+        public List<ModuleModel> GetModulesByRole(string UserRole)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -45,7 +45,7 @@ namespace RCBC.Repository
             return modules;
         }
 
-        public List<SubModuleModel> GetSubModules(string UserRole)
+        public List<SubModuleModel> GetSubModulesByRole(string UserRole)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -75,7 +75,7 @@ namespace RCBC.Repository
             return modules;
         }
 
-        public List<ChildModuleModel> GetChildModules(string UserRole)
+        public List<ChildModuleModel> GetChildModulesRole(string UserRole)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -101,7 +101,7 @@ namespace RCBC.Repository
             return modules;
         }
 
-        public List<AccessModuleModel> GetAccessPerRole(string UserRole)
+        public List<AccessModuleModel> GetAccessByRole(string UserRole)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -112,7 +112,8 @@ namespace RCBC.Repository
                             b.SubModule,
                             b.Id as SubModuleId,
                             a.Sequence as ModuleOrder, 
-                            b.Link
+                            b.Link,
+                            c.Active as IsActive
                         FROM [RCBC].[dbo].[Module] a
                         INNER JOIN [RCBC].[dbo].[SubModule] b
                         ON a.Id = b.ModuleId
@@ -127,7 +128,6 @@ namespace RCBC.Repository
 
             return modules;
         }
-
 
         public List<AccessModuleModel> GetAccessModules()
         {
@@ -153,24 +153,18 @@ namespace RCBC.Repository
 
         public List<AccessModuleModel> GetActiveAccess(string UserRole)
         {
-            List<AccessModuleModel> modules = new List<AccessModuleModel>();
-
-            var AccessPerRole = GetAccessPerRole(UserRole);
+            var AccessPerRole = GetAccessByRole(UserRole);
             var AccessModules = GetAccessModules();
 
-            foreach (var module in AccessModules)
+            var modules = AccessModules.Select(module => new AccessModuleModel
             {
-                var IsActive = AccessPerRole.Where(x => x.SubModuleId == module.SubModuleId).FirstOrDefault();
-
-                AccessModuleModel access = new AccessModuleModel();
-                access.Module = module.Module;
-                access.SubModule = module.SubModule;
-                access.SubModuleId = module.SubModuleId;
-                access.ModuleOrder = module.ModuleOrder;
-                access.Link = module.Link;
-                access.IsActive = IsActive != null ? true : false;
-                modules.Add(access);
-            }
+                IsActive = AccessPerRole.FirstOrDefault(x => x.SubModuleId == module.SubModuleId)?.IsActive ?? false,
+                Module = module.Module,
+                SubModule = module.SubModule,
+                SubModuleId = module.SubModuleId,
+                ModuleOrder = module.ModuleOrder,
+                Link = module.Link
+            }).OrderBy(x => x.ModuleOrder).ToList();
 
             return modules;
         }
@@ -196,7 +190,6 @@ namespace RCBC.Repository
 
             return true;
         }
-
 
         public List<ModuleModel> GetAllModules()
         {
@@ -229,6 +222,7 @@ namespace RCBC.Repository
             }
             return data;
         }
+
         public List<ChildModuleModel> GetAllChildModules()
         {
             List<ChildModuleModel> data = new List<ChildModuleModel>();

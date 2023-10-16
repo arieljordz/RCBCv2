@@ -29,25 +29,38 @@ namespace RCBC.Controllers
         }
         public IActionResult LoadViews()
         {
-
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
-            string UserRole = Request.Cookies["UserRole"] == null ? "System Admin" : Request.Cookies["UserRole"].ToString();
+            if (Request.Cookies["Username"] != null)
+            {
+                string UserRole = Request.Cookies["UserRole"].ToString();
 
-            ViewBag.Modules = global.GetModules(UserRole);
-            ViewBag.SubModules = global.GetSubModules(UserRole);
-            ViewBag.ChildModules = global.GetChildModules(UserRole);
-            ViewBag.AccessModules = global.GetAccessModules();
+                ViewBag.Modules = global.GetModulesByRole(UserRole);
+                ViewBag.SubModules = global.GetSubModulesByRole(UserRole);
+                ViewBag.ChildModules = global.GetChildModulesRole(UserRole);
+                ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
 
-            return View();
+                var UserRoles = global.GetUserRoles();
+                ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+
+                var Departments = global.GetDepartments();
+                ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+
+                return View();
+            }
+            else
+            {
+                return View("Signout");
+            }
         }
+
 
         public IActionResult Index()
         {
-            return LoadViews();
+            return View();
         }
 
         public IActionResult Dashboard()
@@ -66,6 +79,10 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult Signout()
+        {
+            return RedirectToAction("Index");
+        }
         public IActionResult Logout()
         {
             Response.Cookies.Delete("Username");
@@ -77,25 +94,19 @@ namespace RCBC.Controllers
         {
             var UserRole = Request.Cookies["UserRole"];
 
-            if (UserRole == "System Admin")
+            if (UserRole != null)
             {
-                return RedirectToAction("Dashboard", "Home");
+                var SubModules = global.GetSubModulesByRole(UserRole).FirstOrDefault();
+                var ChildModules = global.GetChildModulesRole(UserRole).FirstOrDefault();
+
+                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                string[] Link = input.Split('/');
+
+                return RedirectToAction(Link[2], Link[1]);
             }
-            else if (UserRole == "Admin (User)")
+            else
             {
-                return RedirectToAction("ViewAllUsers", "Maintenance");
-            }
-            else if (UserRole == "Maker/Approver")
-            {
-                return RedirectToAction("CreateNewRole", "Maintenance");
-            }
-            else if (UserRole == "Operations")
-            {
-                return RedirectToAction("Reports", "Reports");
-            }
-            else //IT Support
-            {
-                return RedirectToAction("Reports", "Reports");
+                return View("Signout");
             }
         }
 
@@ -134,8 +145,8 @@ namespace RCBC.Controllers
                         Response.Cookies.Append("UserRole", _userModel.UserRole, cookieOptions);
 
                         // Fetch SubModules and ChildModules as needed
-                        var SubModules = global.GetSubModules(_userModel.UserRole).FirstOrDefault();
-                        var ChildModules = global.GetChildModules(_userModel.UserRole).FirstOrDefault();
+                        var SubModules = global.GetSubModulesByRole(_userModel.UserRole).FirstOrDefault();
+                        var ChildModules = global.GetChildModulesRole(_userModel.UserRole).FirstOrDefault();
 
                         if (_userModel.LoginAttempt == 0)
                         {

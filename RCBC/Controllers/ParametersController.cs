@@ -20,21 +20,34 @@ namespace RCBC.Controllers
         }
         public IActionResult LoadViews()
         {
-
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
             ViewBag.UserId = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
-            string UserRole = Request.Cookies["UserRole"].ToString();
+            if (Request.Cookies["Username"] != null)
+            {
+                string UserRole = Request.Cookies["UserRole"].ToString();
 
-            ViewBag.Modules = global.GetModules(UserRole);
-            ViewBag.SubModules = global.GetSubModules(UserRole);
-            ViewBag.ChildModules = global.GetChildModules(UserRole);
-            ViewBag.AccessModules = global.GetAccessModules();
+                ViewBag.Modules = global.GetModulesByRole(UserRole);
+                ViewBag.SubModules = global.GetSubModulesByRole(UserRole);
+                ViewBag.ChildModules = global.GetChildModulesRole(UserRole);
+                ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
 
-            return View();
+                var UserRoles = global.GetUserRoles();
+                ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+
+                var Departments = global.GetDepartments();
+                ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+
+                return View();
+            }
+            else
+            {
+                return View("Signout");
+            }
         }
+
 
         public IActionResult Parameters()
         {
