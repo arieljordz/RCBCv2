@@ -4,17 +4,17 @@ namespace RCBC.Interface
 {
     public interface IGlobalRepository
     {
-        List<ModuleModel> GetModulesByRole(string UserRole);
+        List<ModuleModel> GetModulesByUserId(int UserId);
 
-        List<SubModuleModel> GetSubModulesByRole(string UserRole);
+        List<SubModuleModel> GetSubModulesByUserId(int UserId);
 
-        List<ChildModuleModel> GetChildModulesRole(string UserRole);
+        List<ChildModuleModel> GetChildModulesByUserId(int UserId);
 
         List<AccessModuleModel> GetAccessModules();
 
-        List<AccessModuleModel> GetAccessByRole(string UserRole);
+        List<AccessModuleModel> GetUserAccessModules();
 
-        List<AccessModuleModel> GetActiveAccess(string UserRole);
+        List<AccessModuleModel> GetUserAccessById(int UserId);
 
         bool IsStrongPassword(string password);
 

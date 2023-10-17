@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\wwwroot\\images\\ajax-loading.gif",
+      "PackagePath": "staticwebassets\\images\\ajax-loading.gif"
+    },
+    {
       "Id": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\wwwroot\\images\\background.jpg",
       "PackagePath": "staticwebassets\\images\\background.jpg"
     },

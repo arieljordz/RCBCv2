@@ -21,7 +21,7 @@ namespace RCBC.Repository
             return Configuration.GetConnectionString("DefaultConnection");
         }
 
-        public List<ModuleModel> GetModulesByRole(string UserRole)
+        public List<ModuleModel> GetModulesByUserId(int UserId)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -36,16 +36,16 @@ namespace RCBC.Repository
                     FROM [RCBC].[dbo].[UserRole] a
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
                     INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
-					WHERE a.UserRole = @UserRole AND b.Active = 1
+					WHERE b.UserId = @UserId AND b.Active = 1
 					GROUP BY a.Id, a.UserRole, c.Id, c.Description,c.Icon
 					ORDER BY c.Id";
 
-            modules = con.Query<ModuleModel>(qry, new { UserRole }).ToList();
+            modules = con.Query<ModuleModel>(qry, new { UserId }).ToList();
 
             return modules;
         }
 
-        public List<SubModuleModel> GetSubModulesByRole(string UserRole)
+        public List<SubModuleModel> GetSubModulesByUserId(int UserId)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -66,16 +66,16 @@ namespace RCBC.Repository
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
                     INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
 					INNER JOIN [RCBC].[dbo].[SubModule] d ON b.SubModuleId = d.Id
-					WHERE a.UserRole = @UserRole AND b.Active = 1
+					WHERE b.UserId = @UserId AND b.Active = 1
 					ORDER BY c.Id";
 
-            modules = con.Query<SubModuleModel>(qry, new { UserRole }).ToList();
+            modules = con.Query<SubModuleModel>(qry, new { UserId }).ToList();
             //modules = con.Query<SubModuleModel>(qry).ToList();
 
             return modules;
         }
 
-        public List<ChildModuleModel> GetChildModulesRole(string UserRole)
+        public List<ChildModuleModel> GetChildModulesByUserId(int UserId)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -92,16 +92,16 @@ namespace RCBC.Repository
 					FROM [RCBC].[dbo].[UserRole] a
                     INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
 					INNER JOIN [RCBC].[dbo].[ChildModule] c ON b.SubModuleId = c.SubModuleId
-					WHERE a.UserRole = @UserRole AND b.Active = 1
+					WHERE b.UserId = @UserId AND b.Active = 1
 					ORDER BY c.Sequence";
 
-            modules = con.Query<ChildModuleModel>(qry, new { UserRole }).ToList();
+            modules = con.Query<ChildModuleModel>(qry, new { UserId }).ToList();
             //modules = con.Query<ChildModuleModel>(qry).ToList();
 
             return modules;
         }
 
-        public List<AccessModuleModel> GetAccessByRole(string UserRole)
+        public List<AccessModuleModel> GetUserAccessModules()
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());
 
@@ -111,6 +111,7 @@ namespace RCBC.Repository
                             a.Description as Module, 
                             b.SubModule,
                             b.Id as SubModuleId,
+                            c.UserId,
                             a.Sequence as ModuleOrder, 
                             b.Link,
                             c.Active as IsActive
@@ -121,10 +122,9 @@ namespace RCBC.Repository
 				        ON b.Id = c.SubModuleId
 				        INNER JOIN [RCBC].[dbo].[UserRole] d
 				        ON c.RoleId = d.Id
-				        WHERE d.UserRole = @UserRole
                         ORDER BY a.Sequence";
 
-            modules = con.Query<AccessModuleModel>(qry, new { UserRole }).ToList();
+            modules = con.Query<AccessModuleModel>(qry).ToList();
 
             return modules;
         }
@@ -151,22 +151,51 @@ namespace RCBC.Repository
             return modules;
         }
 
-        public List<AccessModuleModel> GetActiveAccess(string UserRole)
+        public List<AccessModuleModel> GetUserAccessById(int UserId)
         {
-            var AccessPerRole = GetAccessByRole(UserRole);
-            var AccessModules = GetAccessModules();
+            List<AccessModuleModel> modules = new List<AccessModuleModel>();
 
-            var modules = AccessModules.Select(module => new AccessModuleModel
+            var UserAccessModules = GetUserAccessModules();
+            var AllModules = GetAccessModules();
+
+            foreach (var module in AllModules)
             {
-                IsActive = AccessPerRole.FirstOrDefault(x => x.SubModuleId == module.SubModuleId)?.IsActive ?? false,
-                Module = module.Module,
-                SubModule = module.SubModule,
-                SubModuleId = module.SubModuleId,
-                ModuleOrder = module.ModuleOrder,
-                Link = module.Link
-            }).OrderBy(x => x.ModuleOrder).ToList();
+                if (UserId != 0)
+                {
+                    var IsActive = UserAccessModules.Where(x => x.SubModuleId == module.SubModuleId && x.UserId == UserId).FirstOrDefault();
 
-            return modules;
+                    AccessModuleModel access = new AccessModuleModel();
+
+                    if (IsActive != null)
+                    {
+                        access.IsActive = IsActive.IsActive;
+                    }
+                    else
+                    {
+                        access.IsActive = false;
+                    }
+                    access.Module = module.Module;
+                    access.SubModule = module.SubModule;
+                    access.SubModuleId = module.SubModuleId;
+                    access.ModuleOrder = module.ModuleOrder;
+                    access.Link = module.Link;
+                    modules.Add(access);
+                }
+                else
+                {
+                    AccessModuleModel access = new AccessModuleModel();
+                    access.IsActive = false;
+                    access.Module = module.Module;
+                    access.SubModule = module.SubModule;
+                    access.SubModuleId = module.SubModuleId;
+                    access.ModuleOrder = module.ModuleOrder;
+                    access.Link = module.Link;
+                    modules.Add(access);
+                }
+
+            }
+
+            return modules.OrderBy(x => x.ModuleOrder).ToList();
         }
 
         public bool IsStrongPassword(string password)

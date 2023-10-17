@@ -27,12 +27,11 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                string UserRole = Request.Cookies["UserRole"].ToString();
+                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-                ViewBag.Modules = global.GetModulesByRole(UserRole);
-                ViewBag.SubModules = global.GetSubModulesByRole(UserRole);
-                ViewBag.ChildModules = global.GetChildModulesRole(UserRole);
-                ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
+                ViewBag.Modules = global.GetModulesByUserId(UserId);
+                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
                 var UserRoles = global.GetUserRoles();
                 ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");

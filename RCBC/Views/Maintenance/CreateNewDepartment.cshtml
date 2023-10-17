@@ -121,7 +121,7 @@
             })
 
             function SaveDepartment() {
-
+                $('#loading-image').show();
                 var formData = $("#frmDepartment").serialize();
 
                 $.ajax({
@@ -130,6 +130,7 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
+                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmDepartment").trigger("reset");
                             LoadDepartment();
@@ -139,9 +140,11 @@
                         }
                     },
                     failure: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });

@@ -51,25 +51,26 @@
                                 </div>
                             </div>
                             <div class="row">
+                                <input type="hidden" name="Id" />
                                 <div class="col-md-4">
-                                    <label>User ID: </label><label class="text-primary ml-2" id="Username"></label>
+                                    <label>User ID: </label><label class="text-primary ml-2" name="UserName"></label>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Employee Name: </label><label class="text-primary ml-2" id="EmployeeName"></label>
+                                    <label>Employee Name: </label><label class="text-primary ml-2" name="EmployeeName"></label>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Email: </label><label class="text-primary ml-2" id="Email"></label>
+                                    <label>Email: </label><label class="text-primary ml-2" name="Email"></label>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-4">
-                                    <label>Mobile Number: </label><label class="text-primary ml-2" id="MobileNumber"></label>
+                                    <label>Mobile Number: </label><label class="text-primary ml-2" name="MobileNumber"></label>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>Group/Department: </label><label class="text-primary ml-2" id="GroupDept"></label>
+                                    <label>Group/Department: </label><label class="text-primary ml-2" name="GroupDept"></label>
                                 </div>
                                 <div class="col-md-4">
-                                    <label>User Role: </label><label class="text-primary ml-2" id="UserRole"></label>
+                                    <label>User Role: </label><label class="text-primary ml-2" name="UserRole"></label>
                                 </div>
                             </div>
 
@@ -89,15 +90,16 @@
 
                         <form id="frmAccess" class="p-2" novalidate="novalidate">
                             <input type="hidden" name="UserId" id="UserId" />
-                            <div class="card-body" id="div_access">
+                            <div class="card-body">
 
                                 <div class="row pb-3 pt-3">
                                     <div class="col-md-12">
                                         <div class="dataTables_wrapper table-responsive dt-bootstrap4">
-                                            <table id="tbl_access" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                            <table id="tbl_access" class="table table-bordered table-hover" style="width:100%"></table>
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
 
                             <div class="card-footer">
@@ -110,6 +112,7 @@
                     </div>
                 </div>
             </div>
+        
         </div><!--/. container-fluid -->
     </section>
 
@@ -123,6 +126,7 @@
             var checkedCheckboxIds = [];
 
             $('#btnSearch').click(function () {
+                $('#loading-image').show();
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("SearchUser", "Maintenance")',
@@ -131,36 +135,38 @@
                     },
                     success: function (response) {
                         //console.log(response.data);
-
+                        $('#loading-image').hide();
                         if (response.success == false) {
-                            LoadAccessByRole(null);
-                            $('#Username').html("");
-                            $('#EmployeeName').html("");
-                            $('#Email').html("");
-                            $('#MobileNumber').html("");
-                            $('#GroupDept').html("");
-                            $('#UserRole').html("");
-                            $('#UserRole').val("");
-                            $('#UserId').val(0);
+                            LoadUserAccessById(null);
+                            $("[name='Id']").html("");
+                            $("[name='UserId']").val(0);
+                            $("[name='UserName']").html("");
+                            $("[name='EmployeeName']").html("");
+                            $("[name='Email']").html("");
+                            $("[name='MobileNumber']").html("");
+                            $("[name='GroupDept']").html("");
+                            $("[name='UserRole']").html("");
                             Swal.fire('Information!', 'No records found!.', 'info');
                         }
                         else {
-                            $('#Username').html(response.data.userId);
-                            $('#EmployeeName').html(response.data.employeeName);
-                            $('#Email').html(response.data.email);
-                            $('#MobileNumber').html(response.data.mobileNumber);
-                            $('#GroupDept').html(response.data.groupDept);
-                            $('#UserRole').html(response.data.userRole);
-                            $('#UserRole').val(response.data.userRole);
-                            $('#UserId').val(response.data.id);
-
-                            LoadAccessByRole(response.data.userRole);
+                            $("[name='Id']").html(response.data.id);
+                            $("[name='UserId']").val(response.data.id);
+                            $("[name='UserName']").html(response.data.userId);
+                            $("[name='EmployeeName']").html(response.data.employeeName);
+                            $("[name='Email']").html(response.data.email);
+                            $("[name='MobileNumber']").html(response.data.mobileNumber);
+                            $("[name='GroupDept']").html(response.data.groupDept);
+                            $("[name='UserRole']").val(response.data.userRole);
+                            $("[name='UserRole']").html(response.data.userRole);
+                            LoadUserAccessById(response.data.userRole);
                         }
                     },
                     failure: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });
@@ -174,7 +180,7 @@
 
             $('#btnSave').click(function (e) {
                 e.preventDefault();
-                if ($('#UserId').val() == "" || $('#UserRole').val() == "") {
+                if ($("[name='UserId']").val() == "" || $("[name='UserRole']").val() == "") {
                     Swal.fire('Warning!', 'Search user first.', 'warning');
                 }
                 else {
@@ -190,43 +196,49 @@
             });
 
             function SaveUserAccess() {
+                $('#loading-image').show();
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("SaveUserAccess", "Maintenance")',
                     data: {
-                        userId: $('#UserId').val(),
-                        userRole: $('#UserRole').val(),
+                        userId: $("[name='UserId']").val(),
+                        userRole: $("[name='UserRole']").val(),
                         moduleIds: checkedCheckboxIds
                     },
                     success: function (response) {
+                        $('#loading-image').hide();
                         if (response.success == true) {
                             Swal.fire('Success!', response.message, 'success');
-                        }
-                        else {
+                        } else {
                             Swal.fire('Warning!', response.message, 'warning');
                         }
                         checkedCheckboxIds = [];
-                        //$("#frmAccess").trigger("reset");
-                        LoadAccessByRole(response.userRole);
+                        LoadUserAccessById(response.userRole);
                     },
                     failure: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });
             }
 
-            LoadAccessByRole("");
-            function LoadAccessByRole(UserRole) {
+            LoadUserAccessById("");
+            function LoadUserAccessById(UserRole) {
                 var tbl_access = $('#tbl_access').DataTable({
                     destroy: true,
-
                     responsive: true,
                     processing: false,
+                    search: false,
+                    stateSave: true,
+                    info: false,
+                    searching: false,
+                    paging: false,
                     ajax: {
-                        "url": "../Maintenance/LoadAccessByRole",
+                        "url": "../Maintenance/LoadUserAccessById",
                         "type": "GET",
                         "data": { UserRole: UserRole },
                         "datatype": "JSON",
@@ -234,19 +246,19 @@
                     columns:
                         [
                             {
-                                data: "isActive", title: "Active", sClass: "dt-body-center", render: function (data, type, row) {
+                                data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
                                     if (data == true) {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked" disabled="true"><label for="' + subModuleId + '"></label></div>'
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
                                     }
                                     else {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" disabled="true"><label for="' + subModuleId + '"></label></div>'
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
                                     }
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
-                            { "data": "module", title: "Module", sClass: "dt-body-left", orderable: false },
-                            { "data": "subModule", title: "Sub Module", sClass: "dt-body-left", orderable: false },
+                            { "data": "module", title: "Module", sClass: "text-left", orderable: false },
+                            { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
 
                         ]
                 });

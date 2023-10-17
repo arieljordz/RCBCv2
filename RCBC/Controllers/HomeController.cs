@@ -36,12 +36,11 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                string UserRole = Request.Cookies["UserRole"].ToString();
-
-                ViewBag.Modules = global.GetModulesByRole(UserRole);
-                ViewBag.SubModules = global.GetSubModulesByRole(UserRole);
-                ViewBag.ChildModules = global.GetChildModulesRole(UserRole);
-                ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
+                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
+              
+                ViewBag.Modules = global.GetModulesByUserId(UserId);
+                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
                 var UserRoles = global.GetUserRoles();
                 ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -92,12 +91,12 @@ namespace RCBC.Controllers
         }
         public IActionResult LoginProceed()
         {
-            var UserRole = Request.Cookies["UserRole"];
+            int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-            if (UserRole != null)
+            if (UserId != 0)
             {
-                var SubModules = global.GetSubModulesByRole(UserRole).FirstOrDefault();
-                var ChildModules = global.GetChildModulesRole(UserRole).FirstOrDefault();
+                var SubModules = global.GetSubModulesByUserId(UserId).FirstOrDefault();
+                var ChildModules = global.GetChildModulesByUserId(UserId).FirstOrDefault();
 
                 string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
                 string[] Link = input.Split('/');
@@ -143,10 +142,11 @@ namespace RCBC.Controllers
                         Response.Cookies.Append("LastLogin", DateTime.Now.ToString("dd MMMM yyyy hh:mm tt"), cookieOptions);
                         Response.Cookies.Append("EmployeeName", _userModel.EmployeeName, cookieOptions);
                         Response.Cookies.Append("UserRole", _userModel.UserRole, cookieOptions);
+                        Response.Cookies.Append("UserId", _userModel.Id.ToString(), cookieOptions);
 
                         // Fetch SubModules and ChildModules as needed
-                        var SubModules = global.GetSubModulesByRole(_userModel.UserRole).FirstOrDefault();
-                        var ChildModules = global.GetChildModulesRole(_userModel.UserRole).FirstOrDefault();
+                        var SubModules = global.GetSubModulesByUserId(_userModel.Id).FirstOrDefault();
+                        var ChildModules = global.GetChildModulesByUserId(_userModel.Id).FirstOrDefault();
 
                         if (_userModel.LoginAttempt == 0)
                         {

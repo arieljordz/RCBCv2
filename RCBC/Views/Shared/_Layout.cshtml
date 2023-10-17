@@ -47,8 +47,8 @@
     }
 
 
-   @* <main role="main" class="pb-3">
-      
+    @* <main role="main" class="pb-3">
+
     </main>*@
     @RenderBody()
     <!-- REQUIRED SCRIPTS -->
@@ -98,5 +98,10 @@
 
     <script src="~/js/site.js" asp-append-version="true"></script>
     @RenderSection("scripts", required: false)
+
+    <div id="loading-image" style="position: fixed; left: 0px; top: 35%; width: 100%; height: 100%; text-align: center; display: none;">
+        <img class="loader-overlay" style="height:15%" src="@Url.Content("~/images/ajax-loading.gif")" alt="Loading" />
+    </div>
+
 </body>
 </html>

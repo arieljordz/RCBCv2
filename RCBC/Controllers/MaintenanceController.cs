@@ -38,12 +38,11 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                string UserRole = Request.Cookies["UserRole"].ToString();
+                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-                ViewBag.Modules = global.GetModulesByRole(UserRole);
-                ViewBag.SubModules = global.GetSubModulesByRole(UserRole);
-                ViewBag.ChildModules = global.GetChildModulesRole(UserRole);
-                ViewBag.ActiveAccess = global.GetActiveAccess(UserRole);
+                ViewBag.Modules = global.GetModulesByUserId(UserId);
+                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
                 var UserRoles = global.GetUserRoles();
                 ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -136,6 +135,8 @@ namespace RCBC.Controllers
         {
             try
             {
+                string[] moduleIdsArray = user.ModuleIds.Split(',');
+
                 string salt = Crypto.GenerateSalt();
                 string password = "Pass1234." + salt;
                 string hashedPassword = Crypto.HashPassword(password);
@@ -174,6 +175,25 @@ namespace RCBC.Controllers
                                 // Execute the query and retrieve the inserted Id
                                 int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
 
+                                foreach (var Id in moduleIdsArray)
+                                {
+                                    int SubModuleId = Convert.ToInt32(Id);
+                                    var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                                    var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+
+                                    string insertQuery = @"
+                                        INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId)
+                                        VALUES(@UserId, @RoleId, @ModuleId, @SubModuleId)";
+
+                                    var insertParameters = new
+                                    {
+                                        UserId = insertedId,
+                                        RoleId = Roles?.Id ?? 0,
+                                        ModuleId = Modules?.ModuleId ?? 0,
+                                        SubModuleId = SubModuleId,
+                                    };
+                                    con.Execute(insertQuery, insertParameters, transaction);
+                                }
                                 msg = "Successfully Saved.";
                             }
                             else
@@ -252,21 +272,18 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult RegeneratePassword(string Username, string Password, string EmployeeName, string Email, string Mobileno, string GrpDept, string Role)
+        public IActionResult RegeneratePassword(UserModel user)
         {
             try
             {
-                // Generate a new password
                 var random = new Random();
                 var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
                 var finalString = new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
 
-                // Generate a new salt and hash the password
                 string Salt = Crypto.GenerateSalt();
                 string password = finalString + Salt;
                 string HashPassword = Crypto.HashPassword(password);
 
-                // Send email
                 string bodyMsg = "<head>" +
                                 "<style>" +
                                 "body{" +
@@ -277,7 +294,7 @@ namespace RCBC.Controllers
                                 "<body>" +
                                 "<p>Good Day!<br>" +
                                 "<br>" +
-                                "User ID: " + Username + "<br>" +
+                                "User ID: " + user.UserId + "<br>" +
                                 "New Password: <font color=red>" + finalString + "</font> <br>" +
                                 "<br>" +
                                 "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
@@ -300,7 +317,6 @@ namespace RCBC.Controllers
                 smtpClient.Send(mailMessage);
                 Trace.WriteLine("Email Sent Successfully.");
 
-                // Update password in the database using Dapper
                 using (var con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
@@ -310,7 +326,7 @@ namespace RCBC.Controllers
                     {
                         HashPassword = HashPassword,
                         Salt = Salt,
-                        Username
+                        Username = user.UserId
                     };
                     con.Execute(sql, parameters);
 
@@ -574,17 +590,17 @@ namespace RCBC.Controllers
 
                             transaction.Commit();
 
-                            return Json(new { success = true, message = msg, userRole = userRole });
+                            return Json(new { success = true, message = msg, userId = userId });
                         }
                         else
                         {
-                            return Json(new { success = false, message = "No selected Modules.", userRole = userRole });
+                            return Json(new { success = false, message = "No selected Modules.", userId = userId });
                         }
                     }
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        return Json(new { success = false, message = ex.Message, userRole = userRole });
+                        return Json(new { success = false, message = ex.Message, userId = userId });
                     }
                 }
             }
@@ -708,11 +724,11 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult LoadAccessByRole(string UserRole)
+        public IActionResult LoadUserAccessById(int UserId)
         {
             List<AccessModuleModel> data;
 
-            data = global.GetActiveAccess(UserRole).ToList();
+            data = global.GetUserAccessById(UserId).ToList();
 
             return Json(new { data });
         }

@@ -203,7 +203,7 @@
             }
 
             function Register() {
-
+                $('#loading-image').show();
                 var formData = $("#frmUsers").serialize();
 
                 $.ajax({
@@ -212,6 +212,7 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
+                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmUsers").trigger("reset");
                             LoadUsers();
@@ -221,9 +222,11 @@
                         }
                     },
                     failure: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
+                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });

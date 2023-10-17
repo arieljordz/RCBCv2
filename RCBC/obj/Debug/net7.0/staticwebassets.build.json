@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "ea9w6n5qDcBjnCscAg8EUoEXO/6tOJro+qGIIeg0EfE=",
+  "Hash": "oh/e4mIYBRHsurwa8F7YHhRA4IatW7h7bnkFSMw2MDE=",
   "Source": "RCBC",
   "BasePath": "_content/RCBC",
   "Mode": "Default",
@@ -49,6 +49,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\wwwroot\\images\\ajax-loading.gif",
+      "SourceId": "RCBC",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\wwwroot\\",
+      "BasePath": "_content/RCBC",
+      "RelativePath": "images/ajax-loading.gif",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\ajax-loading.gif"
     },
     {
       "Identity": "D:\\MY PROJECTS\\GIT-RCBCv2\\RCBCv2\\RCBC\\wwwroot\\images\\background.jpg",
