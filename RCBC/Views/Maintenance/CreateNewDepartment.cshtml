@@ -250,8 +250,9 @@
                                 success: function (res) {
                                     if (res.success == true) {
                                         Swal.fire('Success!', 'Record has been deleted.', 'success');
-                                        LoadDepartment();
+                                        Swal.fire('Success!', response.message, 'success');
                                         $("#frmDepartment").trigger("reset");
+                                        LoadDepartment();
                                     } else {
                                         Swal.fire('Error!', res.msg, 'error');
                                     }

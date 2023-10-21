@@ -135,8 +135,6 @@ namespace RCBC.Controllers
         {
             try
             {
-                string[] moduleIdsArray = user.ModuleIds.Split(',');
-
                 string salt = Crypto.GenerateSalt();
                 string password = "Pass1234." + salt;
                 string hashedPassword = Crypto.HashPassword(password);
@@ -175,24 +173,29 @@ namespace RCBC.Controllers
                                 // Execute the query and retrieve the inserted Id
                                 int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
 
-                                foreach (var Id in moduleIdsArray)
+                                if (user.ModuleIds != null)
                                 {
-                                    int SubModuleId = Convert.ToInt32(Id);
-                                    var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
-                                    var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+                                    string[] moduleIdsArray = user.ModuleIds.Split(',');
 
-                                    string insertQuery = @"
+                                    foreach (var Id in moduleIdsArray)
+                                    {
+                                        int SubModuleId = Convert.ToInt32(Id);
+                                        var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                                        var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+
+                                        string insertQuery = @"
                                         INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId)
                                         VALUES(@UserId, @RoleId, @ModuleId, @SubModuleId)";
 
-                                    var insertParameters = new
-                                    {
-                                        UserId = insertedId,
-                                        RoleId = Roles?.Id ?? 0,
-                                        ModuleId = Modules?.ModuleId ?? 0,
-                                        SubModuleId = SubModuleId,
-                                    };
-                                    con.Execute(insertQuery, insertParameters, transaction);
+                                        var insertParameters = new
+                                        {
+                                            UserId = insertedId,
+                                            RoleId = Roles?.Id ?? 0,
+                                            ModuleId = Modules?.ModuleId ?? 0,
+                                            SubModuleId = SubModuleId,
+                                        };
+                                        con.Execute(insertQuery, insertParameters, transaction);
+                                    }
                                 }
                                 msg = "Successfully Saved.";
                             }
@@ -248,7 +251,7 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserId LIKE '%' + @Username + '%'", new { Username });
+                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1 AND UserId LIKE '%' + @Username + '%'", new { Username });
 
                     int UserId = _user != null ? _user.Id : 0;
 
@@ -347,8 +350,7 @@ namespace RCBC.Controllers
 
             using (IDbConnection con = new SqlConnection(GetConnectionString()))
             {
-                // Use Dapper to simplify the database query
-                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation]").ToList();
+                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1").ToList();
             }
 
             return Json(new { data });
@@ -388,8 +390,8 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
+                    string query = "UPDATE [RCBC].[dbo].[UsersInformation] SET UserStatus = @UserStatus WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id , UserStatus = false });
 
                     con.Close();
                 }
