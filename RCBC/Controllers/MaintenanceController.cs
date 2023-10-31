@@ -90,6 +90,30 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult ViewAllPartnerVendor()
+        {
+            return LoadViews();
+        }
+        public IActionResult AddNewPartnerVendor()
+        {
+            return LoadViews();
+        }
+        public IActionResult PartnerVendorApproval()
+        {
+            return LoadViews();
+        }
+        public IActionResult ViewAllPickupLocations()
+        {
+            return LoadViews();
+        }
+        public IActionResult AddNewPickupLocation()
+        {
+            return LoadViews();
+        }
+        public IActionResult PickupLocationApproval()
+        {
+            return LoadViews();
+        }
 
         public IActionResult SendForgotPassword(string Username)
         {
@@ -391,7 +415,7 @@ namespace RCBC.Controllers
                     con.Open();
 
                     string query = "UPDATE [RCBC].[dbo].[UsersInformation] SET UserStatus = @UserStatus WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id , UserStatus = false });
+                    con.Execute(query, new { Id = Id, UserStatus = false });
 
                     con.Close();
                 }
@@ -564,11 +588,12 @@ namespace RCBC.Controllers
                                 }
                                 else
                                 {
-                                    string updateQuery = @"UPDATE [RCBC].[dbo].[UserAccessModules] SET Active = @Active WHERE SubModuleId = @SubModuleId AND UserId = @UserId";
+                                    string updateQuery = @"UPDATE [RCBC].[dbo].[UserAccessModules] SET Active = @Active, ModuleId = @ModuleId, SubModuleId = @SubModuleId WHERE SubModuleId = @SubModuleId AND UserId = @UserId";
 
                                     var updateParameters = new
                                     {
                                         UserId = userId,
+                                        ModuleId = Modules?.ModuleId ?? 0,
                                         SubModuleId = SubModuleId,
                                         Active = true,
                                     };
@@ -735,6 +760,267 @@ namespace RCBC.Controllers
             return Json(new { data });
         }
 
+        public IActionResult LoadClientDetails()
+        {
+            try
+            {
+                IEnumerable<CorporateClientModel> data = new List<CorporateClientModel>();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[CorporateClient]";
+                    data = con.Query<CorporateClientModel>(query);
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
+
+        public IActionResult SaveClientDetails(CorporateClientModel corp)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (corp.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[CorporateClient] (CorporateGroup, CorporateCode, CorporateName, ContactPerson, Email, MobileNumber, GlobalAccount, Active)
+                        VALUES(@CorporateGroup, @CorporateCode, @CorporateName, @ContactPerson, @Email, @MobileNumber, @GlobalAccount, @Active)";
+
+                        var parameters = new
+                        {
+                            CorporateGroup = corp.CorporateGroup,
+                            CorporateCode = corp.CorporateCode,
+                            CorporateName = corp.CorporateName,
+                            ContactPerson = corp.ContactPerson,
+                            Email = corp.Email,
+                            MobileNumber = corp.MobileNumber,
+                            GlobalAccount = corp.GlobalAccount,
+                            Active = corp.Active,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"
+                        UPDATE [RCBC].[dbo].[CorporateClient] 
+                        SET CorporateGroup = @CorporateGroup, CorporateCode = @CorporateCode, CorporateName = @CorporateName,
+                        ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber, GlobalAccount = @GlobalAccount, Active = @Active
+                        WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = corp.Id,
+                            CorporateGroup = corp.CorporateGroup,
+                            CorporateCode = corp.CorporateCode,
+                            CorporateName = corp.CorporateName,
+                            ContactPerson = corp.ContactPerson,
+                            Email = corp.Email,
+                            MobileNumber = corp.MobileNumber,
+                            GlobalAccount = corp.GlobalAccount,
+                            Active = corp.Active,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult UpdateClientDetails(int Id)
+        {
+            try
+            {
+                CorporateClientModel data;
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveCorporateClient(int Id)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult LoadAccountDetails()
+        {
+            try
+            {
+                IEnumerable<AccountModel> data = new List<AccountModel>();
+
+                List<CurrencyModel> currencies = new List<CurrencyModel>
+                {
+                new CurrencyModel { Id = 1, Currency = "PHP" },
+                new CurrencyModel { Id = 2, Currency = "USD" },
+                new CurrencyModel { Id = 3, Currency = "EUR" },
+                new CurrencyModel { Id = 4, Currency = "JPY" },
+                };
+
+                List<AccountTypeModel> accountTypes = new List<AccountTypeModel>
+                {
+                new AccountTypeModel { Id = 1, AccountType = "CA" },
+                new AccountTypeModel { Id = 2, AccountType = "SA" },
+                };
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts]";
+                    data = con.Query<AccountModel>(query);
+
+                    con.Close();
+                }
+
+                List<AccountModel> result = data.Select(account => new AccountModel
+                {
+                    Id = account.Id,
+                    CorporateClientId = account.CorporateClientId,
+                    AccountNumber = account.AccountNumber,
+                    AccountName = account.AccountName,
+                    Currency = currencies.FirstOrDefault(c => c.Id == account.CurrencyId)?.Currency,
+                    AccountType = accountTypes.FirstOrDefault(a => a.Id == account.AccountTypeId)?.AccountType
+                }).ToList();
+
+                return Json(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
+
+        public IActionResult SaveAccountDetails(CorporateClientModel corp)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (corp.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[Accounts] (CorporateClientId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
+                        VALUES(@CorporateClientId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)";
+
+                        var parameters = new
+                        {
+                            CorporateClientId = corp.CorporateClientId,
+                            AccountNumber = corp.AccountNumber,
+                            AccountName = corp.AccountName,
+                            CurrencyId = corp.CurrencyId,
+                            AccountTypeId = corp.AccountTypeId,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"
+                        UPDATE [RCBC].[dbo].[Accounts] 
+                        SET CorporateClientId = @CorporateClientId, AccountNumber = @AccountNumber, AccountName = @AccountName, CurrencyId = @CurrencyId, AccountTypeId = @AccountTypeId
+                        WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = corp.Id,
+                            CorporateClientId = corp.CorporateClientId,
+                            AccountNumber = corp.AccountNumber,
+                            AccountName = corp.AccountName,
+                            CurrencyId = corp.CurrencyId,
+                            AccountTypeId = corp.AccountTypeId,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult LoadContactDetails()
+        {
+            try
+            {
+                IEnumerable<ContactModel> data = new List<ContactModel>();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts]";
+                    data = con.Query<ContactModel>(query);
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
 
     } //end
 

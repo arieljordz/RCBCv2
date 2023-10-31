@@ -65,7 +65,20 @@
                                                         <li class="nav-item">
                                                             <a id="@child.DivId" href="@Url.Content(child.Link)" class="nav-link">
                                                                 <i class="@child.ChildModuleIcon"></i>
-                                                                <p>@child.ChildModule</p>
+
+                                                                @if (@child.ChildModule.Length > 20)
+                                                                {
+                                                                    int lastSpaceIndex = @child.ChildModule.LastIndexOf(' ');
+                                                                    string firstPart = @child.ChildModule.Substring(0, lastSpaceIndex);
+                                                                    string lastWord = @child.ChildModule.Substring(lastSpaceIndex + 1);
+                                                                    <p>@firstPart</p>
+                                                                    <p class="ml-5">@lastWord</p>
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    <p>@child.ChildModule</p>
+                                                                }
                                                             </a>
                                                         </li>
                                                     </ul>

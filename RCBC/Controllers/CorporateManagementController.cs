@@ -48,7 +48,15 @@ namespace RCBC.Controllers
         }
 
 
-        public IActionResult CorporateManagement()
+        public IActionResult ViewClientDetails()
+        {
+            return LoadViews();
+        }
+        public IActionResult CreateNewClient()
+        {
+            return LoadViews();
+        }
+        public IActionResult ClientApproval()
         {
             return LoadViews();
         }

@@ -1,0 +1,695 @@
+﻿@model RCBC.Models.CorporateClientModel
+@{
+    ViewData["Title"] = "Corporate Client Management";
+}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper" style="padding-top: 60px;">
+
+    <div class="pl-3 pr-3 pt-3">
+        <label>Last Login: @ViewBag.DateNow.ToString("MMMM dd, yyyy HH:mm:ss")</label>
+    </div>
+
+    <div class="ln_solid"></div>
+    <!-- Content Header (Page header) -->
+    <div class="content-header pt-0 pb-0">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Corporate Client Management</a></li>
+                        <li class="breadcrumb-item active">Create New Corporate Client</li>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-center">
+
+                <div class="col-md-12">
+                    <div class="card card-light-blue">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>Create New Corporate Client</h3>
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="card card-primary card-outline card-tabs">
+                                <div class="card-header p-0 pt-1 border-bottom-0">
+                                    <ul class="nav nav-tabs" id="tab" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="tab_corporate_client" data-toggle="pill" href="#custom_tab_corporate_client" role="tab" aria-controls="custom_tab_corporate_client" aria-selected="true">Corporate Client Details</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="tab_account_details" data-toggle="pill" href="#custom_tab_account_details" role="tab" aria-controls="custom_tab_account_details" aria-selected="false">Account Details</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="tab_contact_details" data-toggle="pill" href="#custom_tab_contact_details" role="tab" aria-controls="custom_tab_contact_details" aria-selected="false">Contact Details</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content" id="tab_content">
+                                        <div class="tab-pane fade active show" id="custom_tab_corporate_client" role="tabpanel" aria-labelledby="tab_corporate_client">
+
+                                            <form id="form_client" novalidate="novalidate">
+
+                                                <input type="hidden" name="Id">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Corporate Group", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.CorporateGroup, new { @class = "form-control", placeholder = "CorporateGroup" })
+                                                            @Html.ValidationMessageFor(x => x.CorporateGroup)
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Corporate Code", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.CorporateCode, new { @class = "form-control", placeholder = "CorporateCode" })
+                                                            @Html.ValidationMessageFor(x => x.CorporateCode)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Corporate Name", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.CorporateName, new { @class = "form-control", placeholder = "CorporateName" })
+                                                            @Html.ValidationMessageFor(x => x.CorporateName)
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "ContactPerson" })
+                                                            @Html.ValidationMessageFor(x => x.ContactPerson)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Email", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                                            @Html.ValidationMessageFor(x => x.Email)
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group">
+                                                            @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                                            @Html.ValidationMessageFor(x => x.MobileNumber)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group clearfix">
+                                                            <div class="icheck-primary d-inline">
+                                                                @Html.CheckBoxFor(x => x.Active, new { @id = "ActiveStatus" })
+                                                                @Html.Label("ActiveStatus", "Active Status")
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group clearfix">
+                                                            <div class="icheck-primary d-inline">
+                                                                @Html.CheckBoxFor(x => x.GlobalAccount, new { @id = "GlobalAccount" })
+                                                                @Html.Label("GlobalAccount", "Global Account")
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-flex justify-content-end">
+                                                    <button type="submit" id="btnSaveClient" class="btn btn-primary">Save</button>
+                                                    <button type="button" id="btnCancelClient" class="btn btn-danger ml-3">Cancel</button>
+                                                </div>
+
+                                            </form>
+
+                                        </div>
+                                        <div class="tab-pane fade" id="custom_tab_account_details" role="tabpanel" aria-labelledby="tab_account_details">
+                                            <div class="row pl-2">
+                                                <button type="button" class="btn btn-primary" id="btn_add_account"><i class="fa fa-plus mr-2"></i>Add New Account</button>
+                                            </div>
+                                            <div class="row pb-3 pt-3">
+                                                <div class="col-md-12">
+                                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                                        <table id="tbl_account_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="custom_tab_contact_details" role="tabpanel" aria-labelledby="tab_contact_details">
+                                            <div class="row pl-2">
+                                                <button type="button" class="btn btn-primary" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
+                                            </div>
+                                            <div class="row pb-3 pt-3">
+                                                <div class="col-md-12">
+                                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                                        <table id="tbl_contact_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!--/. container-fluid -->
+    </section>
+
+    <div id="modal_add_account" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-user pr-2"></i>Add New Account</h4>
+                    <button type="button" class="close" id="btnCloseAccount" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="row p-4">
+                    <div class="col-md-12">
+                        <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                            <table id="tbl_client_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="form_account" novalidate="novalidate">
+                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4">
+                        <div class="card-header p-0 pt-1 border-bottom-0">
+                            <div class="modal-body pb-0">
+                                @Html.HiddenFor(x => x.Id)
+                                @Html.HiddenFor(x => x.CorporateClientId)
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Account Number", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.AccountNumber, new { @class = "form-control", placeholder = "Account Number" })
+                                            @Html.ValidationMessageFor(x => x.AccountNumber)
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Account Name", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.AccountName, new { @class = "form-control", placeholder = "Account Name" })
+                                            @Html.ValidationMessageFor(x => x.AccountName)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Currency", new { @class = "label-control" })
+                                            <select class="form-control" name="CurrencyId">
+                                                <option value="1">PHP</option>
+                                                <option value="2">USD</option>
+                                                <option value="3">EUR</option>
+                                                <option value="4">JPY</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("AccountType", new { @class = "label-control" })
+                                            <select class="form-control" name="AccountTypeId">
+                                                <option value="1">CA</option>
+                                                <option value="2">SA</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <button type="submit" class="btn btn-primary float-right mr-3 mb-3">Save</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal_add_contact" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Add New Contact</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <form id="form_contact" novalidate="novalidate">
+
+                    <div class="modal-body">
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.AccountId)
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
+                                    @Html.ValidationMessageFor(x => x.ContactPerson)
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Email", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                    @Html.ValidationMessageFor(x => x.Email)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                    @Html.ValidationMessageFor(x => x.MobileNumber)
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary float-right">Save</button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<!-- /.content-wrapper -->
+@section Scripts
+    {
+    <script>
+        $(document).ready(function () {
+            $('#tab_corporate_client').addClass('active');
+
+            ValidateFormClient();
+            function ValidateFormClient() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveClientDetails();
+                    }
+                });
+                $('#form_client').validate({
+                    rules: {
+                        CorporateGroup: {
+                            required: true
+                        },
+                        CorporateCode: {
+                            required: true
+                        },
+                        CorporateName: {
+                            required: true
+                        },
+                        ContactPerson: {
+                            required: true
+                        },
+                        Email: {
+                            required: true
+                        },
+                        MobileNumber: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        CorporateGroup: {
+                            required: "This field is required"
+                        },
+                        CorporateCode: {
+                            required: "This field is required"
+                        },
+                        CorporateName: {
+                            required: "This field is required"
+                        },
+                        ContactPerson: {
+                            required: "This field is required"
+                        },
+                        Email: {
+                            required: "This field is required"
+                        },
+                        MobileNumber: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveClientDetails() {
+                $('#loading-image').show();
+                var formData = $("#form_client").serialize();
+                console.log(formData);
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveClientDetails", "Maintenance")',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success == true) {
+                            $('#loading-image').hide();
+                            Swal.fire('Success!', response.message, 'success');
+                            $("#form_client").trigger("reset");
+                        }
+                        else {
+                            Swal.fire('Warning!', 'Client Already Exists.', 'warning');
+                        }
+                    },
+                    failure: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    }
+                });
+            }
+
+            $("#btnCancelClient").click(function (e) {
+                e.preventDefault();
+                $("#form_client").trigger("reset");
+            });
+
+            LoadAccountDetails();
+            function LoadAccountDetails() {
+                $('#tbl_account_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadAccountDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "accountNumber", title: "Account Number", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountName", title: "Account Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "currency", title: "Currency", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountType", title: "AccountType", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspUpdate</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspDelete</a>" +
+                                        "</div></div></div ></div>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_account_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        //UpdateUserRoles();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        //RemoveUserRole();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_account_details", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("#form_account").trigger("reset");
+                        }
+                    }
+                });
+            }
+
+            $("#btn_add_account").click(function (e) {
+                e.preventDefault();
+                $("#modal_add_account").modal("show");
+                LoadClientDetails();
+            });
+
+            $("#btnCloseAccount").click(function (e) {
+                e.preventDefault();
+                $("#form_account").trigger("reset");
+            });
+
+            LoadClientDetails();
+            function LoadClientDetails() {
+                $('#tbl_client_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadClientDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
+                            { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            {
+                                data: "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-warning">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                        ]
+                });
+
+                $('#tbl_client_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(this).hasClass("dtactive")) {
+                        $(this).parent().find("tr").removeClass("dtactive");
+                        $(this).addClass("dtactive");
+                        Id = SelectedValue("tbl_client_details", "id");
+                        $("[name='CorporateClientId']").val(Id);
+                    } else {
+                        $(this).removeClass("dtactive");
+                        $("[name='CorporateClientId']").val(0);
+                        $("#form_account").trigger("reset");
+                    }
+                });
+            }
+
+            ValidateFormAccount();
+            function ValidateFormAccount() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveAccountDetails();
+                    }
+                });
+                $('#form_account').validate({
+                    rules: {
+                        AccountNumber: {
+                            required: true
+                        },
+                        AccountName: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        AccountNumber: {
+                            required: "This field is required"
+                        },
+                        AccountName: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveAccountDetails() {
+                if ($("[name='CorporateClientId']").val() != 0) {
+                    $('#loading-image').show();
+                    var formData = $("#form_account").serialize();
+                    //console.log(formData);
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("SaveAccountDetails", "Maintenance")',
+                        data: formData,
+                        success: function (response) {
+                            if (response.success == true) {
+                                $('#loading-image').hide();
+                                Swal.fire('Success!', response.message, 'success');
+                                $("#form_account").trigger("reset");
+                                $("#modal_add_account").modal("hide");
+                                LoadAccountDetails();
+                            }
+                            else {
+                                Swal.fire('Warning!', 'Account Already Exists.', 'warning');
+                            }
+                        },
+                        failure: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Select Corporate Client first.', 'warning');
+                }
+            }
+
+            LoadContactDetails();
+            function LoadContactDetails() {
+                $('#tbl_contact_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    //order: [[1, "asc"], [2, "asc"]],
+                    //lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadContactDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "contactPerson", title: "Contact Person", sClass: "dt-body-center", orderable: false },
+                            { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
+                            { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspUpdate</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspDelete</a>" +
+                                        "</div></div></div ></div>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_contact_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        //UpdateUserRoles();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        //RemoveUserRole();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_contact_details", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("#form_account").trigger("reset");
+                        }
+                    }
+                });
+            }
+
+            $("#btn_add_contact").click(function (e) {
+                e.preventDefault();
+                $("#modal_add_contact").modal("show");
+            });
+
+
+        });
+
+        ActiveMenu("#create_client");
+
+    </script>
+}
+
