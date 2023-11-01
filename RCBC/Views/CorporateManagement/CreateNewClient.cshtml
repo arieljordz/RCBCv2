@@ -182,20 +182,20 @@
 
             <div class="modal-content">
                 <div class="modal-header bg-light-blue">
-                    <h4 class="modal-title" id="modal_name"><i class="fa fa-user pr-2"></i>Add New Account</h4>
+                    <h4 class="modal-title" id="modal_name_account"><i class="fa fa-user pr-2"></i>Add New Account</h4>
                     <button type="button" class="close" id="btnCloseAccount" data-dismiss="modal">×</button>
                 </div>
 
-                <div class="row p-4">
+                <div class="row p-4" id="div_client_account_table">
                     <div class="col-md-12">
                         <div class="dataTables_wrapper table-responsive dt-bootstrap4">
-                            <table id="tbl_client_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                            <table id="tbl_client_account" class="table table-bordered table-hover text-center" style="width:100%"></table>
                         </div>
                     </div>
                 </div>
 
                 <form id="form_account" novalidate="novalidate">
-                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4">
+                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_account">
                         <div class="card-header p-0 pt-1 border-bottom-0">
                             <div class="modal-body pb-0">
                                 @Html.HiddenFor(x => x.Id)
@@ -257,47 +257,55 @@
 
             <div class="modal-content">
                 <div class="modal-header bg-light-blue">
-                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Add New Contact</h4>
+                    <h4 class="modal-title" id="modal_name_contact"><i class="fa fa-address-book-o pr-2"></i>Add New Contact</h4>
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
 
+                <div class="row p-4" id="div_client_contact_table">
+                    <div class="col-md-12">
+                        <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                            <table id="tbl_client_contact" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+
                 <form id="form_contact" novalidate="novalidate">
+                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_contact">
+                        <div class="card-header p-0 pt-1 border-bottom-0">
+                            <div class="modal-body pb-0">
+                                @Html.HiddenFor(x => x.Id)
+                                @Html.HiddenFor(x => x.AccountId)
+                                @Html.HiddenFor(x => x.CorporateClientId)
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
+                                            @Html.ValidationMessageFor(x => x.ContactPerson)
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Email", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                            @Html.ValidationMessageFor(x => x.Email)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                            @Html.ValidationMessageFor(x => x.MobileNumber)
+                                        </div>
+                                    </div>
+                                </div>
 
-                    <div class="modal-body">
-                        @Html.HiddenFor(x => x.Id)
-                        @Html.HiddenFor(x => x.AccountId)
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    @Html.LabelForModel("Contact Person", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
-                                    @Html.ValidationMessageFor(x => x.ContactPerson)
-                                </div>
                             </div>
-                            <div class="col-6">
-                                <div class="form-group">
-                                    @Html.LabelForModel("Email", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
-                                    @Html.ValidationMessageFor(x => x.Email)
-                                </div>
-                            </div>
+                            <button type="submit" class="btn btn-primary float-right mr-3 mb-3">Save</button>
                         </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
-                                    @Html.ValidationMessageFor(x => x.MobileNumber)
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary float-right">Save</button>
-                    </div>
-
                 </form>
             </div>
 
@@ -456,10 +464,10 @@
                 $('#tbl_account_details tbody').off().on('click', 'tr', function (e) {
                     e.preventDefault();
                     if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
-                        //UpdateUserRoles();
+                        UpdateAccountDetails();
                     }
                     else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
-                        //RemoveUserRole();
+                        RemoveAccountDetails();
                     }
                     else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
                         if (!$(this).hasClass("dtactive")) {
@@ -476,10 +484,78 @@
                 });
             }
 
+            function UpdateAccountDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../Maintenance/UpdateAccountDetails?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_add_account").modal("show");
+                                $("#div_client_account_table").css("display", "none");
+                                $("#div_account").addClass("mt-4");
+                                $("#modal_name_account").html('<i class="fa fa-user pr-2"></i>Update Account');
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='CorporateClientId']").val(res.data.corporateClientId);
+                                $("[name='AccountNumber']").val(res.data.accountNumber);
+                                $("[name='AccountName']").val(res.data.accountName);
+                                $("[name='CurrencyId']").val(res.data.currencyId);
+                                $("[name='AccountTypeId']").val(res.data.accountTypeId);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            function RemoveAccountDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    Swal.fire({
+                        text: "Are you sure you want to delete this record?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#dc3545',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '../Maintenance/RemoveAccountDetails?&Id=' + $("[name='Id']").val(),
+                                type: 'POST',
+                                success: function (res) {
+                                    if (res.success == true) {
+                                        Swal.fire('Success!', 'Record has been deleted.', 'success');
+                                        $("#form_account").trigger("reset");
+                                        $("[name='CorporateClientId']").val(0);
+                                        $("[name='Id']").val(0);
+                                        LoadAccountDetails();
+                                    } else {
+                                        Swal.fire('Error!', res.msg, 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
             $("#btn_add_account").click(function (e) {
                 e.preventDefault();
                 $("#modal_add_account").modal("show");
-                LoadClientDetails();
+                $("#modal_name_account").html('<i class="fa fa-user pr-2"></i>Add New Account');
+                $("#div_client_account_table").removeAttr("style");
+                $("[name='CorporateClientId']").val(0);
+                $("[name='Id']").val(0);
+                LoadClientAccountDetails();
+                LoadAccountDetails();
             });
 
             $("#btnCloseAccount").click(function (e) {
@@ -487,9 +563,9 @@
                 $("#form_account").trigger("reset");
             });
 
-            LoadClientDetails();
-            function LoadClientDetails() {
-                $('#tbl_client_details').DataTable({
+            LoadClientAccountDetails();
+            function LoadClientAccountDetails() {
+                $('#tbl_client_account').DataTable({
                     destroy: true,
                     responsive: true,
                     processing: false,
@@ -524,17 +600,16 @@
                         ]
                 });
 
-                $('#tbl_client_details tbody').off().on('click', 'tr', function (e) {
+                $('#tbl_client_account tbody').off().on('click', 'tr', function (e) {
                     e.preventDefault();
                     if (!$(this).hasClass("dtactive")) {
                         $(this).parent().find("tr").removeClass("dtactive");
                         $(this).addClass("dtactive");
-                        Id = SelectedValue("tbl_client_details", "id");
+                        Id = SelectedValue("tbl_client_account", "id");
                         $("[name='CorporateClientId']").val(Id);
                     } else {
                         $(this).removeClass("dtactive");
                         $("[name='CorporateClientId']").val(0);
-                        $("#form_account").trigger("reset");
                     }
                 });
             }
@@ -581,19 +656,20 @@
 
             function SaveAccountDetails() {
                 if ($("[name='CorporateClientId']").val() != 0) {
-                    $('#loading-image').show();
+                    //$('#loading-image').show();
                     var formData = $("#form_account").serialize();
-                    //console.log(formData);
                     $.ajax({
                         type: "POST",
                         url: '@Url.Action("SaveAccountDetails", "Maintenance")',
                         data: formData,
                         success: function (response) {
                             if (response.success == true) {
-                                $('#loading-image').hide();
+                                //$('#loading-image').hide();
                                 Swal.fire('Success!', response.message, 'success');
                                 $("#form_account").trigger("reset");
                                 $("#modal_add_account").modal("hide");
+                                $("[name='CorporateClientId']").val(0);
+                                $("[name='Id']").val(0);
                                 LoadAccountDetails();
                             }
                             else {
@@ -601,11 +677,11 @@
                             }
                         },
                         failure: function (response) {
-                            $('#loading-image').hide();
+                            //$('#loading-image').hide();
                             alert(response.responseText);
                         },
                         error: function (response) {
-                            $('#loading-image').hide();
+                            //$('#loading-image').hide();
                             alert(response.responseText);
                         }
                     });
@@ -626,8 +702,8 @@
                     info: true,
                     searching: true,
                     paging: true,
-                    //order: [[1, "asc"], [2, "asc"]],
-                    //lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadContactDetails",
                         "type": "GET",
@@ -660,10 +736,10 @@
                 $('#tbl_contact_details tbody').off().on('click', 'tr', function (e) {
                     e.preventDefault();
                     if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
-                        //UpdateUserRoles();
+                        UpdateContactDetails();
                     }
                     else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
-                        //RemoveUserRole();
+                        RemoveContactDetails();
                     }
                     else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
                         if (!$(this).hasClass("dtactive")) {
@@ -680,10 +756,212 @@
                 });
             }
 
+            function UpdateContactDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../Maintenance/UpdateContactDetails?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_add_contact").modal("show");
+                                $("#div_client_contact_table").css("display", "none");
+                                $("#div_contact").addClass("mt-4");
+                                $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Update Contact');
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='CorporateClientId']").val(res.data.corporateClientId);
+                                $("[name='ContactPerson']").val(res.data.contactPerson);
+                                $("[name='Email']").val(res.data.email);
+                                $("[name='MobileNumber']").val(res.data.mobileNumber);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            function RemoveContactDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    Swal.fire({
+                        text: "Are you sure you want to delete this record?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#dc3545',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '../Maintenance/RemoveContactDetails?&Id=' + $("[name='Id']").val(),
+                                type: 'POST',
+                                success: function (res) {
+                                    if (res.success == true) {
+                                        Swal.fire('Success!', 'Record has been deleted.', 'success');
+                                        $("#form_contact").trigger("reset");
+                                        $("[name='CorporateClientId']").val(0);
+                                        $("[name='Id']").val(0);
+                                        LoadContactDetails();
+                                    } else {
+                                        Swal.fire('Error!', res.msg, 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
             $("#btn_add_contact").click(function (e) {
                 e.preventDefault();
                 $("#modal_add_contact").modal("show");
+                $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Add New Contact');
+                $("#div_client_contact_table").removeAttr("style");
+                $("[name='CorporateClientId']").val(0);
+                $("[name='Id']").val(0);
+                LoadClientContactDetails();
+                LoadContactDetails();
             });
+
+            LoadClientContactDetails();
+            function LoadClientContactDetails() {
+                $('#tbl_client_contact').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadClientDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
+                            { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            {
+                                data: "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-warning">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                        ]
+                });
+
+                $('#tbl_client_contact tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(this).hasClass("dtactive")) {
+                        $(this).parent().find("tr").removeClass("dtactive");
+                        $(this).addClass("dtactive");
+                        Id = SelectedValue("tbl_client_contact", "id");
+                        $("[name='CorporateClientId']").val(Id);
+                    } else {
+                        $(this).removeClass("dtactive");
+                        $("[name='CorporateClientId']").val(0);
+                    }
+                });
+            }
+
+            ValidateFormContact();
+            function ValidateFormContact() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveContactDetails();
+                    }
+                });
+                $('#form_contact').validate({
+                    rules: {
+                        ContactPerson: {
+                            required: true
+                        },
+                        Email: {
+                            required: true
+                        },
+                        MobileNumber: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        ContactPerson: {
+                            required: "This field is required"
+                        },
+                        Email: {
+                            required: "This field is required"
+                        },
+                        MobileNumber: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveContactDetails() {
+                if ($("[name='CorporateClientId']").val() != 0) {
+                    //$('#loading-image').show();
+                    var formData = $("#form_contact").serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("SaveContactDetails", "Maintenance")',
+                        data: formData,
+                        success: function (response) {
+                            if (response.success == true) {
+                                //$('#loading-image').hide();
+                                Swal.fire('Success!', response.message, 'success');
+                                $("#form_contact").trigger("reset");
+                                $("#modal_add_contact").modal("hide");
+                                $("[name='CorporateClientId']").val(0);
+                                $("[name='Id']").val(0);
+                                LoadContactDetails();
+                            }
+                            else {
+                                Swal.fire('Warning!', 'Contact Already Exists.', 'warning');
+                            }
+                        },
+                        failure: function (response) {
+                            //$('#loading-image').hide();
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            //$('#loading-image').hide();
+                            alert(response.responseText);
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Select Corporate Client first.', 'warning');
+                }
+            }
 
 
         });

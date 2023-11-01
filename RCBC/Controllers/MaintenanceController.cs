@@ -499,8 +499,6 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserRoleModel data = new UserRoleModel();
-
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
@@ -878,13 +876,30 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
+                    using (var transaction = con.BeginTransaction())
+                    {
+                        try
+                        {
+                            string corp = "DELETE FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
+                            con.Execute(corp, new { Id }, transaction);
 
-                    con.Close();
+                            string acc = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE CorporateClientId = @Id";
+                            con.Execute(acc, new { Id }, transaction);
+
+                            string cont = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE CorporateClientId = @Id";
+                            con.Execute(cont, new { Id }, transaction);
+
+                            transaction.Commit();
+
+                            return Json(new { success = true });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Json(new { success = false, message = ex.Message });
+                        }
+                    }
                 }
-
-                return Json(new { success = true });
             }
             catch (Exception ex)
             {
@@ -997,6 +1012,50 @@ namespace RCBC.Controllers
             }
         }
 
+        public IActionResult UpdateAccountDetails(int Id)
+        {
+            try
+            {
+                CorporateClientModel data;
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveAccountDetails(int Id)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         public IActionResult LoadContactDetails()
         {
             try
@@ -1020,6 +1079,104 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
 
+        }
+
+        public IActionResult SaveContactDetails(CorporateClientModel corp)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (corp.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[Contacts] (CorporateClientId, ContactPerson, Email, MobileNumber)
+                        VALUES(@CorporateClientId, @ContactPerson, @Email, @MobileNumber)";
+
+                        var parameters = new
+                        {
+                            CorporateClientId = corp.CorporateClientId,
+                            ContactPerson = corp.ContactPerson,
+                            Email = corp.Email,
+                            MobileNumber = corp.MobileNumber,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"
+                        UPDATE [RCBC].[dbo].[Contacts] 
+                        SET CorporateClientId = @CorporateClientId, ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber
+                        WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = corp.Id,
+                            CorporateClientId = corp.CorporateClientId,
+                            ContactPerson = corp.ContactPerson,
+                            Email = corp.Email,
+                            MobileNumber = corp.MobileNumber,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult UpdateContactDetails(int Id)
+        {
+            try
+            {
+                CorporateClientModel data;
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemoveContactDetails(int Id)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
     } //end

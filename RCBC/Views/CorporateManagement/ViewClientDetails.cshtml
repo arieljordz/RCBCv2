@@ -52,10 +52,10 @@
                         </div>
 
                         <div class="card-footer">
-                            <div class="d-flex justify-content-end">
+                          @*  <div class="d-flex justify-content-end">
                                 <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
                                 <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>
+                            </div>*@
                         </div>
                     </div>
                 </div>
@@ -174,8 +174,8 @@
                     info: true,
                     searching: true,
                     paging: true,
-                    //order: [[1, "asc"], [2, "asc"]],
-                    //lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadClientDetails",
                         "type": "GET",
