@@ -56,7 +56,6 @@ namespace RCBC.Controllers
             }
         }
 
-
         public IActionResult Index()
         {
             return View();
@@ -66,22 +65,35 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        
         public IActionResult FirstLogin()
         {
             return LoadViews();
         }
+       
         public IActionResult ChangePassword()
         {
             return LoadViews();
         }
+       
         public IActionResult ContinueLogin()
         {
             return LoadViews();
         }
+
+        public IActionResult NoAccess()
+        {
+            return LoadViews();
+        }
+
         public IActionResult Signout()
         {
+            Response.Cookies.Delete("Username");
+            Response.Cookies.Delete("LastLogin");
+            Response.Cookies.Delete("EmployeeName");
             return RedirectToAction("Index");
         }
+        
         public IActionResult Logout()
         {
             Response.Cookies.Delete("Username");
@@ -89,6 +101,7 @@ namespace RCBC.Controllers
             Response.Cookies.Delete("EmployeeName");
             return RedirectToAction("Index");
         }
+       
         public IActionResult LoginProceed()
         {
             int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
@@ -98,10 +111,16 @@ namespace RCBC.Controllers
                 var SubModules = global.GetSubModulesByUserId(UserId).FirstOrDefault();
                 var ChildModules = global.GetChildModulesByUserId(UserId).FirstOrDefault();
 
-                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
-                string[] Link = input.Split('/');
-
-                return RedirectToAction(Link[2], Link[1]);
+                if (SubModules == null || ChildModules == null)
+                {
+                    return RedirectToAction("NoAccess");
+                }
+                else
+                {
+                    string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                    string[] Link = input.Split('/');
+                    return RedirectToAction(Link[2], Link[1]);
+                }  
             }
             else
             {
@@ -167,7 +186,6 @@ namespace RCBC.Controllers
             return View("Index");
         }
 
-
         public IActionResult SendResetPasswordLink(string UserID)
         {
             string bodyMsg = "<head>" +
@@ -207,8 +225,7 @@ namespace RCBC.Controllers
             return RedirectToAction("Logout", "Home");
         }
 
-
-        public IActionResult UpdatePassword(UpdatePasswordModel obj)
+        public IActionResult UpdatePassword(UpdatePasswordModel model)
         {
             try
             {
@@ -219,7 +236,7 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + obj.Username + "'", con);
+                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + model.Username + "'", con);
                     con.Open();
                     SqlDataReader sdr = cmd.ExecuteReader();
                     while (sdr.Read())
@@ -229,17 +246,17 @@ namespace RCBC.Controllers
                         LoginAttempt = Convert.ToInt32(sdr["LoginAttempt"]);
                     }
                     con.Close();
-                    obj.OldPassword = obj.OldPassword + salt;
-                    result = Crypto.VerifyHashedPassword(OldPassword, obj.OldPassword);
+                    model.OldPassword = model.OldPassword + salt;
+                    result = Crypto.VerifyHashedPassword(OldPassword, model.OldPassword);
                 }
 
                 if (result)
                 {
-                    bool accepted = global.IsStrongPassword(obj.NewPassword);
+                    bool accepted = global.IsStrongPassword(model.NewPassword);
 
                     if (accepted)
                     {
-                        var finalString = new string(obj.NewPassword);
+                        var finalString = new string(model.NewPassword);
 
                         string Salt = Crypto.GenerateSalt();
                         string password = finalString + Salt;
@@ -255,7 +272,7 @@ namespace RCBC.Controllers
                                    "<body>" +
                                        "<p>Good Day!<br>" +
                                         "<br>" +
-                                        "User ID: " + obj.Username + "<br>" +
+                                        "User ID: " + model.Username + "<br>" +
                                         "New Password: <font color=red>" + finalString + "</font> <br>" +
                                         "<br>" +
                                         "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
@@ -281,7 +298,7 @@ namespace RCBC.Controllers
                         try
                         {
                             //update password in Database
-                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where UserId='" + obj.Username + "'";
+                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where UserId='" + model.Username + "'";
                             using (var connection = new SqlConnection(GetConnectionString()))
                             {
                                 using (var command = new SqlCommand(sql, connection))

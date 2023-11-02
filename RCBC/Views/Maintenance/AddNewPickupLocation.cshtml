@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Corporate Client Management";
+﻿@model RCBC.Models.PickupLocationModel
+@{
+    ViewData["Title"] = "Pickup Location Maintenance";
 }
 
 <!-- Content Wrapper. Contains page content -->
@@ -18,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Corporate Client Management</a></li>
-                        <li class="breadcrumb-item active">Add New Pickup Location</li>
+                        <li class="breadcrumb-item"><a href="">Add New Pickup Location</a></li>
+                        <li class="breadcrumb-item active">Maintenance</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -36,7 +37,7 @@
 
                     <div class="card card-light-blue">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>Add New Pickup Location</h3>
+                            <h3 class="card-title"><i class="fa fa-map-marker pr-2"></i>Add New Pickup Location</h3>
                         </div>
 
                         <div class="card-body">
@@ -58,13 +59,93 @@
                                 <div class="card-body">
                                     <div class="tab-content" id="tab_content">
                                         <div class="tab-pane fade active show" id="custom_tab_pickup_location" role="tabpanel" aria-labelledby="tab_pickup_location">
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin malesuada lacus ullamcorper dui molestie, sit amet congue quam finibus. Etiam ultricies nunc non magna feugiat commodo. Etiam odio magna, mollis auctor felis vitae, ullamcorper ornare ligula. Proin pellentesque tincidunt nisi, vitae ullamcorper felis aliquam id. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin id orci eu lectus blandit suscipit. Phasellus porta, ante et varius ornare, sem enim sollicitudin eros, at commodo leo est vitae lacus. Etiam ut porta sem. Proin porttitor porta nisl, id tempor risus rhoncus quis. In in quam a nibh cursus pulvinar non consequat neque. Mauris lacus elit, condimentum ac condimentum at, semper vitae lectus. Cras lacinia erat eget sapien porta consectetur.
+
+                                            <form id="form_location" novalidate="novalidate">
+                                                <div class="p-3">
+                                                    @Html.HiddenFor(x => x.Id)
+                                                    @Html.HiddenFor(x => x.IsApproved)
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("Corporate Name", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.CorporateName, new { @class = "form-control", placeholder = "CorporateName" })
+                                                                @Html.ValidationMessageFor(x => x.CorporateName)
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("Site", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.Site, new { @class = "form-control", placeholder = "Site" })
+                                                                @Html.ValidationMessageFor(x => x.Site)
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("Site Address", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.SiteAddress, new { @class = "form-control", placeholder = "Site Address" })
+                                                                @Html.ValidationMessageFor(x => x.SiteAddress)
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("Partner Code", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.PartnerCode, new { @class = "form-control", placeholder = "PartnerCode" })
+                                                                @Html.ValidationMessageFor(x => x.PartnerCode)
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("SOL ID", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.SOLID, new { @class = "form-control", placeholder = "SOLID" })
+                                                                @Html.ValidationMessageFor(x => x.SOLID)
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 pt-4">
+                                                            <div class="form-group clearfix pt-3">
+                                                                <div class="icheck-primary d-inline">
+                                                                    @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                                                    @Html.Label("Active", "Active Status")
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-end">
+                                                        <button type="submit" class="btn btn-primary">Save</button>
+                                                        <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+
                                         </div>
                                         <div class="tab-pane fade" id="custom_tab_account_details" role="tabpanel" aria-labelledby="tab_account_details">
-                                            Mauris tincidunt mi at erat gravida, eget tristique urna bibendum. Mauris pharetra purus ut ligula tempor, et vulputate metus facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Maecenas sollicitudin, nisi a luctus interdum, nisl ligula placerat mi, quis posuere purus ligula eu lectus. Donec nunc tellus, elementum sit amet ultricies at, posuere nec nunc. Nunc euismod pellentesque diam.
+                                            <div class="row pl-2">
+                                                <button type="button" class="btn btn-primary" id="btn_add_account"><i class="fa fa-plus mr-2"></i>Add New Account</button>
+                                            </div>
+                                            <div class="row pb-3 pt-3">
+                                                <div class="col-md-12">
+                                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                                        <table id="tbl_account_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="tab-pane fade" id="custom_tab_contact_details" role="tabpanel" aria-labelledby="tab_contact_details">
-                                            Morbi turpis dolor, vulputate vitae felis non, tincidunt congue mauris. Phasellus volutpat augue id mi placerat mollis. Vivamus faucibus eu massa eget condimentum. Fusce nec hendrerit sem, ac tristique nulla. Integer vestibulum orci odio. Cras nec augue ipsum. Suspendisse ut velit condimentum, mattis urna a, malesuada nunc. Curabitur eleifend facilisis velit finibus tristique. Nam vulputate, eros non luctus efficitur, ipsum odio volutpat massa, sit amet sollicitudin est libero sed ipsum. Nulla lacinia, ex vitae gravida fermentum, lectus ipsum gravida arcu, id fermentum metus arcu vel metus. Curabitur eget sem eu risus tincidunt eleifend ac ornare magna.
+                                            <div class="row pl-2">
+                                                <button type="button" class="btn btn-primary" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
+                                            </div>
+                                            <div class="row pb-3 pt-3">
+                                                <div class="col-md-12">
+                                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                                        <table id="tbl_contact_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                                    </div>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -72,18 +153,154 @@
 
                         </div>
 
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
             </div>
         </div>
     </section>
+
+    <div id="modal_add_account" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name_account"><i class="fa fa-user pr-2"></i>Add New Account</h4>
+                    <button type="button" class="close" id="btnCloseAccount" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="row p-4" id="div_client_account_table">
+                    <div class="col-md-12">
+                        <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                            <table id="tbl_location_account" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="form_account" novalidate="novalidate">
+                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_account">
+                        <div class="card-header p-0 pt-1 border-bottom-0">
+                            <div class="modal-body pb-0">
+                                @Html.HiddenFor(x => x.Id)
+                                @Html.HiddenFor(x => x.LocationId)
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Account Number", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.AccountNumber, new { @class = "form-control", placeholder = "Account Number" })
+                                            @Html.ValidationMessageFor(x => x.AccountNumber)
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Account Name", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.AccountName, new { @class = "form-control", placeholder = "Account Name" })
+                                            @Html.ValidationMessageFor(x => x.AccountName)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Currency", new { @class = "label-control" })
+                                            <select class="form-control" name="CurrencyId">
+                                                <option value="1">PHP</option>
+                                                <option value="2">USD</option>
+                                                <option value="3">EUR</option>
+                                                <option value="4">JPY</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("AccountType", new { @class = "label-control" })
+                                            <select class="form-control" name="AccountTypeId">
+                                                <option value="1">CA</option>
+                                                <option value="2">SA</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="d-flex justify-content-end pr-3 pl-3 pb-3">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" id="btnCancelAccount" class="btn btn-danger ml-3">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modal_add_contact" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name_contact"><i class="fa fa-address-book-o pr-2"></i>Add New Contact</h4>
+                    <button type="button" class="close" id="btnCloseContact" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="row p-4" id="div_client_contact_table">
+                    <div class="col-md-12">
+                        <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                            <table id="tbl_client_contact" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="form_contact" novalidate="novalidate">
+                    <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_contact">
+                        <div class="card-header p-0 pt-1 border-bottom-0">
+                            <div class="modal-body pb-0">
+                                @Html.HiddenFor(x => x.Id)
+                                @Html.HiddenFor(x => x.AccountId)
+                                @Html.HiddenFor(x => x.LocationId)
+                                @Html.HiddenFor(x => x.IsApproved)
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
+                                            @Html.ValidationMessageFor(x => x.ContactPerson)
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Email", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                            @Html.ValidationMessageFor(x => x.Email)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                            @Html.ValidationMessageFor(x => x.MobileNumber)
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="d-flex justify-content-end pr-3 pl-3 pb-3">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" id="btnCancelContact" class="btn btn-danger ml-3">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
 
 </div>
 <!-- /.content-wrapper -->
@@ -92,6 +309,674 @@
     <script>
         $(document).ready(function () {
             $('#tab_pickup_location').addClass('active');
+
+            ValidateFormLocation();
+            function ValidateFormLocation() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SavePickupLocation();
+                    }
+                });
+                $('#form_location').validate({
+                    rules: {
+                        CorporateName: {
+                            required: true
+                        },
+                        Site: {
+                            required: true
+                        },
+                        SiteAddress: {
+                            required: true
+                        },
+                        PartnerCode: {
+                            required: true
+                        },
+                        SOLID: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        CorporateName: {
+                            required: "This field is required"
+                        },
+                        Site: {
+                            required: "This field is required"
+                        },
+                        SiteAddress: {
+                            required: "This field is required"
+                        },
+                        PartnerCode: {
+                            required: "This field is required"
+                        },
+                        SOLID: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SavePickupLocation() {
+                $('#loading-image').show();
+                var formData = $("#form_location").serialize();
+                console.log(formData);
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SavePickupLocation", "Maintenance")',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success == true) {
+                            $('#loading-image').hide();
+                            Swal.fire('Success!', response.message, 'success');
+                            $("#form_location").trigger("reset");
+                        }
+                        else {
+                            Swal.fire('Warning!', 'Location Already Exists.', 'warning');
+                        }
+                    },
+                    failure: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    }
+                });
+            }
+
+            $("#btnCancelClient").click(function (e) {
+                e.preventDefault();
+                $("#form_location").trigger("reset");
+            });
+
+            LoadAccountDetails();
+            function LoadAccountDetails() {
+                $('#tbl_account_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadAccountDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "locationId", title: "Location ID", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountNumber", title: "Account Number", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountName", title: "Account Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "currency", title: "Currency", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountType", title: "AccountType", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspUpdate</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspDelete</a>" +
+                                        "</div></div></div ></div>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_account_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        UpdateAccountDetails();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        RemoveAccountDetails();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_account_details", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("#form_account").trigger("reset");
+                        }
+                    }
+                });
+            }
+
+            function UpdateAccountDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../Maintenance/UpdateAccountDetails?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_add_account").modal("show");
+                                $("#div_client_account_table").css("display", "none");
+                                $("#div_account").addClass("mt-4");
+                                $("#modal_name_account").html('<i class="fa fa-user pr-2"></i>Update Account');
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='LocationId']").val(res.data.locationId);
+                                $("[name='AccountNumber']").val(res.data.accountNumber);
+                                $("[name='AccountName']").val(res.data.accountName);
+                                $("[name='CurrencyId']").val(res.data.currencyId);
+                                $("[name='AccountTypeId']").val(res.data.accountTypeId);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            function RemoveAccountDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $('#loading-image').show();
+                    Swal.fire({
+                        text: "Are you sure you want to delete this record?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#dc3545',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '../Maintenance/RemoveAccountDetails?&Id=' + $("[name='Id']").val(),
+                                type: 'POST',
+                                success: function (res) {
+                                    if (res.success == true) {
+                                        $('#loading-image').hide();
+                                        Swal.fire('Success!', 'Record has been deleted.', 'success');
+                                        $("#form_account").trigger("reset");
+                                        $("[name='LocationId']").val(0);
+                                        $("[name='Id']").val(0);
+                                        LoadAccountDetails();
+                                    } else {
+                                        Swal.fire('Error!', res.msg, 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            $("#btn_add_account").click(function (e) {
+                e.preventDefault();
+                $("#modal_add_account").modal("show");
+                $("#modal_name_account").html('<i class="fa fa-user pr-2"></i>Add New Account');
+                $("#div_client_account_table").removeAttr("style");
+                $("#div_account").removeClass("mt-4");
+                $("[name='LocationId']").val(0);
+                $("[name='Id']").val(0);
+                LoadLocationAccountDetails();
+                LoadAccountDetails();
+            });
+
+            $("#btnCloseAccount").click(function (e) {
+                e.preventDefault();
+                $("#form_account").trigger("reset");
+            });
+
+            $("#btnCancelAccount").click(function (e) {
+                e.preventDefault();
+                $("#form_account").trigger("reset");
+                $("#modal_add_account").modal("hide");
+            });
+
+            LoadLocationAccountDetails();
+            function LoadLocationAccountDetails() {
+                $('#tbl_location_account').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadPickupLocation",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
+                            { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-warning">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                        ]
+                });
+
+                $('#tbl_location_account tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(this).hasClass("dtactive")) {
+                        $(this).parent().find("tr").removeClass("dtactive");
+                        $(this).addClass("dtactive");
+                        Id = SelectedValue("tbl_location_account", "id");
+                        $("[name='LocationId']").val(Id);
+                    } else {
+                        $(this).removeClass("dtactive");
+                        $("[name='LocationId']").val(0);
+                    }
+                });
+            }
+
+            ValidateFormAccount();
+            function ValidateFormAccount() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveAccountDetails();
+                    }
+                });
+                $('#form_account').validate({
+                    rules: {
+                        AccountNumber: {
+                            required: true
+                        },
+                        AccountName: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        AccountNumber: {
+                            required: "This field is required"
+                        },
+                        AccountName: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveAccountDetails() {
+                if ($("[name='LocationId']").val() != 0) {
+                    $('#loading-image').show();
+                    var formData = $("#form_account").serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("SaveAccountDetails", "Maintenance")',
+                        data: formData,
+                        success: function (response) {
+                            if (response.success == true) {
+                                $('#loading-image').hide();
+                                Swal.fire('Success!', response.message, 'success');
+                                $("#form_account").trigger("reset");
+                                $("#modal_add_account").modal("hide");
+                                $("[name='LocationId']").val(0);
+                                $("[name='Id']").val(0);
+                                LoadAccountDetails();
+                            }
+                            else {
+                                Swal.fire('Warning!', 'Account Already Exists.', 'warning');
+                            }
+                        },
+                        failure: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Select Corporate Client first.', 'warning');
+                }
+            }
+
+            LoadContactDetails();
+            function LoadContactDetails() {
+                $('#tbl_contact_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadContactDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "locationId", title: "Location ID", sClass: "dt-body-center", orderable: false },
+                            { "data": "contactPerson", title: "Contact Person", sClass: "dt-body-center", orderable: false },
+                            { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
+                            { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspUpdate</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspDelete</a>" +
+                                        "</div></div></div ></div>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_contact_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        UpdateContactDetails();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        RemoveContactDetails();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_contact_details", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("#form_account").trigger("reset");
+                        }
+                    }
+                });
+            }
+
+            function UpdateContactDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../Maintenance/UpdateContactDetails?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_add_contact").modal("show");
+                                $("#div_client_contact_table").css("display", "none");
+                                $("#div_contact").addClass("mt-4");
+                                $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Update Contact');
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='LocationId']").val(res.data.LocationId);
+                                $("[name='ContactPerson']").val(res.data.contactPerson);
+                                $("[name='Email']").val(res.data.email);
+                                $("[name='MobileNumber']").val(res.data.mobileNumber);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            function RemoveContactDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    Swal.fire({
+                        text: "Are you sure you want to delete this record?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#dc3545',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('#loading-image').show();
+                            $.ajax({
+                                url: '../Maintenance/RemoveContactDetails?&Id=' + $("[name='Id']").val(),
+                                type: 'POST',
+                                success: function (res) {
+                                    if (res.success == true) {
+                                        $('#loading-image').hide();
+                                        Swal.fire('Success!', 'Record has been deleted.', 'success');
+                                        $("#form_contact").trigger("reset");
+                                        $("[name='LocationId']").val(0);
+                                        $("[name='Id']").val(0);
+                                        LoadContactDetails();
+                                    } else {
+                                        Swal.fire('Error!', res.msg, 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            $("#btn_add_contact").click(function (e) {
+                e.preventDefault();
+                $("#modal_add_contact").modal("show");
+                $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Add New Contact');
+                $("#div_client_contact_table").removeAttr("style");
+                $("#div_contact").removeClass("mt-4");
+                $("[name='LocationId']").val(0);
+                $("[name='Id']").val(0);
+                LoadLocationContactDetails();
+                LoadContactDetails();
+            });
+
+            $("#btnCloseContact").click(function (e) {
+                e.preventDefault();
+                $("#form_contact").trigger("reset");
+            });
+
+            $("#btnCancelContact").click(function (e) {
+                e.preventDefault();
+                $("#form_contact").trigger("reset");
+                $("#modal_add_contact").modal("hide");
+            });
+
+            LoadLocationContactDetails();
+            function LoadLocationContactDetails() {
+                $('#tbl_client_contact').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadPickupLocation",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
+                            { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-warning">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                        ]
+                });
+
+                $('#tbl_client_contact tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(this).hasClass("dtactive")) {
+                        $(this).parent().find("tr").removeClass("dtactive");
+                        $(this).addClass("dtactive");
+                        Id = SelectedValue("tbl_client_contact", "id");
+                        $("[name='LocationId']").val(Id);
+                    } else {
+                        $(this).removeClass("dtactive");
+                        $("[name='LocationId']").val(0);
+                    }
+                });
+            }
+
+            ValidateFormContact();
+            function ValidateFormContact() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveContactDetails();
+                    }
+                });
+                $('#form_contact').validate({
+                    rules: {
+                        ContactPerson: {
+                            required: true
+                        },
+                        Email: {
+                            required: true
+                        },
+                        MobileNumber: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        ContactPerson: {
+                            required: "This field is required"
+                        },
+                        Email: {
+                            required: "This field is required"
+                        },
+                        MobileNumber: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveContactDetails() {
+                if ($("[name='LocationId']").val() != 0) {
+                    $('#loading-image').show();
+                    var formData = $("#form_contact").serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("SaveContactDetails", "Maintenance")',
+                        data: formData,
+                        success: function (response) {
+                            if (response.success == true) {
+                                $('#loading-image').hide();
+                                Swal.fire('Success!', response.message, 'success');
+                                $("#form_contact").trigger("reset");
+                                $("#modal_add_contact").modal("hide");
+                                $("[name='LocationId']").val(0);
+                                $("[name='Id']").val(0);
+                                LoadContactDetails();
+                            }
+                            else {
+                                Swal.fire('Warning!', 'Contact Already Exists.', 'warning');
+                            }
+                        },
+                        failure: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Select Corporate Client first.', 'warning');
+                }
+            }
+
+
         });
 
         ActiveMenu("#pickup_location");

@@ -13,7 +13,7 @@
         public string MobileNumber { get; set; }
         public string GroupDept { get; set; }
         public string UserRole { get; set; }
-        public int UserStatus { get; set; }
+        public bool UserStatus { get; set; }
         public int LoginAttempt { get; set; }
         public string ModuleIds { get; set; }
     }

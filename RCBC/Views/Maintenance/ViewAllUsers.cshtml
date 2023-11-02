@@ -1,6 +1,6 @@
 ﻿@model RCBC.Models.UserModel
 @{
-    ViewData["Title"] = "View All Users";
+    ViewData["Title"] = "User Maintenance";
 }
 
 <!-- Content Wrapper. Contains page content -->
@@ -19,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Maintenance</a></li>
-                        <li class="breadcrumb-item active">View All User</li>
+                        <li class="breadcrumb-item"><a href="">View All User</a></li>
+                        <li class="breadcrumb-item active">Maintenance</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -215,6 +215,7 @@
                             $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmUsers").trigger("reset");
+                            $("#modal_user").modal("hide");
                             LoadUsers();
                         }
                         else {
@@ -249,8 +250,8 @@
                     info: true,
                     searching: true,
                     paging: true,
-                    //order: [[1, "asc"], [2, "asc"]],
-                    //lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadUsers",
                         "type": "GET",

@@ -62,54 +62,67 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+
         public IActionResult CreateNewUser()
         {
             return LoadViews();
         }
+
         public IActionResult UserApproval()
         {
             return LoadViews();
         }
+
         public IActionResult ResetPassword()
         {
             return LoadViews();
         }
+
         public IActionResult UserAccess()
         {
             return LoadViews();
         }
+
         public IActionResult ForgotPassword()
         {
             return LoadViews();
         }
+
         public IActionResult CreateNewRole()
         {
             return LoadViews();
         }
+
         public IActionResult CreateNewDepartment()
         {
             return LoadViews();
         }
+
         public IActionResult ViewAllPartnerVendor()
         {
             return LoadViews();
         }
+
         public IActionResult AddNewPartnerVendor()
         {
             return LoadViews();
         }
+
         public IActionResult PartnerVendorApproval()
         {
             return LoadViews();
         }
+
         public IActionResult ViewAllPickupLocations()
         {
             return LoadViews();
         }
+
         public IActionResult AddNewPickupLocation()
         {
             return LoadViews();
         }
+
         public IActionResult PickupLocationApproval()
         {
             return LoadViews();
@@ -155,7 +168,7 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult Register(UserModel user)
+        public IActionResult Register(UserModel model)
         {
             try
             {
@@ -171,7 +184,7 @@ namespace RCBC.Controllers
                     {
                         try
                         {
-                            if (user.Id == 0)
+                            if (model.Id == 0)
                             {
                                 // Insert into UsersInformation table
                                 string insertUsersInfoQuery = @"
@@ -181,30 +194,30 @@ namespace RCBC.Controllers
 
                                 var usersInfoParameters = new
                                 {
-                                    UserId = user.UserId.Replace("'", "''"),
+                                    UserId = model.UserId.Replace("'", "''"),
                                     HashedPassword = hashedPassword,
                                     Salt = salt,
-                                    EmployeeName = user.EmployeeName,
-                                    Email = user.Email,
-                                    MobileNumber = user.MobileNumber,
-                                    GroupDept = user.GroupDept,
-                                    UserRole = user.UserRole,
-                                    UserStatus = "0",
+                                    EmployeeName = model.EmployeeName,
+                                    Email = model.Email,
+                                    MobileNumber = model.MobileNumber,
+                                    GroupDept = model.GroupDept,
+                                    UserRole = model.UserRole,
+                                    UserStatus = true,
                                     DateAdded = DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"),
-                                    LoginAttempt = "0"
+                                    LoginAttempt = 0
                                 };
 
                                 // Execute the query and retrieve the inserted Id
                                 int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
 
-                                if (user.ModuleIds != null)
+                                if (model.ModuleIds != null)
                                 {
-                                    string[] moduleIdsArray = user.ModuleIds.Split(',');
+                                    string[] moduleIdsArray = model.ModuleIds.Split(',');
 
                                     foreach (var Id in moduleIdsArray)
                                     {
                                         int SubModuleId = Convert.ToInt32(Id);
-                                        var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                                        var Roles = global.GetUserRoles().Where(x => x.UserRole == model.UserRole).FirstOrDefault();
                                         var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
                                         string insertQuery = @"
@@ -233,12 +246,12 @@ namespace RCBC.Controllers
 
                                 var usersInfoParameters = new
                                 {
-                                    Id = user.Id,
-                                    EmployeeName = user.EmployeeName,
-                                    Email = user.Email,
-                                    MobileNumber = user.MobileNumber,
-                                    GroupDept = user.GroupDept,
-                                    UserRole = user.UserRole,
+                                    Id = model.Id,
+                                    EmployeeName = model.EmployeeName,
+                                    Email = model.Email,
+                                    MobileNumber = model.MobileNumber,
+                                    GroupDept = model.GroupDept,
+                                    UserRole = model.UserRole,
                                 };
 
                                 con.Execute(updateUsersInfoQuery, usersInfoParameters, transaction);
@@ -299,7 +312,7 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult RegeneratePassword(UserModel user)
+        public IActionResult RegeneratePassword(UserModel model)
         {
             try
             {
@@ -321,7 +334,7 @@ namespace RCBC.Controllers
                                 "<body>" +
                                 "<p>Good Day!<br>" +
                                 "<br>" +
-                                "User ID: " + user.UserId + "<br>" +
+                                "User ID: " + model.UserId + "<br>" +
                                 "New Password: <font color=red>" + finalString + "</font> <br>" +
                                 "<br>" +
                                 "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
@@ -353,7 +366,7 @@ namespace RCBC.Controllers
                     {
                         HashPassword = HashPassword,
                         Salt = Salt,
-                        Username = user.UserId
+                        Username = model.UserId
                     };
                     con.Execute(sql, parameters);
 
@@ -428,14 +441,14 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult SaveUserRole(UserRoleModel role)
+        public IActionResult SaveUserRole(UserRoleModel model)
         {
             try
             {
                 string msg = string.Empty;
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    if (role.Id == 0)
+                    if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[UserRole] (UserRole)
@@ -443,7 +456,7 @@ namespace RCBC.Controllers
 
                         var parameters = new
                         {
-                            UserRole = role.UserRole,
+                            UserRole = model.UserRole,
                         };
 
                         con.Execute(insertQuery, parameters);
@@ -456,8 +469,8 @@ namespace RCBC.Controllers
 
                         var parameters = new
                         {
-                            Id = role.Id,
-                            UserRole = role.UserRole,
+                            Id = model.Id,
+                            UserRole = model.UserRole,
                         };
 
                         con.Execute(updateQuery, parameters);
@@ -631,14 +644,14 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult SaveDepartment(DepartmentModel dept)
+        public IActionResult SaveDepartment(DepartmentModel model)
         {
             try
             {
                 string msg = string.Empty;
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    if (dept.Id == 0)
+                    if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[Department] (GroupDept)
@@ -646,7 +659,7 @@ namespace RCBC.Controllers
 
                         var parameters = new
                         {
-                            GroupDept = dept.GroupDept,
+                            GroupDept = model.GroupDept,
                         };
 
                         con.Execute(insertQuery, parameters);
@@ -659,8 +672,8 @@ namespace RCBC.Controllers
 
                         var parameters = new
                         {
-                            Id = dept.Id,
-                            GroupDept = dept.GroupDept,
+                            Id = model.Id,
+                            GroupDept = model.GroupDept,
                         };
 
                         con.Execute(updateQuery, parameters);
@@ -704,8 +717,6 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserRoleModel data = new UserRoleModel();
-
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
@@ -758,18 +769,18 @@ namespace RCBC.Controllers
             return Json(new { data });
         }
 
-        public IActionResult LoadClientDetails()
+        public IActionResult LoadPartnerVendors()
         {
             try
             {
-                IEnumerable<CorporateClientModel> data = new List<CorporateClientModel>();
+                IEnumerable<PartnerVendorModel> data = new List<PartnerVendorModel>();
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = @"SELECT * FROM [RCBC].[dbo].[CorporateClient]";
-                    data = con.Query<CorporateClientModel>(query);
+                    string query = @"SELECT * FROM [RCBC].[dbo].[PartnerVendor]";
+                    data = con.Query<PartnerVendorModel>(query);
 
                     con.Close();
                 }
@@ -783,29 +794,27 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult SaveClientDetails(CorporateClientModel corp)
+        public IActionResult SavePartnerVendor(PartnerVendorModel model)
         {
             try
             {
                 string msg = string.Empty;
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    if (corp.Id == 0)
+                    if (model.Id == 0)
                     {
                         string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[CorporateClient] (CorporateGroup, CorporateCode, CorporateName, ContactPerson, Email, MobileNumber, GlobalAccount, Active)
-                        VALUES(@CorporateGroup, @CorporateCode, @CorporateName, @ContactPerson, @Email, @MobileNumber, @GlobalAccount, @Active)";
+                        INSERT INTO [RCBC].[dbo].[PartnerVendor] (VendorName, VendorCode, AssignedGL, Email, Active, IsApproved)
+                        VALUES(@VendorName, @VendorCode, @AssignedGL, @Email, @Active, @IsApproved)";
 
                         var parameters = new
                         {
-                            CorporateGroup = corp.CorporateGroup,
-                            CorporateCode = corp.CorporateCode,
-                            CorporateName = corp.CorporateName,
-                            ContactPerson = corp.ContactPerson,
-                            Email = corp.Email,
-                            MobileNumber = corp.MobileNumber,
-                            GlobalAccount = corp.GlobalAccount,
-                            Active = corp.Active,
+                            VendorName = model.VendorName,
+                            VendorCode = model.VendorCode,
+                            AssignedGL = model.AssignedGL,
+                            Email = model.Email,
+                            Active = model.Active,
+                            IsApproved = model.IsApproved,
                         };
 
                         con.Execute(insertQuery, parameters);
@@ -814,23 +823,19 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[CorporateClient] 
-                        SET CorporateGroup = @CorporateGroup, CorporateCode = @CorporateCode, CorporateName = @CorporateName,
-                        ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber, GlobalAccount = @GlobalAccount, Active = @Active
+                        string updateQuery = @"UPDATE [RCBC].[dbo].[PartnerVendor] SET VendorName = @VendorName,
+                        VendorCode = @VendorCode, AssignedGL = @AssignedGL, Email = @Email, Active = @Active, IsApproved = @IsApproved
                         WHERE Id = @Id";
 
                         var parameters = new
                         {
-                            Id = corp.Id,
-                            CorporateGroup = corp.CorporateGroup,
-                            CorporateCode = corp.CorporateCode,
-                            CorporateName = corp.CorporateName,
-                            ContactPerson = corp.ContactPerson,
-                            Email = corp.Email,
-                            MobileNumber = corp.MobileNumber,
-                            GlobalAccount = corp.GlobalAccount,
-                            Active = corp.Active,
+                            Id = model.Id,
+                            VendorName = model.VendorName,
+                            VendorCode = model.VendorCode,
+                            AssignedGL = model.AssignedGL,
+                            Email = model.Email,
+                            Active = model.Active,
+                            IsApproved = model.IsApproved,
                         };
 
                         con.Execute(updateQuery, parameters);
@@ -846,18 +851,20 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult UpdateClientDetails(int Id)
+        public IActionResult UpdatePartnerVendor(int Id)
         {
             try
             {
-                CorporateClientModel data;
+                PartnerVendorModel data = new PartnerVendorModel();
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = @"SELECT * FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                    string query = @"SELECT * FROM [RCBC].[dbo].[PartnerVendor] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<PartnerVendorModel>(query, new { Id = Id });
+
+                    con.Close();
                 }
 
                 return Json(new { data = data });
@@ -868,7 +875,7 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult RemoveCorporateClient(int Id)
+        public IActionResult RemovePartnerVendor(int Id)
         {
             try
             {
@@ -876,30 +883,143 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    using (var transaction = con.BeginTransaction())
-                    {
-                        try
-                        {
-                            string corp = "DELETE FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
-                            con.Execute(corp, new { Id }, transaction);
+                    string query = "DELETE FROM [RCBC].[dbo].[PartnerVendor] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
 
-                            string acc = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE CorporateClientId = @Id";
-                            con.Execute(acc, new { Id }, transaction);
-
-                            string cont = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE CorporateClientId = @Id";
-                            con.Execute(cont, new { Id }, transaction);
-
-                            transaction.Commit();
-
-                            return Json(new { success = true });
-                        }
-                        catch (Exception ex)
-                        {
-                            transaction.Rollback();
-                            return Json(new { success = false, message = ex.Message });
-                        }
-                    }
+                    con.Close();
                 }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult LoadPickupLocation()
+        {
+            try
+            {
+                IEnumerable<PickupLocationModel> data = new List<PickupLocationModel>();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[PickupLocation]";
+                    data = con.Query<PickupLocationModel>(query);
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+
+        }
+
+        public IActionResult SavePickupLocation(PickupLocationModel model)
+        {
+            try
+            {
+                string msg = string.Empty;
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    if (model.Id == 0)
+                    {
+                        string insertQuery = @"
+                        INSERT INTO [RCBC].[dbo].[PickupLocation] (CorporateName, Site, SiteAddress, PartnerCode, SOLID, IsApproved)
+                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @SOLID, @IsApproved)";
+
+                        var parameters = new
+                        {
+                            CorporateName = model.CorporateName,
+                            Site = model.Site,
+                            SiteAddress = model.SiteAddress,
+                            PartnerCode = model.PartnerCode,
+                            SOLID = model.SOLID,
+                            Active = model.Active,
+                            IsApproved = model.IsApproved,
+                        };
+
+                        con.Execute(insertQuery, parameters);
+
+                        msg = "Successfully saved.";
+                    }
+                    else
+                    {
+                        string updateQuery = @"UPDATE [RCBC].[dbo].[PickupLocation] SET CorporateName = @CorporateName,
+                        Site = @Site, SiteAddress = @SiteAddress, PartnerCode = @PartnerCode, SOLID = @SOLID, Active = @Active, IsApproved = @IsApproved
+                        WHERE Id = @Id";
+
+                        var parameters = new
+                        {
+                            Id = model.Id,
+                            CorporateName = model.CorporateName,
+                            Site = model.Site,
+                            SiteAddress = model.SiteAddress,
+                            PartnerCode = model.PartnerCode,
+                            SOLID = model.SOLID,
+                            Active = model.Active,
+                            IsApproved = model.IsApproved,
+                        };
+
+                        con.Execute(updateQuery, parameters);
+
+                        msg = "Successfully updated.";
+                    }
+                    return Json(new { success = true, message = msg });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult UpdatePickupLocation(int Id)
+        {
+            try
+            {
+                PickupLocationModel data = new PickupLocationModel();
+
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = @"SELECT * FROM [RCBC].[dbo].[PickupLocation] WHERE Id = @Id";
+                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult RemovePickupLocation(int Id)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "DELETE FROM [RCBC].[dbo].[PickupLocation] WHERE Id = @Id";
+                    con.Execute(query, new { Id = Id });
+
+                    con.Close();
+                }
+
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
@@ -931,7 +1051,7 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts]";
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts] WHERE LocationId IS NOT NULL";
                     data = con.Query<AccountModel>(query);
 
                     con.Close();
@@ -940,7 +1060,7 @@ namespace RCBC.Controllers
                 List<AccountModel> result = data.Select(account => new AccountModel
                 {
                     Id = account.Id,
-                    CorporateClientId = account.CorporateClientId,
+                    LocationId = account.LocationId,
                     AccountNumber = account.AccountNumber,
                     AccountName = account.AccountName,
                     Currency = currencies.FirstOrDefault(c => c.Id == account.CurrencyId)?.Currency,
@@ -956,26 +1076,26 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult SaveAccountDetails(CorporateClientModel corp)
+        public IActionResult SaveAccountDetails(PickupLocationModel model)
         {
             try
             {
                 string msg = string.Empty;
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    if (corp.Id == 0)
+                    if (model.Id == 0)
                     {
                         string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Accounts] (CorporateClientId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
-                        VALUES(@CorporateClientId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)";
+                        INSERT INTO [RCBC].[dbo].[Accounts] (LocationId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
+                        VALUES(@LocationId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)";
 
                         var parameters = new
                         {
-                            CorporateClientId = corp.CorporateClientId,
-                            AccountNumber = corp.AccountNumber,
-                            AccountName = corp.AccountName,
-                            CurrencyId = corp.CurrencyId,
-                            AccountTypeId = corp.AccountTypeId,
+                            LocationId = model.LocationId,
+                            AccountNumber = model.AccountNumber,
+                            AccountName = model.AccountName,
+                            CurrencyId = model.CurrencyId,
+                            AccountTypeId = model.AccountTypeId,
                         };
 
                         con.Execute(insertQuery, parameters);
@@ -986,17 +1106,17 @@ namespace RCBC.Controllers
                     {
                         string updateQuery = @"
                         UPDATE [RCBC].[dbo].[Accounts] 
-                        SET CorporateClientId = @CorporateClientId, AccountNumber = @AccountNumber, AccountName = @AccountName, CurrencyId = @CurrencyId, AccountTypeId = @AccountTypeId
+                        SET LocationId = @LocationId, AccountNumber = @AccountNumber, AccountName = @AccountName, CurrencyId = @CurrencyId, AccountTypeId = @AccountTypeId
                         WHERE Id = @Id";
 
                         var parameters = new
                         {
-                            Id = corp.Id,
-                            CorporateClientId = corp.CorporateClientId,
-                            AccountNumber = corp.AccountNumber,
-                            AccountName = corp.AccountName,
-                            CurrencyId = corp.CurrencyId,
-                            AccountTypeId = corp.AccountTypeId,
+                            Id = model.Id,
+                            LocationId = model.LocationId,
+                            AccountNumber = model.AccountNumber,
+                            AccountName = model.AccountName,
+                            CurrencyId = model.CurrencyId,
+                            AccountTypeId = model.AccountTypeId,
                         };
 
                         con.Execute(updateQuery, parameters);
@@ -1016,14 +1136,14 @@ namespace RCBC.Controllers
         {
             try
             {
-                CorporateClientModel data;
+                PickupLocationModel data;
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
                     string query = @"SELECT * FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
                 }
 
                 return Json(new { data = data });
@@ -1066,7 +1186,7 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts]";
+                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts] WHERE LocationId IS NOT NULL";
                     data = con.Query<ContactModel>(query);
 
                     con.Close();
@@ -1081,25 +1201,25 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult SaveContactDetails(CorporateClientModel corp)
+        public IActionResult SaveContactDetails(PickupLocationModel model)
         {
             try
             {
                 string msg = string.Empty;
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    if (corp.Id == 0)
+                    if (model.Id == 0)
                     {
                         string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Contacts] (CorporateClientId, ContactPerson, Email, MobileNumber)
-                        VALUES(@CorporateClientId, @ContactPerson, @Email, @MobileNumber)";
+                        INSERT INTO [RCBC].[dbo].[Contacts] (LocationId, ContactPerson, Email, MobileNumber)
+                        VALUES(@LocationId, @ContactPerson, @Email, @MobileNumber)";
 
                         var parameters = new
                         {
-                            CorporateClientId = corp.CorporateClientId,
-                            ContactPerson = corp.ContactPerson,
-                            Email = corp.Email,
-                            MobileNumber = corp.MobileNumber,
+                            LocationId = model.LocationId,
+                            ContactPerson = model.ContactPerson,
+                            Email = model.Email,
+                            MobileNumber = model.MobileNumber,
                         };
 
                         con.Execute(insertQuery, parameters);
@@ -1110,16 +1230,16 @@ namespace RCBC.Controllers
                     {
                         string updateQuery = @"
                         UPDATE [RCBC].[dbo].[Contacts] 
-                        SET CorporateClientId = @CorporateClientId, ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber
+                        SET LocationId = @LocationId, ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber
                         WHERE Id = @Id";
 
                         var parameters = new
                         {
-                            Id = corp.Id,
-                            CorporateClientId = corp.CorporateClientId,
-                            ContactPerson = corp.ContactPerson,
-                            Email = corp.Email,
-                            MobileNumber = corp.MobileNumber,
+                            Id = model.Id,
+                            LocationId = model.LocationId,
+                            ContactPerson = model.ContactPerson,
+                            Email = model.Email,
+                            MobileNumber = model.MobileNumber,
                         };
 
                         con.Execute(updateQuery, parameters);
@@ -1139,14 +1259,14 @@ namespace RCBC.Controllers
         {
             try
             {
-                CorporateClientModel data;
+                PickupLocationModel data;
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
                     string query = @"SELECT * FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<CorporateClientModel>(query, new { Id = Id });
+                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
                 }
 
                 return Json(new { data = data });

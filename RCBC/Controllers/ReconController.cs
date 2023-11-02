@@ -47,7 +47,6 @@ namespace RCBC.Controllers
             }
         }
 
-
         public IActionResult Recon()
         {
             return LoadViews();

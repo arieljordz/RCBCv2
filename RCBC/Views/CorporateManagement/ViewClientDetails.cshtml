@@ -19,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Corporate Client Management</a></li>
-                        <li class="breadcrumb-item active">View Corporate Client Details</li>
+                        <li class="breadcrumb-item"><a href="">View Corporate Client Details</a></li>
+                        <li class="breadcrumb-item active">Corporate Client Management</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -51,12 +51,6 @@
 
                         </div>
 
-                        <div class="card-footer">
-                          @*  <div class="d-flex justify-content-end">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>*@
-                        </div>
                     </div>
                 </div>
 
@@ -76,7 +70,8 @@
 
                 <form id="form_client" novalidate="novalidate">
                     <div class="p-3">
-                        <input type="hidden" name="Id">
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.IsApproved)
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -129,8 +124,8 @@
                             <div class="col-md-6">
                                 <div class="form-group clearfix">
                                     <div class="icheck-primary d-inline">
-                                        @Html.CheckBoxFor(x => x.Active, new { @id = "ActiveStatus" })
-                                        @Html.Label("ActiveStatus", "Active Status")
+                                        @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                        @Html.Label("Active", "Active Status")
                                     </div>
                                 </div>
                             </div>
@@ -145,8 +140,8 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="submit" id="btnSaveClient" class="btn btn-primary">Save</button>
-                            <button type="button" id="btnCancelClient" class="btn btn-danger ml-3">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
                         </div>
                     </div>
                 </form>
@@ -161,8 +156,7 @@
     {
     <script>
         $(document).ready(function () {
-            $('#tab_corporate_client').addClass('active');
-
+        
             LoadClientDetails();
             function LoadClientDetails() {
                 $('#tbl_client_details').DataTable({
@@ -177,7 +171,7 @@
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
-                        "url": "../Maintenance/LoadClientDetails",
+                        "url": "../CorporateManagement/LoadClientDetails",
                         "type": "GET",
                         "datatype": "JSON",
                     },
@@ -191,12 +185,22 @@
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
                             { "data": "globalAccount", title: "Global Account", sClass: "dt-body-center", orderable: false },
                             {
-                                data: "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
                                     if (data == true) {
-                                        return '<span class="badge bg-warning">Active</span>'
+                                        return '<span class="badge bg-success">Active</span>'
                                     }
                                     else {
                                         return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                            {
+                                "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Disapproved</span>'
                                     }
                                 }
                             },
@@ -312,7 +316,7 @@
                 console.log(formData);
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("SaveClientDetails", "Maintenance")',
+                    url: '@Url.Action("SaveClientDetails", "CorporateManagement")',
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
@@ -337,7 +341,7 @@
                 });
             }
 
-            $("#btnCancelClient").click(function (e) {
+            $("#btnCancel").click(function (e) {
                 e.preventDefault();
                 $("#form_client").trigger("reset");
                 $("#modal_update_client").modal("hide");
@@ -346,7 +350,7 @@
             function UpdateClientDetails() {
                 if ($("[name='Id']").val() != 0) {
                     $.ajax({
-                        url: "../Maintenance/UpdateClientDetails?Id= " + $("[name='Id']").val(),
+                        url: "../CorporateManagement/UpdateClientDetails?Id= " + $("[name='Id']").val(),
                         type: "GET",
                         cache: false,
                         contentType: false,
@@ -363,6 +367,7 @@
                                 $("[name='MobileNumber']").val(res.data.mobileNumber);
                                 $("[name='Active']").prop('checked', res.data.active);
                                 $("[name='GlobalAccount']").prop('checked', res.data.globalAccount);
+                                $("[name='IsApproved']").val(res.data.isApproved);
                             }
                         }
                     });
@@ -384,7 +389,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: '../Maintenance/RemoveCorporateClient?&Id=' + $("[name='Id']").val(),
+                                url: '../CorporateManagement/RemoveCorporateClient?&Id=' + $("[name='Id']").val(),
                                 type: 'POST',
                                 success: function (res) {
                                     if (res.success == true) {

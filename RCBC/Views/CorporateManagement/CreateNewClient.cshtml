@@ -19,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Corporate Client Management</a></li>
-                        <li class="breadcrumb-item active">Create New Corporate Client</li>
+                        <li class="breadcrumb-item"><a href="">Create New Corporate Client</a></li>
+                        <li class="breadcrumb-item active">Corporate Client Management</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -61,7 +61,7 @@
 
                                             <form id="form_client" novalidate="novalidate">
 
-                                                <input type="hidden" name="Id">
+                                                @Html.HiddenFor(x => x.Id)
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group">
@@ -114,8 +114,8 @@
                                                     <div class="col-md-6">
                                                         <div class="form-group clearfix">
                                                             <div class="icheck-primary d-inline">
-                                                                @Html.CheckBoxFor(x => x.Active, new { @id = "ActiveStatus" })
-                                                                @Html.Label("ActiveStatus", "Active Status")
+                                                                @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                                                @Html.Label("Active", "Active Status")
                                                             </div>
                                                         </div>
                                                     </div>
@@ -130,7 +130,7 @@
                                                 </div>
 
                                                 <div class="d-flex justify-content-end">
-                                                    <button type="submit" id="btnSaveClient" class="btn btn-primary">Save</button>
+                                                    <button type="submit" class="btn btn-primary">Save</button>
                                                     <button type="button" id="btnCancelClient" class="btn btn-danger ml-3">Cancel</button>
                                                 </div>
 
@@ -167,8 +167,6 @@
 
                         </div>
 
-                        <div class="card-footer">
-                        </div>
                     </div>
                 </div>
 
@@ -240,8 +238,10 @@
                                 </div>
 
                             </div>
-
-                            <button type="submit" class="btn btn-primary float-right mr-3 mb-3">Save</button>
+                            <div class="d-flex justify-content-end pr-3 pl-3 pb-3">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" id="btnCancelAccount" class="btn btn-danger ml-3">Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -258,7 +258,7 @@
             <div class="modal-content">
                 <div class="modal-header bg-light-blue">
                     <h4 class="modal-title" id="modal_name_contact"><i class="fa fa-address-book-o pr-2"></i>Add New Contact</h4>
-                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <button type="button" class="close" id="btnCloseContact" data-dismiss="modal">×</button>
                 </div>
 
                 <div class="row p-4" id="div_client_contact_table">
@@ -276,6 +276,7 @@
                                 @Html.HiddenFor(x => x.Id)
                                 @Html.HiddenFor(x => x.AccountId)
                                 @Html.HiddenFor(x => x.CorporateClientId)
+                                @Html.HiddenFor(x => x.IsApproved)
                                 <div class="row">
                                     <div class="col-6">
                                         <div class="form-group">
@@ -303,7 +304,10 @@
                                 </div>
 
                             </div>
-                            <button type="submit" class="btn btn-primary float-right mr-3 mb-3">Save</button>
+                            <div class="d-flex justify-content-end pr-3 pl-3 pb-3">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" id="btnCancelContact" class="btn btn-danger ml-3">Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -390,7 +394,7 @@
                 console.log(formData);
                 $.ajax({
                     type: "POST",
-                    url: '@Url.Action("SaveClientDetails", "Maintenance")',
+                    url: '@Url.Action("SaveClientDetails", "CorporateManagement")',
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
@@ -432,12 +436,13 @@
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
-                        "url": "../Maintenance/LoadAccountDetails",
+                        "url": "../CorporateManagement/LoadAccountDetails",
                         "type": "GET",
                         "datatype": "JSON",
                     },
                     columns:
                         [
+                            { "data": "corporateClientId", title: "CorporateClient ID", sClass: "dt-body-center", orderable: false },
                             { "data": "accountNumber", title: "Account Number", sClass: "dt-body-center", orderable: false },
                             { "data": "accountName", title: "Account Name", sClass: "dt-body-center", orderable: false },
                             { "data": "currency", title: "Currency", sClass: "dt-body-center", orderable: false },
@@ -487,7 +492,7 @@
             function UpdateAccountDetails() {
                 if ($("[name='Id']").val() != 0) {
                     $.ajax({
-                        url: "../Maintenance/UpdateAccountDetails?Id= " + $("[name='Id']").val(),
+                        url: "../CorporateManagement/UpdateAccountDetails?Id= " + $("[name='Id']").val(),
                         type: "GET",
                         cache: false,
                         contentType: false,
@@ -515,6 +520,7 @@
 
             function RemoveAccountDetails() {
                 if ($("[name='Id']").val() != 0) {
+                    $('#loading-image').show();
                     Swal.fire({
                         text: "Are you sure you want to delete this record?",
                         icon: 'warning',
@@ -525,10 +531,11 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             $.ajax({
-                                url: '../Maintenance/RemoveAccountDetails?&Id=' + $("[name='Id']").val(),
+                                url: '../CorporateManagement/RemoveAccountDetails?&Id=' + $("[name='Id']").val(),
                                 type: 'POST',
                                 success: function (res) {
                                     if (res.success == true) {
+                                        $('#loading-image').hide();
                                         Swal.fire('Success!', 'Record has been deleted.', 'success');
                                         $("#form_account").trigger("reset");
                                         $("[name='CorporateClientId']").val(0);
@@ -552,6 +559,7 @@
                 $("#modal_add_account").modal("show");
                 $("#modal_name_account").html('<i class="fa fa-user pr-2"></i>Add New Account');
                 $("#div_client_account_table").removeAttr("style");
+                $("#div_account").removeClass("mt-4");
                 $("[name='CorporateClientId']").val(0);
                 $("[name='Id']").val(0);
                 LoadClientAccountDetails();
@@ -561,6 +569,12 @@
             $("#btnCloseAccount").click(function (e) {
                 e.preventDefault();
                 $("#form_account").trigger("reset");
+            });
+
+            $("#btnCancelAccount").click(function (e) {
+                e.preventDefault();
+                $("#form_account").trigger("reset");
+                $("#modal_add_account").modal("hide");
             });
 
             LoadClientAccountDetails();
@@ -577,7 +591,7 @@
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
-                        "url": "../Maintenance/LoadClientDetails",
+                        "url": "../CorporateManagement/LoadClientDetails",
                         "type": "GET",
                         "datatype": "JSON",
                     },
@@ -588,7 +602,7 @@
                             { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
                             { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
                             {
-                                data: "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
                                     if (data == true) {
                                         return '<span class="badge bg-warning">Active</span>'
                                     }
@@ -656,15 +670,15 @@
 
             function SaveAccountDetails() {
                 if ($("[name='CorporateClientId']").val() != 0) {
-                    //$('#loading-image').show();
+                    $('#loading-image').show();
                     var formData = $("#form_account").serialize();
                     $.ajax({
                         type: "POST",
-                        url: '@Url.Action("SaveAccountDetails", "Maintenance")',
+                        url: '@Url.Action("SaveAccountDetails", "CorporateManagement")',
                         data: formData,
                         success: function (response) {
                             if (response.success == true) {
-                                //$('#loading-image').hide();
+                                $('#loading-image').hide();
                                 Swal.fire('Success!', response.message, 'success');
                                 $("#form_account").trigger("reset");
                                 $("#modal_add_account").modal("hide");
@@ -677,11 +691,11 @@
                             }
                         },
                         failure: function (response) {
-                            //$('#loading-image').hide();
+                            $('#loading-image').hide();
                             alert(response.responseText);
                         },
                         error: function (response) {
-                            //$('#loading-image').hide();
+                            $('#loading-image').hide();
                             alert(response.responseText);
                         }
                     });
@@ -705,12 +719,13 @@
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
-                        "url": "../Maintenance/LoadContactDetails",
+                        "url": "../CorporateManagement/LoadContactDetails",
                         "type": "GET",
                         "datatype": "JSON",
                     },
                     columns:
                         [
+                            { "data": "corporateClientId", title: "CorporateClient ID", sClass: "dt-body-center", orderable: false },
                             { "data": "contactPerson", title: "Contact Person", sClass: "dt-body-center", orderable: false },
                             { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
@@ -759,7 +774,7 @@
             function UpdateContactDetails() {
                 if ($("[name='Id']").val() != 0) {
                     $.ajax({
-                        url: "../Maintenance/UpdateContactDetails?Id= " + $("[name='Id']").val(),
+                        url: "../CorporateManagement/UpdateContactDetails?Id= " + $("[name='Id']").val(),
                         type: "GET",
                         cache: false,
                         contentType: false,
@@ -795,11 +810,13 @@
                         confirmButtonText: 'Yes, delete it!'
                     }).then((result) => {
                         if (result.isConfirmed) {
+                            $('#loading-image').show();
                             $.ajax({
-                                url: '../Maintenance/RemoveContactDetails?&Id=' + $("[name='Id']").val(),
+                                url: '../CorporateManagement/RemoveContactDetails?&Id=' + $("[name='Id']").val(),
                                 type: 'POST',
                                 success: function (res) {
                                     if (res.success == true) {
+                                        $('#loading-image').hide();
                                         Swal.fire('Success!', 'Record has been deleted.', 'success');
                                         $("#form_contact").trigger("reset");
                                         $("[name='CorporateClientId']").val(0);
@@ -823,10 +840,22 @@
                 $("#modal_add_contact").modal("show");
                 $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Add New Contact');
                 $("#div_client_contact_table").removeAttr("style");
+                $("#div_contact").removeClass("mt-4");
                 $("[name='CorporateClientId']").val(0);
                 $("[name='Id']").val(0);
                 LoadClientContactDetails();
                 LoadContactDetails();
+            });
+
+            $("#btnCloseContact").click(function (e) {
+                e.preventDefault();
+                $("#form_contact").trigger("reset");
+            });
+
+            $("#btnCancelContact").click(function (e) {
+                e.preventDefault();
+                $("#form_contact").trigger("reset");
+                $("#modal_add_contact").modal("hide");
             });
 
             LoadClientContactDetails();
@@ -843,7 +872,7 @@
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
-                        "url": "../Maintenance/LoadClientDetails",
+                        "url": "../CorporateManagement/LoadClientDetails",
                         "type": "GET",
                         "datatype": "JSON",
                     },
@@ -928,15 +957,15 @@
 
             function SaveContactDetails() {
                 if ($("[name='CorporateClientId']").val() != 0) {
-                    //$('#loading-image').show();
+                    $('#loading-image').show();
                     var formData = $("#form_contact").serialize();
                     $.ajax({
                         type: "POST",
-                        url: '@Url.Action("SaveContactDetails", "Maintenance")',
+                        url: '@Url.Action("SaveContactDetails", "CorporateManagement")',
                         data: formData,
                         success: function (response) {
                             if (response.success == true) {
-                                //$('#loading-image').hide();
+                                $('#loading-image').hide();
                                 Swal.fire('Success!', response.message, 'success');
                                 $("#form_contact").trigger("reset");
                                 $("#modal_add_contact").modal("hide");
@@ -949,11 +978,11 @@
                             }
                         },
                         failure: function (response) {
-                            //$('#loading-image').hide();
+                            $('#loading-image').hide();
                             alert(response.responseText);
                         },
                         error: function (response) {
-                            //$('#loading-image').hide();
+                            $('#loading-image').hide();
                             alert(response.responseText);
                         }
                     });

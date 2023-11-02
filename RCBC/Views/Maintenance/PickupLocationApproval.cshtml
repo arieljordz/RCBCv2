@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Maintenance";
+﻿@model RCBC.Models.PickupLocationModel
+@{
+    ViewData["Title"] = "Pickup Location Maintenance";
 }
 
 <!-- Content Wrapper. Contains page content -->
@@ -18,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Maintenance</a></li>
-                        <li class="breadcrumb-item active">Pickup Location Approval</li>
+                        <li class="breadcrumb-item"><a href="">Pickup Location Approval</a></li>
+                        <li class="breadcrumb-item active">Maintenance</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -35,48 +36,21 @@
                 <div class="col-md-12">
                     <div class="card card-light-blue">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>Pickup Location Approval</h3>
+                            <h3 class="card-title"><i class="fa fa-map-marker pr-2"></i>Pickup Location Approval</h3>
                         </div>
 
                         <div class="card-body">
 
-                            <div class="card card-primary card-outline card-tabs">
-                                <div class="card-header p-0 pt-1 border-bottom-0">
-                                    <ul class="nav nav-tabs" id="tab" role="tablist">
-                                        <li class="nav-item">
-                                            <a class="nav-link active" id="tab_pickup_location" data-toggle="pill" href="#custom_tab_pickup_location" role="tab" aria-controls="custom_tab_pickup_location" aria-selected="true">Pickup Location Details</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link" id="tab_account_details" data-toggle="pill" href="#custom_tab_account_details" role="tab" aria-controls="custom_tab_account_details" aria-selected="false">Account Details</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link" id="tab_contact_details" data-toggle="pill" href="#custom_tab_contact_details" role="tab" aria-controls="custom_tab_contact_details" aria-selected="false">Contact Details</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="card-body">
-                                    <div class="tab-content" id="tab_content">
-                                        <div class="tab-pane fade active show" id="custom_tab_pickup_location" role="tabpanel" aria-labelledby="tab_pickup_location">
-                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin malesuada lacus ullamcorper dui molestie, sit amet congue quam finibus. Etiam ultricies nunc non magna feugiat commodo. Etiam odio magna, mollis auctor felis vitae, ullamcorper ornare ligula. Proin pellentesque tincidunt nisi, vitae ullamcorper felis aliquam id. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin id orci eu lectus blandit suscipit. Phasellus porta, ante et varius ornare, sem enim sollicitudin eros, at commodo leo est vitae lacus. Etiam ut porta sem. Proin porttitor porta nisl, id tempor risus rhoncus quis. In in quam a nibh cursus pulvinar non consequat neque. Mauris lacus elit, condimentum ac condimentum at, semper vitae lectus. Cras lacinia erat eget sapien porta consectetur.
-                                        </div>
-                                        <div class="tab-pane fade" id="custom_tab_account_details" role="tabpanel" aria-labelledby="tab_account_details">
-                                            Mauris tincidunt mi at erat gravida, eget tristique urna bibendum. Mauris pharetra purus ut ligula tempor, et vulputate metus facilisis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Maecenas sollicitudin, nisi a luctus interdum, nisl ligula placerat mi, quis posuere purus ligula eu lectus. Donec nunc tellus, elementum sit amet ultricies at, posuere nec nunc. Nunc euismod pellentesque diam.
-                                        </div>
-                                        <div class="tab-pane fade" id="custom_tab_contact_details" role="tabpanel" aria-labelledby="tab_contact_details">
-                                            Morbi turpis dolor, vulputate vitae felis non, tincidunt congue mauris. Phasellus volutpat augue id mi placerat mollis. Vivamus faucibus eu massa eget condimentum. Fusce nec hendrerit sem, ac tristique nulla. Integer vestibulum orci odio. Cras nec augue ipsum. Suspendisse ut velit condimentum, mattis urna a, malesuada nunc. Curabitur eleifend facilisis velit finibus tristique. Nam vulputate, eros non luctus efficitur, ipsum odio volutpat massa, sit amet sollicitudin est libero sed ipsum. Nulla lacinia, ex vitae gravida fermentum, lectus ipsum gravida arcu, id fermentum metus arcu vel metus. Curabitur eget sem eu risus tincidunt eleifend ac ornare magna.
-                                        </div>
+                            <div class="row pb-3 pt-3">
+                                <div class="col-md-12">
+                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_location" class="table table-bordered table-hover text-center" style="width:100%"></table>
                                     </div>
                                 </div>
                             </div>
 
                         </div>
 
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -84,13 +58,293 @@
         </div><!--/. container-fluid -->
     </section>
 
+    <div id="modal_update_location" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-map-marker pr-2"></i>Pickup Location Approval</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <form id="form_location" novalidate="novalidate">
+                    <div class="p-3">
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.IsApproved)
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Corporate Name", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.CorporateName, new { @class = "form-control", placeholder = "CorporateName", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.CorporateName)
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Site", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.Site, new { @class = "form-control", placeholder = "Site", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.Site)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Site Address", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.SiteAddress, new { @class = "form-control", placeholder = "Site Address", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.SiteAddress)
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Partner Code", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.PartnerCode, new { @class = "form-control", placeholder = "PartnerCode", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.PartnerCode)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("SOL ID", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.SOLID, new { @class = "form-control", placeholder = "SOLID", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.SOLID)
+                                </div>
+                            </div>
+                            <div class="col-md-6 pt-4">
+                                <div class="form-group clearfix pt-3">
+                                    <div class="icheck-primary d-inline">
+                                        @Html.CheckBoxFor(x => x.Active, new { @id = "Active", @disabled = "disabled" })
+                                        @Html.Label("Active", "Active Status")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
     {
     <script>
         $(document).ready(function () {
-            $('#tab_pickup_location').addClass('active');
+
+            LoadPickupLocation();
+            function LoadPickupLocation() {
+                $('#tbl_location').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadPickupLocation",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
+                            { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                            {
+                                "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Disapproved</span>'
+                                    }
+                                }
+                            },
+                            {
+                                "data": "id", title: "View", render: function (data) {
+                                    return "<button type='button' class='btn btn-xs btn-primary view'><i class='fa fa-eye p-1 view'></i></button>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_location tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_location", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                        }
+                    }
+                });
+            }
+
+            $(document).on('click', '.view', function () {
+                if ($("[name='Id']").val() != 0) {
+                    UpdatePickupLocation();
+                    $("#modal_update_location").modal("show");
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                    $("[name='Active']").val(false);
+                }
+            });
+
+            function UpdatePickupLocation() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../Maintenance/UpdatePickupLocation?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_update_location").modal("show");
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='CorporateName']").val(res.data.corporateName);
+                                $("[name='Site']").val(res.data.site);
+                                $("[name='SiteAddress']").val(res.data.siteAddress);
+                                $("[name='PartnerCode']").val(res.data.partnerCode);
+                                $("[name='SOLID']").val(res.data.solid);
+                                $("[name='Active']").prop('checked', res.data.active);
+                                $("[name='Active']").val(res.data.active);
+                                $("[name='IsApproved']").val(true);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+            ValidatePickupLocation();
+            function ValidatePickupLocation() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SavePickupLocation();
+                    }
+                });
+                $('#form_location').validate({
+                    rules: {
+                        CorporateName: {
+                            required: true
+                        },
+                        Site: {
+                            required: true
+                        },
+                        SiteAddress: {
+                            required: true
+                        },
+                        PartnerCode: {
+                            required: true
+                        },
+                        SOLID: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        CorporateName: {
+                            required: "This field is required"
+                        },
+                        Site: {
+                            required: "This field is required"
+                        },
+                        SiteAddress: {
+                            required: "This field is required"
+                        },
+                        PartnerCode: {
+                            required: "This field is required"
+                        },
+                        SOLID: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SavePickupLocation() {
+                $('#loading-image').show();
+                var formData = $("#form_location").serialize();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SavePickupLocation", "Maintenance")',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success == true) {
+                            $('#loading-image').hide();
+                            Swal.fire('Success!', response.message, 'success');
+                            $("#form_location").trigger("reset");
+                            $("#modal_update_location").modal("hide");
+                            $("[name='Id']").val(0);
+                            LoadPickupLocation();
+                        }
+                        else {
+                            Swal.fire('Warning!', 'Location Already Exists.', 'warning');
+                        }
+                    },
+                    failure: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    }
+                });
+            }
+
+            $("#btnCancel").click(function (e) {
+                e.preventDefault();
+                $("#form_location").trigger("reset");
+                $("#modal_update_location").modal("hide");
+            });
+
+
         });
 
         ActiveMenu("#pickup_location");

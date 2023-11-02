@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RCBC.Models.CorporateClientModel
+@{
     ViewData["Title"] = "Corporate Client Management";
 }
 
@@ -18,8 +19,8 @@
                 </div><!-- /.col -->
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Corporate Client Management</a></li>
-                        <li class="breadcrumb-item active">Corporate Client Approval</li>
+                        <li class="breadcrumb-item"><a href="">Corporate Client Approval</a></li>
+                        <li class="breadcrumb-item active">Corporate Client Management</li>
                     </ol>
                 </div><!-- /.col -->
             </div><!-- /.row -->
@@ -32,29 +33,119 @@
 
             <div class="d-flex justify-content-center">
 
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="card card-light-blue">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fa fa-user pr-2"></i>Corporate Client Approval</h3>
                         </div>
 
                         <div class="card-body">
-                            <form id="frmRegister" class="p-2">
-                            </form>
-                        </div>
-
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
-                                <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                            <div class="row pb-3 pt-3">
+                                <div class="col-md-12">
+                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_client_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
             </div>
-        </div><!--/. container-fluid -->
+        </div>
     </section>
+
+    <div id="modal_update_client" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Approved Client</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <form id="form_client" novalidate="novalidate">
+                    <div class="p-3">
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.IsApproved)
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Corporate Group", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.CorporateGroup, new { @class = "form-control", placeholder = "CorporateGroup", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.CorporateGroup)
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Corporate Code", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.CorporateCode, new { @class = "form-control", placeholder = "CorporateCode", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.CorporateCode)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Corporate Name", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.CorporateName, new { @class = "form-control", placeholder = "CorporateName", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.CorporateName)
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "ContactPerson", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.ContactPerson)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Email", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.Email)
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.MobileNumber)
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group clearfix">
+                                    <div class="icheck-primary d-inline">
+                                        @Html.CheckBoxFor(x => x.Active, new { @id = "Active", @disabled = "disabled" })
+                                        @Html.Label("Active", "Active Status")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group clearfix">
+                                    <div class="icheck-primary d-inline">
+                                        @Html.CheckBoxFor(x => x.GlobalAccount, new { @id = "GlobalAccount", @disabled = "disabled" })
+                                        @Html.Label("GlobalAccount", "Global Account")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Approved</button>
+                            <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
 
 </div>
 <!-- /.content-wrapper -->
@@ -62,6 +153,222 @@
     {
     <script>
         $(document).ready(function () {
+
+            LoadClientDetails();
+            function LoadClientDetails() {
+                $('#tbl_client_details').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../CorporateManagement/LoadClientDetails",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "contactPerson", title: "Contact Person", sClass: "dt-body-center", orderable: false },
+                            { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
+                            { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
+                            { "data": "globalAccount", title: "Global Account", sClass: "dt-body-center", orderable: false },
+                            {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
+                            {
+                                "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Disapproved</span>'
+                                    }
+                                }
+                            },
+                            {
+                                "data": "id", title: "View", render: function (data) {
+                                    return "<button type='button' class='btn btn-xs btn-primary view'><i class='fa fa-eye p-1 view'></i></button>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_client_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_client_details", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                        }
+                    }
+                });
+            }
+
+            $(document).on('click', '.view', function () {
+                if ($("[name='Id']").val() != 0) {
+                    UpdateClientDetails();
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                    $("[name='IsApproved']").val(false);
+                }
+            });
+
+            function UpdateClientDetails() {
+                if ($("[name='Id']").val() != 0) {
+                    $.ajax({
+                        url: "../CorporateManagement/UpdateClientDetails?Id= " + $("[name='Id']").val(),
+                        type: "GET",
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        success: function (res) {
+                            if (res.data != null) {
+                                $("#modal_update_client").modal("show");
+                                $("[name='Id']").val(res.data.id);
+                                $("[name='CorporateGroup']").val(res.data.corporateGroup);
+                                $("[name='CorporateCode']").val(res.data.corporateCode);
+                                $("[name='CorporateName']").val(res.data.corporateName);
+                                $("[name='ContactPerson']").val(res.data.contactPerson);
+                                $("[name='Email']").val(res.data.email);
+                                $("[name='MobileNumber']").val(res.data.mobileNumber);
+                                $("[name='Active']").prop('checked', res.data.active);
+                                $("[name='GlobalAccount']").prop('checked', res.data.globalAccount);
+                                $("[name='Active']").val(res.data.active);
+                                $("[name='GlobalAccount']").val(res.data.active);
+                                $("[name='IsApproved']").val(true);
+                            }
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            ValidateFormClient();
+            function ValidateFormClient() {
+                $.validator.setDefaults({
+                    submitHandler: function () {
+                        SaveClientDetails();
+                    }
+                });
+                $('#form_client').validate({
+                    rules: {
+                        CorporateGroup: {
+                            required: true
+                        },
+                        CorporateCode: {
+                            required: true
+                        },
+                        CorporateName: {
+                            required: true
+                        },
+                        ContactPerson: {
+                            required: true
+                        },
+                        Email: {
+                            required: true
+                        },
+                        MobileNumber: {
+                            required: true
+                        },
+                    },
+                    messages: {
+                        CorporateGroup: {
+                            required: "This field is required"
+                        },
+                        CorporateCode: {
+                            required: "This field is required"
+                        },
+                        CorporateName: {
+                            required: "This field is required"
+                        },
+                        ContactPerson: {
+                            required: "This field is required"
+                        },
+                        Email: {
+                            required: "This field is required"
+                        },
+                        MobileNumber: {
+                            required: "This field is required"
+                        },
+                    },
+                    errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('.form-group').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                        console.log(element);
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                        console.log(element);
+                    }
+                });
+            }
+
+            function SaveClientDetails() {
+                $('#loading-image').show();
+                var formData = $("#form_client").serialize();
+                console.log(formData);
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveClientDetails", "CorporateManagement")',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success == true) {
+                            $('#loading-image').hide();
+                            Swal.fire('Success!', response.message, 'success');
+                            $("[name='Id']").val(0);
+                            $("#form_client").trigger("reset");
+                            $("#modal_update_client").modal("hide");
+                            LoadClientDetails();
+                        }
+                        else {
+                            Swal.fire('Warning!', 'Client Already Exists.', 'warning');
+                        }
+                    },
+                    failure: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    }
+                });
+            }
+
+            $("#btnCancel").click(function (e) {
+                e.preventDefault();
+                $("#form_client").trigger("reset");
+                $("#modal_update_client").modal("hide");
+            });
 
         });
 
