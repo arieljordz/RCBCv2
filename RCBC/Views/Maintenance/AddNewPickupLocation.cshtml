@@ -746,8 +746,8 @@
                             $("[name='Id']").val(Id);
                         } else {
                             $(this).removeClass("dtactive");
-                            $("[name='Id']").val(0);
                             $("#form_account").trigger("reset");
+                            $("[name='Id']").val(0);
                         }
                     }
                 });
@@ -763,12 +763,13 @@
                         processData: false,
                         success: function (res) {
                             if (res.data != null) {
+                                console.log("sadasdas");
                                 $("#modal_add_contact").modal("show");
                                 $("#div_client_contact_table").css("display", "none");
                                 $("#div_contact").addClass("mt-4");
                                 $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Update Contact');
                                 $("[name='Id']").val(res.data.id);
-                                $("[name='LocationId']").val(res.data.LocationId);
+                                $("[name='LocationId']").val(res.data.locationId);
                                 $("[name='ContactPerson']").val(res.data.contactPerson);
                                 $("[name='Email']").val(res.data.email);
                                 $("[name='MobileNumber']").val(res.data.mobileNumber);
