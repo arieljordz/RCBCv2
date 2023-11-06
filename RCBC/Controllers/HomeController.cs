@@ -52,7 +52,7 @@ namespace RCBC.Controllers
             }
             else
             {
-                return View("Signout");
+                return View("_Signout");
             }
         }
 
@@ -86,14 +86,6 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult Signout()
-        {
-            Response.Cookies.Delete("Username");
-            Response.Cookies.Delete("LastLogin");
-            Response.Cookies.Delete("EmployeeName");
-            return RedirectToAction("Index");
-        }
-        
         public IActionResult Logout()
         {
             Response.Cookies.Delete("Username");
@@ -124,7 +116,7 @@ namespace RCBC.Controllers
             }
             else
             {
-                return View("Signout");
+                return View("_Signout");
             }
         }
 
@@ -148,10 +140,12 @@ namespace RCBC.Controllers
 
                     if (result)
                     {
+                        TimeSpan expirationTime = TimeSpan.FromMinutes(1);
+
                         var cookieOptions = new CookieOptions
                         {
                             // Set additional options if needed
-                            Expires = DateTime.Now.AddMinutes(30),
+                            Expires = DateTime.Now.Add(expirationTime),
                             Secure = true,
                             HttpOnly = true
                         };

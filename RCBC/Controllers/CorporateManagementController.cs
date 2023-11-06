@@ -46,7 +46,7 @@ namespace RCBC.Controllers
             }
             else
             {
-                return View("Signout");
+                return View("_Signout");
             }
         }
 
