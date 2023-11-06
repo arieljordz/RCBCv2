@@ -316,5 +316,21 @@ namespace RCBC.Repository
             return data;
         }
 
+        public List<EmailTypeModel> GetEmailTypes()
+        {
+            List<EmailTypeModel> data = new List<EmailTypeModel>();
+
+            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                string qry = @"SELECT * FROM [RCBC].[dbo].[EmailType]";
+                data = con.Query<EmailTypeModel>(qry).ToList();
+
+                con.Close();
+            }
+            return data;
+        }
+
     }
 }

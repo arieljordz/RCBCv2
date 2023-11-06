@@ -12,6 +12,7 @@ using System.Reflection;
 using Dapper;
 using System.Transactions;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RCBC.Controllers
 {
@@ -49,6 +50,9 @@ namespace RCBC.Controllers
 
                 var Departments = global.GetDepartments();
                 ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+
+                var EmailTypes = global.GetEmailTypes();
+                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
                 return View();
             }
@@ -127,8 +131,11 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
-
-        public IActionResult SendForgotPassword(string Username)
+		public IActionResult EmailTemplate()
+		{
+			return LoadViews();
+		}
+		public IActionResult SendForgotPassword(string Username)
         {
             string salt = string.Empty;
             string HashedPass = string.Empty;
@@ -1298,6 +1305,60 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        
+        public IActionResult BrowseEmailType(string EmailType)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    EmailTypeModel data = con.QueryFirstOrDefault<EmailTypeModel>("SELECT Subject, Content FROM [RCBC].[dbo].[EmailType] WHERE EmailType = @EmailType", new { EmailType });
+
+                    if (data != null)
+                    {
+                        return Json(new { data = data });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Email type not found" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        public IActionResult UpdateEmailType(string Subject, string Content, string EmailType)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    con.Open();
+
+                    string query = "UPDATE [RCBC].[dbo].[EmailType] SET Subject = @Subject, Content = @Content WHERE EmailType = @EmailType";
+
+                    int affectedRows = con.Execute(query, new { Subject, Content, EmailType });
+
+                    if (affectedRows > 0)
+                    {
+                        return Json(new { success = true });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "No records updated" });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
     } //end
 

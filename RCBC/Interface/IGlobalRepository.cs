@@ -27,5 +27,7 @@ namespace RCBC.Interface
         List<UserRoleModel> GetUserRoles();
 
         List<DepartmentModel> GetDepartments();
+
+        List<EmailTypeModel> GetEmailTypes();
     }
 }
