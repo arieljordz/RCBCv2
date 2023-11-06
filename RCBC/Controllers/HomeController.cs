@@ -140,7 +140,7 @@ namespace RCBC.Controllers
 
                     if (result)
                     {
-                        TimeSpan expirationTime = TimeSpan.FromMinutes(1);
+                        TimeSpan expirationTime = TimeSpan.FromMinutes(15);
 
                         var cookieOptions = new CookieOptions
                         {
