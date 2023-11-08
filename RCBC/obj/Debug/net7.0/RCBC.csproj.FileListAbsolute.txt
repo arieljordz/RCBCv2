@@ -81,3 +81,4 @@ D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\refint\RCBC.dll
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.genruntimeconfig.cache
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\ref\RCBC.dll
+D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\bin\Debug\net7.0\RestSharp.dll

@@ -47,11 +47,8 @@
             @Html.Partial("_Footer")
         </div>
     }
+    @Html.Partial("_Signout")
 
-
-    @* <main role="main" class="pb-3">
-
-    </main>*@
     @RenderBody()
     <!-- REQUIRED SCRIPTS -->
     <!-- jQuery -->
@@ -106,6 +103,7 @@
     <div id="loading-image" style="position: fixed; left: 0px; top: 35%; width: 100%; height: 100%; text-align: center; display: none;">
         <img class="loader" style="height:15%" src="@Url.Content("~/images/ajax-loading.gif")" alt="Loading" />
     </div>
+
 
 </body>
 </html>

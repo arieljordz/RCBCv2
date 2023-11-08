@@ -39,11 +39,14 @@ namespace RCBC.Controllers
                 var Departments = global.GetDepartments();
                 ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
+                var EmailTypes = global.GetEmailTypes();
+                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
                 return View();
             }
             else
             {
-                return View("_Signout"); 
+                return RedirectToAction("Index", "Home");
             }
         }
 

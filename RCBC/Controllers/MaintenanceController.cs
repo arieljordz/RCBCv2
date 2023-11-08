@@ -58,7 +58,7 @@ namespace RCBC.Controllers
             }
             else
             {
-                return View("_Signout");
+                return RedirectToAction("Index","Home");
             }
         }
 
@@ -446,6 +446,18 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        public IActionResult LoadUsersForApproval()
+        {
+            List<UserModel> data;
+
+            using (IDbConnection con = new SqlConnection(GetConnectionString()))
+            {
+                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1").ToList();
+            }
+
+            return Json(new { data });
         }
 
         public IActionResult SaveUserRole(UserRoleModel model)

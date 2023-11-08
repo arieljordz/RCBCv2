@@ -31,13 +31,21 @@
         <div class="container-fluid">
 
             <div class="d-flex justify-content-center">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card card-light-blue">
                         <div class="card-header">
-                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>User Details</h3>
+                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>Users For Approval</h3>
                         </div>
 
                         <div class="card-body">
+
+                            <div class="row pb-3 pt-3">
+                                <div class="col-md-12">
+                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_users_approval" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="row mb-4">
                                 <div class="col-md-12">
@@ -82,7 +90,7 @@
             </div>
 
             <div class="d-flex justify-content-center">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card card-light-blue">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fa fa-address-card-o pr-2"></i>User Access for Approval</h3>
@@ -124,6 +132,75 @@
         $(document).ready(function () {
 
             var checkedCheckboxIds = [];
+
+            LoadUsersForApproval();
+            function LoadUsersForApproval() {
+                $('#tbl_users_approval').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Maintenance/LoadUsersForApproval",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "userId", title: "UserId", sClass: "dt-body-center", orderable: false },
+                            { "data": "employeeName", title: "Employee Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
+                            { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
+                            { "data": "groupDept", title: "Group Department", sClass: "dt-body-center", orderable: false },
+                            { "data": "userRole", title: "User Role", sClass: "dt-body-left", orderable: false },
+                            {
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspUpdate</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-trash col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspDelete</a>" +
+                                        "</div></div></div ></div>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_users_approval tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        UpdateUser();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        RemoveUser();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_users_approval", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("#frmUsers").trigger("reset");
+                        }
+                    }
+                });
+            }
+
 
             $('#btnSearch').click(function () {
                 $('#loading-image').show();

@@ -10,6 +10,7 @@ using RCBC.Interface;
 using System.Data;
 using Dapper;
 using System.Reflection;
+using System.Threading;
 
 namespace RCBC.Controllers
 {
@@ -37,7 +38,7 @@ namespace RCBC.Controllers
             if (Request.Cookies["Username"] != null)
             {
                 int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
-              
+
                 ViewBag.Modules = global.GetModulesByUserId(UserId);
                 ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                 ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
@@ -48,13 +49,17 @@ namespace RCBC.Controllers
                 var Departments = global.GetDepartments();
                 ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
+                var EmailTypes = global.GetEmailTypes();
+                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
                 return View();
             }
             else
             {
-                return View("_Signout");
+                return RedirectToAction("Index", "Home");
             }
         }
+
 
         public IActionResult Index()
         {
@@ -65,17 +70,17 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
-        
+
         public IActionResult FirstLogin()
         {
             return LoadViews();
         }
-       
+
         public IActionResult ChangePassword()
         {
             return LoadViews();
         }
-       
+
         public IActionResult ContinueLogin()
         {
             return LoadViews();
@@ -88,12 +93,19 @@ namespace RCBC.Controllers
 
         public IActionResult Logout()
         {
+            RemoveCookies();
+            return RedirectToAction("Index", "Home");
+        }
+
+        public void RemoveCookies()
+        {
             Response.Cookies.Delete("Username");
             Response.Cookies.Delete("LastLogin");
             Response.Cookies.Delete("EmployeeName");
-            return RedirectToAction("Index");
+            Response.Cookies.Delete("UserRole");
+            Response.Cookies.Delete("UserId");
         }
-       
+
         public IActionResult LoginProceed()
         {
             int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
@@ -112,12 +124,71 @@ namespace RCBC.Controllers
                     string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
                     string[] Link = input.Split('/');
                     return RedirectToAction(Link[2], Link[1]);
-                }  
+                }
             }
             else
             {
-                return View("_Signout");
+                return RedirectToAction("Index", "Home");
             }
+        }
+
+        public void CreateCookies(UserModel user)
+        {
+            int sessionExpired = Convert.ToInt32(Configuration["Settings:SessionExpired"]);
+            TimeSpan expirationTime = TimeSpan.FromMinutes(sessionExpired);
+
+            DateTime expirationDate = DateTime.Now.Add(expirationTime);
+
+            var cookieOptions = new CookieOptions
+            {
+                Expires = expirationDate,
+                Secure = true,
+                HttpOnly = true
+            };
+
+            if (user.UserId != null)
+            {
+                Response.Cookies.Append("Username", user.UserId, cookieOptions);
+                Response.Cookies.Append("LastLogin", DateTime.Now.ToString("dd MMMM yyyy hh:mm tt"), cookieOptions);
+                Response.Cookies.Append("EmployeeName", user.EmployeeName, cookieOptions);
+                Response.Cookies.Append("UserRole", user.UserRole, cookieOptions);
+                Response.Cookies.Append("UserId", user.Id.ToString(), cookieOptions);
+                                
+                //DateTime expirationDate = DateTime.Parse((HttpCookie)Request.Cookies["Username"].Value);
+            }
+        }
+
+        [HttpGet("/ResetCookies")]
+        public IActionResult ResetCookies()
+        {
+            UserModel user = new UserModel();
+            user.UserId = Request.Cookies["Username"];
+            user.EmployeeName = Request.Cookies["EmployeeName"];
+            user.UserRole = Request.Cookies["UserRole"];
+            user.Id = Convert.ToInt32(Request.Cookies["UserId"]);
+            CreateCookies(user);
+            return Ok();
+        }
+
+        [HttpGet("/GetTimeout")]
+        public IActionResult GetTimeout()
+        {
+            int timeOut = 0;
+            int milliseconds = 60000;
+            int sessionExpired = Convert.ToInt32(Configuration["Settings:SessionExpired"]);
+            timeOut = milliseconds * sessionExpired;
+
+            if (Request.Cookies["Username"] != null)
+            {
+                UserModel user = new UserModel();
+                user.UserId = Request.Cookies["Username"];
+                user.EmployeeName = Request.Cookies["EmployeeName"];
+                user.UserRole = Request.Cookies["UserRole"];
+                user.Id = Convert.ToInt32(Request.Cookies["UserId"]);
+                CreateCookies(user);
+            }
+
+            return Ok(new { timeOut });
         }
 
         public IActionResult Login(string Username, string Password)
@@ -132,32 +203,14 @@ namespace RCBC.Controllers
 
                 if (_userModel != null)
                 {
-                    // Combine the provided password with the salt
                     string PlainPass = Password + _userModel.Salt;
 
-                    // Verify the hashed password
                     bool result = Crypto.VerifyHashedPassword(_userModel.HashPassword, PlainPass);
 
                     if (result)
                     {
-                        TimeSpan expirationTime = TimeSpan.FromMinutes(15);
+                        CreateCookies(_userModel);
 
-                        var cookieOptions = new CookieOptions
-                        {
-                            // Set additional options if needed
-                            Expires = DateTime.Now.Add(expirationTime),
-                            Secure = true,
-                            HttpOnly = true
-                        };
-
-                        // Add the cookie to the response
-                        Response.Cookies.Append("Username", Username, cookieOptions);
-                        Response.Cookies.Append("LastLogin", DateTime.Now.ToString("dd MMMM yyyy hh:mm tt"), cookieOptions);
-                        Response.Cookies.Append("EmployeeName", _userModel.EmployeeName, cookieOptions);
-                        Response.Cookies.Append("UserRole", _userModel.UserRole, cookieOptions);
-                        Response.Cookies.Append("UserId", _userModel.Id.ToString(), cookieOptions);
-
-                        // Fetch SubModules and ChildModules as needed
                         var SubModules = global.GetSubModulesByUserId(_userModel.Id).FirstOrDefault();
                         var ChildModules = global.GetChildModulesByUserId(_userModel.Id).FirstOrDefault();
 
