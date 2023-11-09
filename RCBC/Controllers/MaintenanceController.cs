@@ -212,9 +212,9 @@ namespace RCBC.Controllers
                             {
                                 // Insert into UsersInformation table
                                 string insertUsersInfoQuery = @"
-                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (Username, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt)
+                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (Username, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt, Deactivated)
                                     OUTPUT INSERTED.Id
-                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)";
+                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt, @Deactivated)";
 
                                 var usersInfoParameters = new
                                 {
@@ -228,7 +228,8 @@ namespace RCBC.Controllers
                                     UserRole = model.UserRole,
                                     UserStatus = false,
                                     DateAdded = DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"),
-                                    LoginAttempt = 0
+                                    LoginAttempt = 0,
+                                    Deactivated = false
                                 };
 
                                 // Execute the query and retrieve the inserted Id
@@ -265,12 +266,13 @@ namespace RCBC.Controllers
                                 // Update user information
                                 string updateUsersInfoQuery = @"
                                 UPDATE [RCBC].[dbo].[UsersInformation]
-                                SET EmployeeName = @EmployeeName, Email = @Email, MobileNumber = @MobileNumber, GroupDept = @GroupDept, UserRole = @UserRole
+                                SET Username = @Username, EmployeeName = @EmployeeName, Email = @Email, MobileNumber = @MobileNumber, GroupDept = @GroupDept, UserRole = @UserRole
                                 WHERE Id = @Id";
 
                                 var usersInfoParameters = new
                                 {
                                     Id = model.Id,
+                                    Username = model.Username,
                                     EmployeeName = model.EmployeeName,
                                     Email = model.Email,
                                     MobileNumber = model.MobileNumber,
@@ -416,7 +418,7 @@ namespace RCBC.Controllers
 
             using (IDbConnection con = new SqlConnection(GetConnectionString()))
             {
-                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1").ToList();
+                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Deactivated = 0").ToList();
             }
 
             return Json(new { data });

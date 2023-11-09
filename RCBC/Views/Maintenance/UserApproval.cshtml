@@ -179,7 +179,8 @@
                             Swal.fire('Warning!', response.message, 'warning');
                         }
                         checkedCheckboxIds = [];
-                        LoadUserAccessById(response.userId);
+                        LoadUsersForApproval();
+                        LoadUserAccessById(0);
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

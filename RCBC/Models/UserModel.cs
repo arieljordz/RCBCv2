@@ -15,6 +15,7 @@
         public string UserRole { get; set; }
         public bool UserStatus { get; set; }
         public int LoginAttempt { get; set; }
+        public bool Deactivated { get; set; }
         public string ModuleIds { get; set; }
     }
 }

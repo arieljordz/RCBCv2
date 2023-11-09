@@ -25,7 +25,7 @@
                     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
                 }
 
-                <div class="row pt-3" style="display: none;">
+                <div class="row pt-3" id="div_reseter" style="display: none;">
                     <div class="col-sm-6">
                         <div class="input-group input-group-sm">
                             <input type="text" class="form-control" id="newValue">
@@ -55,29 +55,34 @@
 
             $("#btnSaveTimeout").click(function (e) {
                 e.preventDefault();
-                $('#loading-image').show();
-                $.ajax({
-                    type: "POST",
-                    url: "../Home/UpdateTimeout",
-                    data: { newValue: $('#newValue').val() },
-                    success: function (response) {
-                        if (response.success == true) {
+                if ($('#newValue').val() != "") {
+                    $('#loading-image').show();
+                    $.ajax({
+                        type: "POST",
+                        url: "../Home/UpdateTimeout",
+                        data: { newValue: $('#newValue').val() },
+                        success: function (response) {
+                            if (response.success == true) {
+                                $('#loading-image').hide();
+                                Swal.fire('Success!', 'Successfully updated timeout time.', 'success');
+                            }
+                            else {
+                                Swal.fire('Warning!', response.message, 'warning');
+                            }
+                        },
+                        failure: function (response) {
                             $('#loading-image').hide();
-                            Swal.fire('Success!', 'Successfully updated.', 'success');
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
                         }
-                        else {
-                            Swal.fire('Warning!', response.message, 'warning');
-                        }
-                    },
-                    failure: function (response) {
-                        $('#loading-image').hide();
-                        alert(response.responseText);
-                    },
-                    error: function (response) {
-                        $('#loading-image').hide();
-                        alert(response.responseText);
-                    }
-                });
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Please add timeout time before saving.', 'warning');
+                }
             });
 
             $("#btnUpdateStatus").click(function (e) {
@@ -89,7 +94,7 @@
                     success: function (response) {
                         if (response.success == true) {
                             $('#loading-image').hide();
-                            Swal.fire('Success!', 'Successfully updated.', 'success');
+                            Swal.fire('Success!', 'All user account has been resetted.', 'success');
                         }
                         else {
                             Swal.fire('Warning!', response.message, 'warning');
