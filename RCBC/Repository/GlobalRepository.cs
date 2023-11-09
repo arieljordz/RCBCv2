@@ -21,6 +21,14 @@ namespace RCBC.Repository
             return Configuration.GetConnectionString("DefaultConnection");
         }
 
+        public bool CheckUserStatus(int UserId)
+        {
+            using (IDbConnection con = new SqlConnection(GetConnectionString()))
+            {
+                return con.QueryFirstOrDefault<bool>(@"SELECT UserStatus FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id", new { Id = UserId });
+            }
+        }
+
         public List<ModuleModel> GetModulesByUserId(int UserId)
         {
             using IDbConnection con = new SqlConnection(GetConnectionString());

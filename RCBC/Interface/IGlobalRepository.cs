@@ -4,6 +4,8 @@ namespace RCBC.Interface
 {
     public interface IGlobalRepository
     {
+        public bool CheckUserStatus(int UserId);
+
         List<ModuleModel> GetModulesByUserId(int UserId);
 
         List<SubModuleModel> GetSubModulesByUserId(int UserId);

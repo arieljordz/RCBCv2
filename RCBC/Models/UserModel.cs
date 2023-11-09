@@ -3,7 +3,7 @@
     public class UserModel
     {
         public int Id { get; set; }
-        public string UserId { get; set; }
+        public string Username { get; set; }
         public string Salt { get; set; }
         public string HashPassword { get; set; }
         public string EmployeeName { get; set; }

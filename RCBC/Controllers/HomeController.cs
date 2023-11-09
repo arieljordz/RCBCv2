@@ -11,6 +11,12 @@ using System.Data;
 using Dapper;
 using System.Reflection;
 using System.Threading;
+using System.Data.Common;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RCBC.Controllers
 {
@@ -18,12 +24,15 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
+        private readonly string appSettingsPath; 
 
-        public HomeController(IConfiguration _configuration, IGlobalRepository _global)
+        public HomeController(IConfiguration _configuration, IGlobalRepository _global, IWebHostEnvironment environment)
         {
             Configuration = _configuration;
             global = _global;
+            appSettingsPath = Path.Combine(environment.ContentRootPath, "appsettings.json");
         }
+
         private string GetConnectionString()
         {
             return Configuration.GetConnectionString("DefaultConnection");
@@ -32,34 +41,49 @@ namespace RCBC.Controllers
         {
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
-            ViewBag.UserId = Request.Cookies["EmployeeName"];
+            ViewBag.EmployeeName = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
             if (Request.Cookies["Username"] != null)
             {
                 int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-                ViewBag.Modules = global.GetModulesByUserId(UserId);
-                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                if (UserId != 0)
+                {
+                    var chkStatus = global.CheckUserStatus(UserId);
 
-                var UserRoles = global.GetUserRoles();
-                ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+                    if (chkStatus)
+                    {
+                        ViewBag.Modules = global.GetModulesByUserId(UserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                var Departments = global.GetDepartments();
-                ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+                        var UserRoles = global.GetUserRoles();
+                        ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                var EmailTypes = global.GetEmailTypes();
-                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+                        var Departments = global.GetDepartments();
+                        ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                return View();
+                        var EmailTypes = global.GetEmailTypes();
+                        ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
+                        return View();
+                    }
+                    else
+                    {
+                        return RedirectToAction("LogoutAccount", "Home");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
             else
             {
                 return RedirectToAction("Index", "Home");
             }
         }
-
 
         public IActionResult Index()
         {
@@ -90,10 +114,24 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+      
+        public IActionResult LogoutAccount()
+        {
+            return View();
+        }
 
         public IActionResult Logout()
         {
+            var parameters = new ParametersModel
+            {
+                UserId = Convert.ToInt32(Request.Cookies["UserId"]),
+                Status = false,
+            };
+
+            UpdateUserStatus(parameters);
+
             RemoveCookies();
+
             return RedirectToAction("Index", "Home");
         }
 
@@ -134,39 +172,51 @@ namespace RCBC.Controllers
 
         public void CreateCookies(UserModel user)
         {
-            int sessionExpired = Convert.ToInt32(Configuration["Settings:SessionExpired"]);
+            int sessionExpired = Convert.ToInt32(Configuration["SessionExpired"]);
             TimeSpan expirationTime = TimeSpan.FromMinutes(sessionExpired);
 
             DateTime expirationDate = DateTime.Now.Add(expirationTime);
 
             var cookieOptions = new CookieOptions
             {
-                Expires = expirationDate,
+                Expires = user.Id != 0 ? expirationDate : DateTime.Now,
                 Secure = true,
                 HttpOnly = true
             };
 
-            if (user.UserId != null)
+            if (user.Id != 0)
             {
-                Response.Cookies.Append("Username", user.UserId, cookieOptions);
+                Response.Cookies.Append("Username", user.Username, cookieOptions);
                 Response.Cookies.Append("LastLogin", DateTime.Now.ToString("dd MMMM yyyy hh:mm tt"), cookieOptions);
                 Response.Cookies.Append("EmployeeName", user.EmployeeName, cookieOptions);
                 Response.Cookies.Append("UserRole", user.UserRole, cookieOptions);
                 Response.Cookies.Append("UserId", user.Id.ToString(), cookieOptions);
-                                
-                //DateTime expirationDate = DateTime.Parse((HttpCookie)Request.Cookies["Username"].Value);
             }
         }
 
         [HttpGet("/ResetCookies")]
         public IActionResult ResetCookies()
         {
-            UserModel user = new UserModel();
-            user.UserId = Request.Cookies["Username"];
-            user.EmployeeName = Request.Cookies["EmployeeName"];
-            user.UserRole = Request.Cookies["UserRole"];
-            user.Id = Convert.ToInt32(Request.Cookies["UserId"]);
-            CreateCookies(user);
+            if (Convert.ToInt32(Request.Cookies["UserId"]) != 0)
+            {
+                var parameters = new ParametersModel
+                {
+                    UserId = Convert.ToInt32(Request.Cookies["UserId"]),
+                    Status = false,
+                };
+
+                UpdateUserStatus(parameters);
+
+                RemoveCookies();
+
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now,
+                    Secure = true,
+                    HttpOnly = true
+                };
+            }
+
             return Ok();
         }
 
@@ -175,13 +225,13 @@ namespace RCBC.Controllers
         {
             int timeOut = 0;
             int milliseconds = 60000;
-            int sessionExpired = Convert.ToInt32(Configuration["Settings:SessionExpired"]);
+            int sessionExpired = Convert.ToInt32(Configuration["SessionExpired"]);
             timeOut = milliseconds * sessionExpired;
 
             if (Request.Cookies["Username"] != null)
             {
                 UserModel user = new UserModel();
-                user.UserId = Request.Cookies["Username"];
+                user.Username = Request.Cookies["Username"];
                 user.EmployeeName = Request.Cookies["EmployeeName"];
                 user.UserRole = Request.Cookies["UserRole"];
                 user.Id = Convert.ToInt32(Request.Cookies["UserId"]);
@@ -191,41 +241,80 @@ namespace RCBC.Controllers
             return Ok(new { timeOut });
         }
 
+        public void UpdateUserStatus(ParametersModel model)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new ParametersModel
+                    {
+                        UserId = model.UserId,
+                        Status = model.Status,
+                    };
+                    con.Execute("sp_updateUserStatus", parameters, commandType: CommandType.StoredProcedure);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public IActionResult Login(string Username, string Password)
         {
-            UserModel _userModel;
-
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
                 con.Open();
 
-                _userModel = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserId LIKE '%' + @Username + '%'", new { Username });
+                var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username LIKE @Username", new { Username = "%" + Username + "%" });
 
-                if (_userModel != null)
+                if (user != null)
                 {
-                    string PlainPass = Password + _userModel.Salt;
+                    var chkStatus = global.CheckUserStatus(user.Id);
 
-                    bool result = Crypto.VerifyHashedPassword(_userModel.HashPassword, PlainPass);
-
-                    if (result)
+                    if (!chkStatus)
                     {
-                        CreateCookies(_userModel);
+                        string PlainPass = Password + user.Salt;
 
-                        var SubModules = global.GetSubModulesByUserId(_userModel.Id).FirstOrDefault();
-                        var ChildModules = global.GetChildModulesByUserId(_userModel.Id).FirstOrDefault();
+                        bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
 
-                        if (_userModel.LoginAttempt == 0)
+                        if (result)
                         {
-                            return RedirectToAction("FirstLogin", "Home");
-                        }
-                        else
-                        {
-                            string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
-                            string[] Link = input.Split('/');
+                            var parameters = new ParametersModel
+                            {
+                                UserId = user.Id,
+                                Status = true,
+                            };
 
-                            return RedirectToAction(Link[2], Link[1]);
+                            UpdateUserStatus(parameters);
+
+                            CreateCookies(user);
+
+                            var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
+                            var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
+
+                            if (user.LoginAttempt == 0)
+                            {
+                                return RedirectToAction("FirstLogin", "Home");
+                            }
+                            else
+                            {
+                                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                                string[] Link = input.Split('/');
+
+                                return RedirectToAction(Link[2], Link[1]);
+                            }
                         }
                     }
+                    else
+                    {
+                        return RedirectToAction("LogoutAccount", "Home");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
                 }
             }
 
@@ -283,7 +372,7 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where UserId='" + model.Username + "'", con);
+                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where Username='" + model.Username + "'", con);
                     con.Open();
                     SqlDataReader sdr = cmd.ExecuteReader();
                     while (sdr.Read())
@@ -345,7 +434,7 @@ namespace RCBC.Controllers
                         try
                         {
                             //update password in Database
-                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where UserId='" + model.Username + "'";
+                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where Username='" + model.Username + "'";
                             using (var connection = new SqlConnection(GetConnectionString()))
                             {
                                 using (var command = new SqlCommand(sql, connection))
@@ -380,6 +469,49 @@ namespace RCBC.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Error in changing password." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateTimeout(int newValue)
+        {
+            try
+            {
+                string json = System.IO.File.ReadAllText(appSettingsPath);
+
+                var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+                settings["SessionExpired"] = newValue;
+
+                string updatedJson = JsonSerializer.Serialize(settings);
+
+                System.IO.File.WriteAllText(appSettingsPath, updatedJson);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+       
+        public IActionResult UpdateAllStatus()
+        {
+            try
+            {
+                var parameters = new ParametersModel
+                {
+                    UserId = 0,
+                    Status = false,
+                };
+
+                UpdateUserStatus(parameters);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
             }
         }
 

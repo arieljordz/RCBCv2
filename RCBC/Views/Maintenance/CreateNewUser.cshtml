@@ -44,9 +44,9 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            @Html.LabelForModel("User ID", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.UserId, new { @class = "form-control", placeholder = "User ID" })
-                                            @Html.ValidationMessageFor(x => x.UserId)
+                                            @Html.LabelForModel("Username", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username" })
+                                            @Html.ValidationMessageFor(x => x.Username)
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -129,7 +129,7 @@
                 });
                 $('#frmRegister').validate({
                     rules: {
-                        UserId: {
+                        Username: {
                             required: true
                         },
                         EmployeeName: {
@@ -143,7 +143,7 @@
                         },
                     },
                     messages: {
-                        UserId: {
+                        Username: {
                             required: "This field is required"
                         },
                         EmployeeName: {

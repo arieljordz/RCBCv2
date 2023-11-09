@@ -69,10 +69,10 @@
 
                         <div class="card-footer">
                             <div class="float-right">
-                                <button type="submit" class="btn btn-primary" id="btn_send" style="display: none"><i class="far fa-envelope"></i> Send</button>
-                                <button type="submit" class="btn btn-danger" id="btn_cancel" style="display: none"><i class="fa fa-refresh"></i> Cancel</button>
+                                <button type="submit" class="btn btn-primary" id="btn_send" style="display: none">Send</button>
+                                <button type="submit" class="btn btn-danger" id="btn_cancel" style="display: none">Cancel</button>
                             </div>
-                            <button type="reset" class="btn btn-default" id="btn_discard" style="display: none"><i class="fas fa-times"></i> Discard</button>
+                            <button type="reset" class="btn btn-default" id="btn_discard" style="display: none"> Discard</button>
                         </div>
                     </div>
 
@@ -99,7 +99,7 @@
                 else {
                     $.ajax({
                         type: "POST",
-                        url: "../Maintenance/BrowseEmailType",
+                        url: "../Maintenance/GetEmailType",
                         data: {
                             "EmailType": $('#EmailType').val(),
                         },

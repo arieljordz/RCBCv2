@@ -34,33 +34,50 @@ namespace RCBC.Controllers
         {
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
-            ViewBag.UserId = Request.Cookies["EmployeeName"];
+            ViewBag.EmployeeName = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
             if (Request.Cookies["Username"] != null)
             {
                 int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-                ViewBag.Modules = global.GetModulesByUserId(UserId);
-                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                if (UserId != 0)
+                {
+                    var chkStatus = global.CheckUserStatus(UserId);
 
-                var UserRoles = global.GetUserRoles();
-                ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+                    if (chkStatus)
+                    {
+                        ViewBag.Modules = global.GetModulesByUserId(UserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                var Departments = global.GetDepartments();
-                ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+                        var UserRoles = global.GetUserRoles();
+                        ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                var EmailTypes = global.GetEmailTypes();
-                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+                        var Departments = global.GetDepartments();
+                        ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                return View();
+                        var EmailTypes = global.GetEmailTypes();
+                        ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
+                        return View();
+                    }
+                    else
+                    {
+                        return RedirectToAction("LogoutAccount", "Home");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
             else
             {
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
         }
+
 
         public IActionResult ViewAllUsers()
         {
@@ -131,11 +148,11 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
-		public IActionResult EmailTemplate()
-		{
-			return LoadViews();
-		}
-		public IActionResult SendForgotPassword(string Username)
+        public IActionResult EmailTemplate()
+        {
+            return LoadViews();
+        }
+        public IActionResult SendForgotPassword(string Username)
         {
             string salt = string.Empty;
             string HashedPass = string.Empty;
@@ -149,7 +166,7 @@ namespace RCBC.Controllers
 
             using (IDbConnection con = new SqlConnection(GetConnectionString()))
             {
-                var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserId = @Username", new { Username });
+                var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username = @Username", new { Username });
 
                 if (user != null)
                 {
@@ -195,13 +212,13 @@ namespace RCBC.Controllers
                             {
                                 // Insert into UsersInformation table
                                 string insertUsersInfoQuery = @"
-                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (UserId, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt)
+                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (Username, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt)
                                     OUTPUT INSERTED.Id
-                                    VALUES(@UserId, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)";
+                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt)";
 
                                 var usersInfoParameters = new
                                 {
-                                    UserId = model.UserId.Replace("'", "''"),
+                                    Username = model.Username.Replace("'", "''"),
                                     HashedPassword = hashedPassword,
                                     Salt = salt,
                                     EmployeeName = model.EmployeeName,
@@ -209,7 +226,7 @@ namespace RCBC.Controllers
                                     MobileNumber = model.MobileNumber,
                                     GroupDept = model.GroupDept,
                                     UserRole = model.UserRole,
-                                    UserStatus = true,
+                                    UserStatus = false,
                                     DateAdded = DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"),
                                     LoginAttempt = 0
                                 };
@@ -295,7 +312,7 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1 AND UserId LIKE '%' + @Username + '%'", new { Username });
+                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1 AND Username LIKE '%' + @Username + '%'", new { Username });
 
                     int UserId = _user != null ? _user.Id : 0;
 
@@ -319,68 +336,73 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult RegeneratePassword(UserModel model)
+        public IActionResult RegeneratePassword(int Id)
         {
             try
             {
-                var random = new Random();
-                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
-                var finalString = new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
-
-                string Salt = Crypto.GenerateSalt();
-                string password = finalString + Salt;
-                string HashPassword = Crypto.HashPassword(password);
-
-                string bodyMsg = "<head>" +
-                                "<style>" +
-                                "body{" +
-                                "font-family: calibri;" +
-                                "}" +
-                                "</style>" +
-                                "</head>" +
-                                "<body>" +
-                                "<p>Good Day!<br>" +
-                                "<br>" +
-                                "User ID: " + model.UserId + "<br>" +
-                                "New Password: <font color=red>" + finalString + "</font> <br>" +
-                                "<br>" +
-                                "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
-                                "</p>" +
-                                "</body>";
-
-                MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress("arlene@yuna.somee.com");
-                mailMessage.To.Add("arlene.lunar11@gmail.com");
-                mailMessage.Subject = "Subject";
-                mailMessage.Body = bodyMsg;
-                mailMessage.IsBodyHtml = true;
-
-                SmtpClient smtpClient = new SmtpClient();
-                smtpClient.Host = "smtp.yuna.somee.com";
-                smtpClient.Port = 26;
-                smtpClient.UseDefaultCredentials = false;
-                smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
-                smtpClient.EnableSsl = false;
-                smtpClient.Send(mailMessage);
-                Trace.WriteLine("Email Sent Successfully.");
-
                 using (var con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string sql = "UPDATE [RCBC].[dbo].[UsersInformation] SET HashPassword = @HashPassword, Salt = @Salt WHERE UserId = @Username";
+                    var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id", new { Id });
+
+                    var random = new Random();
+                    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
+                    var finalString = new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
+
+                    string Salt = Crypto.GenerateSalt();
+                    string password = finalString + Salt;
+                    string HashPassword = Crypto.HashPassword(password);
+
+                    string bodyMsg = "<head>" +
+                                    "<style>" +
+                                    "body{" +
+                                    "font-family: calibri;" +
+                                    "}" +
+                                    "</style>" +
+                                    "</head>" +
+                                    "<body>" +
+                                    "<p>Good Day!<br>" +
+                                    "<br>" +
+                                    "Username: " + user.Username + "<br>" +
+                                    "New Password: <font color=red>" + finalString + "</font> <br>" +
+                                    "<br>" +
+                                    "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
+                                    "</p>" +
+                                    "</body>";
+
+                    MailMessage mailMessage = new MailMessage();
+                    mailMessage.From = new MailAddress("arlene@yuna.somee.com");
+                    mailMessage.To.Add("arlene.lunar11@gmail.com");
+                    mailMessage.Subject = "Subject";
+                    mailMessage.Body = bodyMsg;
+                    mailMessage.IsBodyHtml = true;
+
+                    SmtpClient smtpClient = new SmtpClient();
+                    smtpClient.Host = "smtp.yuna.somee.com";
+                    smtpClient.Port = 26;
+                    smtpClient.UseDefaultCredentials = false;
+                    smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
+                    smtpClient.EnableSsl = false;
+                    smtpClient.Send(mailMessage);
+                    Trace.WriteLine("Email Sent Successfully.");
+
+
+                    string sql = "UPDATE [RCBC].[dbo].[UsersInformation] SET HashPassword = @HashPassword, Salt = @Salt WHERE Id = @Id";
                     var parameters = new
                     {
                         HashPassword = HashPassword,
                         Salt = Salt,
-                        Username = model.UserId
+                        Id = Id
                     };
                     con.Execute(sql, parameters);
 
                     con.Close();
+
+                    return Json(new { success = true, password = finalString });
                 }
 
-                return Json(new { success = true, password = finalString });
+
             }
             catch (Exception ex)
             {
@@ -446,18 +468,6 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
-        }
-
-        public IActionResult LoadUsersForApproval()
-        {
-            List<UserModel> data;
-
-            using (IDbConnection con = new SqlConnection(GetConnectionString()))
-            {
-                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1").ToList();
-            }
-
-            return Json(new { data });
         }
 
         public IActionResult SaveUserRole(UserRoleModel model)
@@ -574,7 +584,21 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult SaveUserAccess(int userId, string userRole, int[] moduleIds)
+        public IActionResult LoadUsersForApproval()
+        {
+            List<UserModel> data;
+
+            using (IDbConnection con = new SqlConnection(GetConnectionString()))
+            {
+                data = con.Query<UserModel>(@"SELECT TOP 1 a.* FROM [RCBC].[dbo].[UsersInformation] a
+                                 INNER JOIN [RCBC].[dbo].[UserAccessModules] b
+                                 ON a.Id = b.UserId WHERE b.Active IS NULL").ToList();
+            }
+
+            return Json(new { data });
+        }
+
+        public IActionResult SaveUserAccess(int userId, int[] moduleIds)
         {
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
@@ -583,13 +607,20 @@ namespace RCBC.Controllers
                 {
                     try
                     {
+                        //UserModel user;
+
                         string msg = string.Empty;
+
+                        var user = con.QueryFirstOrDefault<UserModel>(
+                                   @"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @userId",
+                                   new { userId }, transaction);
+
 
                         if (moduleIds.Length > 0)
                         {
                             foreach (var SubModuleId in moduleIds)
                             {
-                                var Roles = global.GetUserRoles().Where(x => x.UserRole == userRole).FirstOrDefault();
+                                var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
                                 var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
                                 var existingAccess = con.QueryFirstOrDefault<UserAccessModel>(
@@ -1317,8 +1348,8 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-        
-        public IActionResult BrowseEmailType(string EmailType)
+
+        public IActionResult GetEmailType(string EmailType)
         {
             try
             {

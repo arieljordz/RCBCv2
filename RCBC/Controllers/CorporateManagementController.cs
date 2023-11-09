@@ -25,27 +25,43 @@ namespace RCBC.Controllers
         {
             ViewBag.DateNow = DateTime.Now;
             ViewBag.Username = Request.Cookies["Username"];
-            ViewBag.UserId = Request.Cookies["EmployeeName"];
+            ViewBag.EmployeeName = Request.Cookies["EmployeeName"];
             ViewBag.UserRole = Request.Cookies["UserRole"];
 
             if (Request.Cookies["Username"] != null)
             {
                 int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
 
-                ViewBag.Modules = global.GetModulesByUserId(UserId);
-                ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                if (UserId != 0)
+                {
+                    var chkStatus = global.CheckUserStatus(UserId);
 
-                var UserRoles = global.GetUserRoles();
-                ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
+                    if (chkStatus)
+                    {
+                        ViewBag.Modules = global.GetModulesByUserId(UserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                var Departments = global.GetDepartments();
-                ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
+                        var UserRoles = global.GetUserRoles();
+                        ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                var EmailTypes = global.GetEmailTypes();
-                ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+                        var Departments = global.GetDepartments();
+                        ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                return View();
+                        var EmailTypes = global.GetEmailTypes();
+                        ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
+                        return View();
+                    }
+                    else
+                    {
+                        return RedirectToAction("LogoutAccount", "Home");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
             else
             {

@@ -78,9 +78,9 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    @Html.LabelForModel("User ID", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.UserId, new { @class = "form-control", placeholder = "User ID" })
-                                    @Html.ValidationMessageFor(x => x.UserId)
+                                    @Html.LabelForModel("Username", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username" })
+                                    @Html.ValidationMessageFor(x => x.Username)
                                 </div>
                             </div>
                         </div>
@@ -158,7 +158,7 @@
                 });
                 $('#frmUsers').validate({
                     rules: {
-                        UserId: {
+                        Username: {
                             required: true
                         },
                         EmployeeName: {
@@ -172,7 +172,7 @@
                         },
                     },
                     messages: {
-                        UserId: {
+                        Username: {
                             required: "This field is required"
                         },
                         EmployeeName: {
@@ -258,7 +258,7 @@
                     },
                     columns:
                         [
-                            { "data": "userId", title: "UserId", sClass: "dt-body-center", orderable: false },
+                            { "data": "username", title: "Username", sClass: "dt-body-center", orderable: false },
                             { "data": "employeeName", title: "Employee Name", sClass: "dt-body-center", orderable: false },
                             { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
@@ -317,7 +317,7 @@
                         success: function (res) {
                             if (res.data != null) {
                                 $("#modal_user").modal("show");
-                                $("[name='UserId']").val(res.data.userId);
+                                $("[name='Username']").val(res.data.username);
                                 $("[name='EmployeeName']").val(res.data.employeeName);
                                 $("[name='Email']").val(res.data.email);
                                 $("[name='MobileNumber']").val(res.data.mobileNumber);

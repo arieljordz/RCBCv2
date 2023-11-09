@@ -78,13 +78,11 @@ function DateToText(jsonDate) {
     return null;
 }
 
-var idleTimeout = 900000;
-
 let timeout;
 
 function GetTimeout(callback) {
     $.get('/GetTimeout', function (res) {
-        console.log(res.timeOut);
+        //console.log(res.timeOut);
         callback(res.timeOut);
     });
 }
@@ -97,10 +95,12 @@ function resetIdleTimeout() {
 }
 
 function sessionTimeout() {
-    $("#modal_signout").modal("show");
     $.get('/ResetCookies', function (response) { });
+    $("#modal_signout").modal("show");
 }
 
 $(document).on('click keypress', resetIdleTimeout);
 
 resetIdleTimeout();
+
+
