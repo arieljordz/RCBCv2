@@ -24,7 +24,7 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
-        private readonly string appSettingsPath; 
+        private readonly string appSettingsPath;
 
         public HomeController(IConfiguration _configuration, IGlobalRepository _global, IWebHostEnvironment environment)
         {
@@ -114,7 +114,7 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
-      
+
         public IActionResult LogoutAccount()
         {
             return View();
@@ -263,63 +263,70 @@ namespace RCBC.Controllers
 
         public IActionResult Login(string Username, string Password)
         {
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            try
             {
-                con.Open();
-
-                var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username LIKE @Username", new { Username = "%" + Username + "%" });
-
-                if (user != null)
+                using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var chkStatus = global.CheckUserStatus(user.Id);
+                    con.Open();
 
-                    if (!chkStatus)
+                    var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username = @Username", new { Username = Username });
+
+                    if (user != null)
                     {
-                        string PlainPass = Password + user.Salt;
+                        var chkStatus = global.CheckUserStatus(user.Id);
 
-                        bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
-
-                        if (result)
+                        if (!chkStatus)
                         {
-                            var parameters = new ParametersModel
+                            string PlainPass = Password + user.Salt;
+
+                            bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
+
+                            if (result)
                             {
-                                UserId = user.Id,
-                                Status = true,
-                            };
+                                var parameters = new ParametersModel
+                                {
+                                    UserId = user.Id,
+                                    Status = true,
+                                };
 
-                            UpdateUserStatus(parameters);
+                                UpdateUserStatus(parameters);
 
-                            CreateCookies(user);
+                                CreateCookies(user);
 
-                            var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
-                            var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
+                                var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
+                                var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
 
-                            if (user.LoginAttempt == 0)
-                            {
-                                return RedirectToAction("FirstLogin", "Home");
+                                if (user.LoginAttempt == 0)
+                                {
+                                    return Json(new { success = true, action = "FirstLogin", controller = "Home" });
+                                }
+                                else
+                                {
+                                    string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                                    string[] Link = input.Split('/');
+
+                                    return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                }
                             }
-                            else
-                            {
-                                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
-                                string[] Link = input.Split('/');
-
-                                return RedirectToAction(Link[2], Link[1]);
-                            }
+                        }
+                        else
+                        {
+                            return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
                         }
                     }
                     else
                     {
-                        return RedirectToAction("LogoutAccount", "Home");
+                        return Json(new { success = true, action = "Index", controller = "Home" });
                     }
                 }
-                else
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = true, action = "Index", controller = "Home" });
             }
 
-            ModelState.AddModelError("", "Invalid login attempt.");
-            return View("Index");
+            return Json(new { success = false, action = "Index", controller = "Home" });
         }
 
         public IActionResult SendResetPasswordLink(string UserID)
@@ -496,7 +503,7 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-       
+
         public IActionResult UpdateAllStatus()
         {
             try

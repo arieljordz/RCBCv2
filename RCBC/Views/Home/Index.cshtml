@@ -8,22 +8,19 @@
                 <h2>RCBC DPU TELLERLESS PORTAL</h2>
             </div>
             <section class="p-5 bg-white">
-                @using (Html.BeginForm("Login", "Home", FormMethod.Post, new { enctype = "multipart/form-data", id = "formLogin" }))
-                {
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Username" name="username" autocomplete="off" />
-                    </div>
-                    <div class="form-group">
-                        <input type="password" class="form-control" placeholder="Password" name="password" />
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary btn-md col-md-12" id="btnSubmit">Login</button>
-                    </div>
-                    <div class="d-flex justify-content-center">
-                        <a class="text-danger" href="@Url.Action("ForgotPassword", "Maintenance")">Forgot password?</a>
-                    </div>
-                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                }
+
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="Username" name="Username" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Password" name="Password" />
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary btn-md col-md-12" id="btnLogin">Login</button>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <a class="text-danger" href="@Url.Action("ForgotPassword", "Maintenance")">Forgot password?</a>
+                </div>
 
                 <div class="row pt-3" id="div_reseter" style="display: none;">
                     <div class="col-sm-6">
@@ -49,8 +46,34 @@
     <script>
         $(document).ready(function () {
 
-            $('#formLogin').submit(function () {
+            $("#btnLogin").click(function (e) {
+                e.preventDefault();
                 $('#loading-image').show();
+                var Username = $("[name='Username']").val();
+                var Password = $("[name='Password']").val();
+                $.ajax({
+                    type: "POST",
+                    url: "../Home/Login",
+                    data: { Username: Username, Password: Password },
+                    success: function (res) {
+                        if (res.success == true) {
+                            $('#loading-image').hide();
+                            //window.location.href = '/Home/Index';
+                            window.location.href = "/" + res.controller + "/" + res.action;
+                        }
+                        else {
+                            Swal.fire('Warning!', 'Invalid login attempt', 'warning');
+                        }
+                    },
+                    failure: function (res) {
+                        $('#loading-image').hide();
+                        alert(res.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(res.responseText);
+                    }
+                });
             });
 
             $("#btnSaveTimeout").click(function (e) {
