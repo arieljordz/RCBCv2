@@ -477,11 +477,13 @@ namespace RCBC.Controllers
         {
             try
             {
+                int timeout = newValue == 0 ? 1 : newValue;
+
                 string json = System.IO.File.ReadAllText(appSettingsPath);
 
                 var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
 
-                settings["SessionExpired"] = newValue;
+                settings["SessionExpired"] = timeout;
 
                 string updatedJson = JsonSerializer.Serialize(settings);
 
