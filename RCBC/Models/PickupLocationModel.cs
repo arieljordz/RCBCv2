@@ -7,6 +7,7 @@
         public string Site { get; set; }        
         public string SiteAddress { get; set; }        
         public string PartnerCode { get; set; }        
+        public string Location { get; set; }        
         public string SOLID { get; set; }        
         public bool Active { get; set; }        
         public bool IsApproved { get; set; }

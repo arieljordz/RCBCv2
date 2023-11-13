@@ -46,8 +46,7 @@
     <script>
         $(document).ready(function () {
 
-            $("#btnLogin").click(function (e) {
-                e.preventDefault();
+            function Login() {
                 $('#loading-image').show();
                 var Username = $("[name='Username']").val();
                 var Password = $("[name='Password']").val();
@@ -58,7 +57,6 @@
                     success: function (res) {
                         if (res.success == true) {
                             $('#loading-image').hide();
-                            //window.location.href = '/Home/Index';
                             window.location.href = "/" + res.controller + "/" + res.action;
                         }
                         else {
@@ -74,6 +72,18 @@
                         alert(res.responseText);
                     }
                 });
+            }
+
+            $("#btnLogin").click(function (e) {
+                e.preventDefault();
+                Login();
+            });
+
+            $('.form-control').keypress(function (e) {
+                if (e.which === 13) { 
+                    e.preventDefault();
+                    Login();
+                }
             });
 
             $("#btnSaveTimeout").click(function (e) {

@@ -984,8 +984,8 @@ namespace RCBC.Controllers
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[PickupLocation] (CorporateName, Site, SiteAddress, PartnerCode, SOLID, IsApproved)
-                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @SOLID, @IsApproved)";
+                        INSERT INTO [RCBC].[dbo].[PickupLocation] (CorporateName, Site, SiteAddress, PartnerCode, Location, SOLID, Active, IsApproved)
+                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @Location, @SOLID, @Active, @IsApproved)";
 
                         var parameters = new
                         {
@@ -993,6 +993,7 @@ namespace RCBC.Controllers
                             Site = model.Site,
                             SiteAddress = model.SiteAddress,
                             PartnerCode = model.PartnerCode,
+                            Location = model.Location,
                             SOLID = model.SOLID,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
@@ -1005,7 +1006,7 @@ namespace RCBC.Controllers
                     else
                     {
                         string updateQuery = @"UPDATE [RCBC].[dbo].[PickupLocation] SET CorporateName = @CorporateName,
-                        Site = @Site, SiteAddress = @SiteAddress, PartnerCode = @PartnerCode, SOLID = @SOLID, Active = @Active, IsApproved = @IsApproved
+                        Site = @Site, SiteAddress = @SiteAddress, PartnerCode = @PartnerCode, Location = @Location, SOLID = @SOLID, Active = @Active, IsApproved = @IsApproved
                         WHERE Id = @Id";
 
                         var parameters = new
@@ -1015,6 +1016,7 @@ namespace RCBC.Controllers
                             Site = model.Site,
                             SiteAddress = model.SiteAddress,
                             PartnerCode = model.PartnerCode,
+                            Location = model.Location,
                             SOLID = model.SOLID,
                             Active = model.Active,
                             IsApproved = model.IsApproved,

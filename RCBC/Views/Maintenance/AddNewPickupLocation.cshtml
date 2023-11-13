@@ -97,14 +97,21 @@
                                                         </div>
                                                     </div>
                                                     <div class="row">
-                                                        <div class="col-md-6">
+                                                        <div class="col-md-5">
+                                                            <div class="form-group">
+                                                                @Html.LabelForModel("Location", new { @class = "label-control" })
+                                                                @Html.TextBoxFor(x => x.Location, new { @class = "form-control", placeholder = "Location" })
+                                                                @Html.ValidationMessageFor(x => x.Location)
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-5">
                                                             <div class="form-group">
                                                                 @Html.LabelForModel("SOL ID", new { @class = "label-control" })
                                                                 @Html.TextBoxFor(x => x.SOLID, new { @class = "form-control", placeholder = "SOLID" })
                                                                 @Html.ValidationMessageFor(x => x.SOLID)
                                                             </div>
                                                         </div>
-                                                        <div class="col-md-6 pt-4">
+                                                        <div class="col-md-2 pt-4">
                                                             <div class="form-group clearfix pt-3">
                                                                 <div class="icheck-primary d-inline">
                                                                     @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
@@ -334,6 +341,9 @@
                         SOLID: {
                             required: true
                         },
+                        Location: {
+                            required: true
+                        },
                     },
                     messages: {
                         CorporateName: {
@@ -349,6 +359,9 @@
                             required: "This field is required"
                         },
                         SOLID: {
+                            required: "This field is required"
+                        },
+                        Location: {
                             required: "This field is required"
                         },
                     },
@@ -582,6 +595,7 @@
                             { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
                             { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
                             { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "location", title: "Location", sClass: "dt-body-center", orderable: false },
                             { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
                             {
                                 "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
@@ -866,6 +880,7 @@
                             { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
                             { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
                             { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "location", title: "Location", sClass: "dt-body-center", orderable: false },
                             { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
                             {
                                 "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
