@@ -17,6 +17,8 @@ using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.IO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace RCBC.Controllers
 {
@@ -37,6 +39,7 @@ namespace RCBC.Controllers
         {
             return Configuration.GetConnectionString("DefaultConnection");
         }
+
         public IActionResult LoadViews()
         {
             ViewBag.DateNow = DateTime.Now;
@@ -58,13 +61,13 @@ namespace RCBC.Controllers
                         ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                        var UserRoles = global.GetUserRoles();
+                        var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                        var Departments = global.GetDepartments();
+                        var Departments = global.GetDepartment();
                         ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                        var EmailTypes = global.GetEmailTypes();
+                        var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
                         return View();
@@ -265,59 +268,54 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                var user = global.GetUserInformation().Where(x => x.Username == Username).FirstOrDefault();
+
+                if (user != null)
                 {
-                    con.Open();
+                    var chkStatus = global.CheckUserStatus(user.Id);
 
-                    var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username = @Username", new { Username = Username });
-
-                    if (user != null)
+                    if (!chkStatus)
                     {
-                        var chkStatus = global.CheckUserStatus(user.Id);
+                        string PlainPass = Password + user.Salt;
 
-                        if (!chkStatus)
+                        bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
+
+                        if (result)
                         {
-                            string PlainPass = Password + user.Salt;
-
-                            bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
-
-                            if (result)
+                            var parameters = new ParametersModel
                             {
-                                var parameters = new ParametersModel
-                                {
-                                    UserId = user.Id,
-                                    Status = true,
-                                };
+                                UserId = user.Id,
+                                Status = true,
+                            };
 
-                                UpdateUserStatus(parameters);
+                            UpdateUserStatus(parameters);
 
-                                CreateCookies(user);
+                            CreateCookies(user);
 
-                                var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
-                                var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
+                            var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
+                            var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
 
-                                if (user.LoginAttempt == 0)
-                                {
-                                    return Json(new { success = true, action = "FirstLogin", controller = "Home" });
-                                }
-                                else
-                                {
-                                    string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
-                                    string[] Link = input.Split('/');
-
-                                    return Json(new { success = true, action = Link[2], controller = Link[1] });
-                                }
+                            if (user.LoginAttempt == 0)
+                            {
+                                return Json(new { success = true, action = "FirstLogin", controller = "Home" });
                             }
-                        }
-                        else
-                        {
-                            return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
+                            else
+                            {
+                                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                                string[] Link = input.Split('/');
+
+                                return Json(new { success = true, action = Link[2], controller = Link[1] });
+                            }
                         }
                     }
                     else
                     {
-                        return Json(new { success = true, action = "Index", controller = "Home" });
+                        return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
                     }
+                }
+                else
+                {
+                    return Json(new { success = true, action = "Index", controller = "Home" });
                 }
 
             }
@@ -377,21 +375,14 @@ namespace RCBC.Controllers
                 int LoginAttempt = 0;
                 bool result;
 
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    SqlCommand cmd = new SqlCommand("Select * from UsersInformation where Username='" + model.Username + "'", con);
-                    con.Open();
-                    SqlDataReader sdr = cmd.ExecuteReader();
-                    while (sdr.Read())
-                    {
-                        salt = sdr["Salt"].ToString();
-                        OldPassword = sdr["HashPassword"].ToString();
-                        LoginAttempt = Convert.ToInt32(sdr["LoginAttempt"]);
-                    }
-                    con.Close();
-                    model.OldPassword = model.OldPassword + salt;
-                    result = Crypto.VerifyHashedPassword(OldPassword, model.OldPassword);
-                }
+                var user = global.GetUserInformation().Where(x => x.Username == model.Username).FirstOrDefault();
+
+                salt = user.Salt;
+                OldPassword = user.HashPassword;
+                LoginAttempt = user.LoginAttempt;
+
+                model.OldPassword = model.OldPassword + salt;
+                result = Crypto.VerifyHashedPassword(OldPassword, model.OldPassword);
 
                 if (result)
                 {
@@ -488,11 +479,11 @@ namespace RCBC.Controllers
 
                 string json = System.IO.File.ReadAllText(appSettingsPath);
 
-                var settings = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+                var settings = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
 
                 settings["SessionExpired"] = timeout;
 
-                string updatedJson = JsonSerializer.Serialize(settings);
+                string updatedJson = JsonConvert.SerializeObject(settings);
 
                 System.IO.File.WriteAllText(appSettingsPath, updatedJson);
 
@@ -522,6 +513,58 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        public IActionResult Sample()
+        {
+            try
+            {
+                string jsonString1 = "{\"Id\":2,\"Username\":\"juan\",\"EmployeeName\":\"Juan Dela Cruz\",\"Email\":\"juan@gmail.com\",\"MobileNumber\":\"2131231213\",\"GroupDept\":\"GTB-BizSol\",\"UserRole\":\"System Admin\"}";
+
+                string jsonString2 = "{\"Id\":2,\"Username\":\"juan\",\"EmployeeName\":\"Juan Dela Cruzsss\",\"Email\":\"juan@gmail.com\",\"MobileNumber\":\"094524271777\",\"GroupDept\":\"GTB-BizSol\",\"UserRole\":\"System Admin\"}";
+
+                var obj1 = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString1);
+                var obj2 = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString2);
+
+                var changes = FindChanges(obj1, obj2);
+
+                List<string> results = new List<string>();
+
+                foreach (var change in changes)
+                {
+                    string changeResult = $"Property: {change.Key}, Old Value: {change.Value.Item1}, New Value: {change.Value.Item2}";
+                    results.Add(changeResult);
+                }
+
+                return Json(new { success = true, message = results });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public static List<KeyValuePair<string, Tuple<object, object>>> FindChanges(Dictionary<string, object> obj1, Dictionary<string, object> obj2)
+        {
+            List<KeyValuePair<string, Tuple<object, object>>> changes = new List<KeyValuePair<string, Tuple<object, object>>>();
+
+            foreach (var property in obj1)
+            {
+                if (obj2.ContainsKey(property.Key) && !object.Equals(obj2[property.Key], property.Value))
+                {
+                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(property.Value, obj2[property.Key])));
+                }
+            }
+
+            foreach (var property in obj2)
+            {
+                if (!obj1.ContainsKey(property.Key))
+                {
+                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(null, property.Value)));
+                }
+            }
+
+            return changes;
         }
 
     } //end

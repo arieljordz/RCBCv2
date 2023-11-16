@@ -5,6 +5,11 @@ using System.Data;
 using Dapper;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Net.Sockets;
+using System.Net;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Newtonsoft.Json;
 
 namespace RCBC.Repository
 {
@@ -16,161 +21,116 @@ namespace RCBC.Repository
         {
             Configuration = _configuration;
         }
+
         private string GetConnectionString()
         {
             return Configuration.GetConnectionString("DefaultConnection");
         }
 
-        public bool CheckUserStatus(int UserId)
-        {
-            using (IDbConnection con = new SqlConnection(GetConnectionString()))
-            {
-                return con.QueryFirstOrDefault<bool>(@"SELECT UserStatus FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id", new { Id = UserId });
-            }
-        }
-
         public List<ModuleModel> GetModulesByUserId(int UserId)
         {
-            using IDbConnection con = new SqlConnection(GetConnectionString());
-
-            List<ModuleModel> modules = new List<ModuleModel>();
-
-            var qry = @"SELECT
-                        a.Id as UserRoleId,
-                        a.UserRole,
-                        c.Id as ModuleId,
-                        c.Description as Module,
-						c.Icon as ModuleIcon
-                    FROM [RCBC].[dbo].[UserRole] a
-                    INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
-                    INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
-					WHERE b.UserId = @UserId AND b.Active = 1
-					GROUP BY a.Id, a.UserRole, c.Id, c.Description,c.Icon
-					ORDER BY c.Id";
-
-            modules = con.Query<ModuleModel>(qry, new { UserId }).ToList();
-
-            return modules;
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        UserId = UserId,
+                    };
+                    List<ModuleModel> data = con.Query<ModuleModel>("sp_getModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ModuleModel>();
+            }
         }
 
         public List<SubModuleModel> GetSubModulesByUserId(int UserId)
         {
-            using IDbConnection con = new SqlConnection(GetConnectionString());
-
-            List<SubModuleModel> modules = new List<SubModuleModel>();
-
-            var qry = @"SELECT
-                        a.Id as UserRoleId,
-                        a.UserRole,
-                        c.Id as ModuleId,
-                        c.Description as Module,
-						c.Icon as ModuleIcon,
-						b.SubModuleId,
-						d.SubModule,
-						d.Icon as SubModuleIcon,
-						d.Link,
-						d.DivId
-                    FROM [RCBC].[dbo].[UserRole] a
-                    INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
-                    INNER JOIN [RCBC].[dbo].[Module] c ON b.ModuleId = c.Id
-					INNER JOIN [RCBC].[dbo].[SubModule] d ON b.SubModuleId = d.Id
-					WHERE b.UserId = @UserId AND b.Active = 1
-					ORDER BY c.Id";
-
-            modules = con.Query<SubModuleModel>(qry, new { UserId }).ToList();
-            //modules = con.Query<SubModuleModel>(qry).ToList();
-
-            return modules;
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        UserId = UserId,
+                    };
+                    List<SubModuleModel> data = con.Query<SubModuleModel>("sp_getSubModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<SubModuleModel>();
+            }
         }
 
         public List<ChildModuleModel> GetChildModulesByUserId(int UserId)
         {
-            using IDbConnection con = new SqlConnection(GetConnectionString());
-
-            List<ChildModuleModel> modules = new List<ChildModuleModel>();
-
-            var qry = @"SELECT c.[Id] as ChildModuleId
-                            ,c.[SubModuleId]
-                            ,c.[ChildModule]
-                            ,c.[Link]
-                            ,c.[Icon] as ChildModuleIcon
-                            ,c.[DivId]
-                            ,c.[Sequence] as ChildModuleOrder
-                            ,c.[Active]
-					FROM [RCBC].[dbo].[UserRole] a
-                    INNER JOIN [RCBC].[dbo].[UserAccessModules] b ON a.Id = b.RoleId
-					INNER JOIN [RCBC].[dbo].[ChildModule] c ON b.SubModuleId = c.SubModuleId
-					WHERE b.UserId = @UserId AND b.Active = 1
-					ORDER BY c.Sequence";
-
-            modules = con.Query<ChildModuleModel>(qry, new { UserId }).ToList();
-            //modules = con.Query<ChildModuleModel>(qry).ToList();
-
-            return modules;
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        UserId = UserId,
+                    };
+                    List<ChildModuleModel> data = con.Query<ChildModuleModel>("sp_getChildModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ChildModuleModel>();
+            }
         }
 
-        public List<AccessModuleModel> GetUserAccessModules()
+        public List<AccessModuleModel> GetUserAccess()
         {
-            using IDbConnection con = new SqlConnection(GetConnectionString());
-
-            List<AccessModuleModel> modules = new List<AccessModuleModel>();
-
-            var qry = @"SELECT 
-                            a.Description as Module, 
-                            b.SubModule,
-                            b.Id as SubModuleId,
-                            c.UserId,
-                            a.Sequence as ModuleOrder, 
-                            b.Link,
-                            c.Active as IsActive
-                        FROM [RCBC].[dbo].[Module] a
-                        INNER JOIN [RCBC].[dbo].[SubModule] b
-                        ON a.Id = b.ModuleId
-				        INNER JOIN [RCBC].[dbo].[UserAccessModules] c
-				        ON b.Id = c.SubModuleId
-				        INNER JOIN [RCBC].[dbo].[UserRole] d
-				        ON c.RoleId = d.Id
-                        ORDER BY a.Sequence";
-
-            modules = con.Query<AccessModuleModel>(qry).ToList();
-
-            return modules;
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getUserAccess", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AccessModuleModel>();
+            }
         }
 
-        public List<AccessModuleModel> GetAccessModules()
+        public List<AccessModuleModel> GetModulesAndSubModules()
         {
-            using IDbConnection con = new SqlConnection(GetConnectionString());
-
-            List<AccessModuleModel> modules = new List<AccessModuleModel>();
-
-            var qry = @"SELECT 
-                            a.Description as Module, 
-                            b.SubModule,
-                            b.Id as SubModuleId,
-                            a.Sequence as ModuleOrder, 
-                            b.Link
-                        FROM [RCBC].[dbo].[Module] a
-                        INNER JOIN [RCBC].[dbo].[SubModule] b
-                        ON a.Id = b.ModuleId
-                        ORDER BY a.Sequence";
-
-            modules = con.Query<AccessModuleModel>(qry).ToList();
-
-            return modules;
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getModulesAndSubModules", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AccessModuleModel>();
+            }
         }
 
         public List<AccessModuleModel> GetUserAccessById(int UserId)
         {
             List<AccessModuleModel> modules = new List<AccessModuleModel>();
 
-            var UserAccessModules = GetUserAccessModules();
-            var AllModules = GetAccessModules();
+            var UserAccess = GetUserAccess();
+            var AllModules = GetModulesAndSubModules();
 
             foreach (var module in AllModules)
             {
                 if (UserId != 0)
                 {
-                    var IsActive = UserAccessModules.Where(x => x.SubModuleId == module.SubModuleId && x.UserId == UserId).FirstOrDefault();
+                    var IsActive = UserAccess.Where(x => x.SubModuleId == module.SubModuleId && x.UserId == UserId).FirstOrDefault();
 
                     AccessModuleModel access = new AccessModuleModel();
 
@@ -206,6 +166,230 @@ namespace RCBC.Repository
             return modules.OrderBy(x => x.ModuleOrder).ToList();
         }
 
+        public List<UserModel> GetUserInformation()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<UserModel> data = con.Query<UserModel>("sp_getUserInformation", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<UserModel>();
+            }
+        }
+
+        public List<UserRoleModel> GetUserRole()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<UserRoleModel> data = con.Query<UserRoleModel>("sp_getUserRole", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<UserRoleModel>();
+            }
+        }
+
+        public List<AccessModuleModel> GetUserAccessModules()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getUserAccessModules", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AccessModuleModel>();
+            }
+        }
+
+        public List<SubModuleModel> GetSubModule()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<SubModuleModel> data = con.Query<SubModuleModel>("sp_getSubModule", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<SubModuleModel>();
+            }
+        }
+
+        public List<PickupLocationModel> GetPickupLocation()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<PickupLocationModel> data = con.Query<PickupLocationModel>("sp_getPickupLocation", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<PickupLocationModel>();
+            }
+        }
+
+        public List<PartnerVendorModel> GetPartnerVendor()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<PartnerVendorModel> data = con.Query<PartnerVendorModel>("sp_getPartnerVendor", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<PartnerVendorModel>();
+            }
+        }
+
+        public List<ModuleModel> GetModule()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<ModuleModel> data = con.Query<ModuleModel>("sp_getModule", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ModuleModel>();
+            }
+        }
+
+        public List<EmailTypeModel> GetEmailType()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<EmailTypeModel> data = con.Query<EmailTypeModel>("sp_getEmailType", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<EmailTypeModel>();
+            }
+        }
+
+        public List<DepartmentModel> GetDepartment()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<DepartmentModel> data = con.Query<DepartmentModel>("sp_getDepartment", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<DepartmentModel>();
+            }
+        }
+
+        public List<CorporateClientModel> GetCorporateClient()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<CorporateClientModel> data = con.Query<CorporateClientModel>("sp_getCorporateClient", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<CorporateClientModel>();
+            }
+        }
+
+        public List<ContactModel> GetContacts()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<ContactModel> data = con.Query<ContactModel>("sp_getContacts", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ContactModel>();
+            }
+        }
+
+        public List<ChildModuleModel> GetChildModule()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<ChildModuleModel> data = con.Query<ChildModuleModel>("sp_getChildModule", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ChildModuleModel>();
+            }
+        }
+
+        public List<AuditLogsModel> GetAuditLogs()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<AuditLogsModel> data = con.Query<AuditLogsModel>("sp_getAuditLogs", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AuditLogsModel>();
+            }
+        }
+
+        public List<AccountModel> GetAccounts()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<AccountModel> data = con.Query<AccountModel>("sp_getAccounts", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AccountModel>();
+            }
+        }
+
         public bool IsStrongPassword(string password)
         {
             // Define criteria for a strong password
@@ -228,114 +412,121 @@ namespace RCBC.Repository
             return true;
         }
 
-        public List<ModuleModel> GetAllModules()
+        public bool CheckUserStatus(int UserId)
         {
-            List<ModuleModel> data = new List<ModuleModel>();
+            var user = GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
 
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
-            {
-                con.Open();
-
-                string qry = @"SELECT Id as ModuleId, Description as Module, Icon as ModuleIcon, Sequence as ModuleOrder, Active FROM [RCBC].[dbo].[Module]";
-                data = con.Query<ModuleModel>(qry).ToList();
-
-                con.Close();
-            }
-            return data;
+            return user == null ? false : user.UserStatus;
         }
 
-        public List<SubModuleModel> GetAllSubModules()
+        public string GetLocalIPAddress()
         {
-            List<SubModuleModel> data = new List<SubModuleModel>();
-
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            string localIp = "?";
+            try
             {
-                con.Open();
+                // Get the host name of the local machine
+                string hostName = Dns.GetHostName();
 
-                string qry = @"SELECT Id as SubModuleId, SubModule, ModuleId, Icon as SubModuleIcon, Link, DivId, Sequence as SubModuleOrder, Active FROM [RCBC].[dbo].[SubModule]";
-                data = con.Query<SubModuleModel>(qry).ToList();
+                // Get the IP addresses associated with the host name
+                IPAddress[] addresses = Dns.GetHostAddresses(hostName);
 
-                con.Close();
+                // Find the first IPv4 address (assuming IPv4 is used)
+                foreach (IPAddress address in addresses)
+                {
+                    if (address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIp = address.ToString();
+                        break;
+                    }
+                }
             }
-            return data;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting local IP address: {ex.Message}");
+            }
+            return localIp;
         }
 
-        public List<ChildModuleModel> GetAllChildModules()
+        public bool SaveAuditLogs(AuditLogsModel model)
         {
-            List<ChildModuleModel> data = new List<ChildModuleModel>();
-
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            try
             {
-                con.Open();
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        SystemName = model.SystemName,
+                        Module = model.Module,
+                        SubModule = model.SubModule,
+                        ChildModule = model.ChildModule,
+                        TableName = model.TableName,
+                        TableId = model.TableId,
+                        Action = model.Action,
+                        PreviousData = model.PreviousData,
+                        NewData = model.NewData,
+                        ModifiedBy = model.ModifiedBy,
+                        DateModified = model.DateModified,
+                        IP = model.IP
+                    };
 
-                string qry = @"SELECT Id as ChildModuleId, ChildModule, SubModuleId, Icon as ChildModuleIcon, Link, DivId, Sequence as ChildModuleOrder, Active FROM [RCBC].[dbo].[ChildModule]";
-                data = con.Query<ChildModuleModel>(qry).ToList();
-
-                con.Close();
+                    con.Execute("sp_saveAuditLogs", parameters, commandType: CommandType.StoredProcedure);
+                }
+                return true;
             }
-            return data;
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
-        public List<UserRoleModel> GetUserRoles()
+        public List<KeyValuePair<string, Tuple<object, object>>> FindChanges(Dictionary<string, object> obj1, Dictionary<string, object> obj2)
         {
-            List<UserRoleModel> data = new List<UserRoleModel>();
+            List<KeyValuePair<string, Tuple<object, object>>> changes = new List<KeyValuePair<string, Tuple<object, object>>>();
 
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            foreach (var property in obj1)
             {
-                con.Open();
-
-                string qry = @"SELECT * FROM [RCBC].[dbo].[UserRole]";
-                data = con.Query<UserRoleModel>(qry).ToList();
-
-                con.Close();
+                if (obj2.ContainsKey(property.Key) && !object.Equals(obj2[property.Key], property.Value))
+                {
+                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(property.Value, obj2[property.Key])));
+                }
             }
-            return data;
+
+            foreach (var property in obj2)
+            {
+                if (!obj1.ContainsKey(property.Key))
+                {
+                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(null, property.Value)));
+                }
+            }
+
+            return changes;
         }
 
-        public List<UserRoleModel> GetRoleIdByRole(string UserRole)
+        public List<DataChangesModel> GetChangesDetails(int Id, string TableName)
         {
-            List<UserRoleModel> data = new List<UserRoleModel>();
+            var logs = GetAuditLogs().Where(x => x.TableName.Contains(TableName) && x.TableId == Id).LastOrDefault();
 
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
+            List<DataChangesModel> data = new List<DataChangesModel>();
+
+            if (logs != null)
             {
-                con.Open();
+                if (logs.PreviousData != null && logs.NewData != null)
+                {
+                    var PreviousData = JsonConvert.DeserializeObject<Dictionary<string, object>>(logs.PreviousData);
+                    var NewData = JsonConvert.DeserializeObject<Dictionary<string, object>>(logs.NewData);
 
-                string qry = @"SELECT * FROM [RCBC].[dbo].[UserRole] WHERE UserRole LIKE '%' + @UserRole + '%'";
-                data = con.Query<UserRoleModel>(qry, new { UserRole = UserRole }).ToList();
+                    var changes = FindChanges(PreviousData, NewData);
 
-                con.Close();
-            }
-            return data;
-        }
+                    foreach (var change in changes)
+                    {
+                        DataChangesModel changesModel = new DataChangesModel();
+                        changesModel.Property = change.Key;
+                        changesModel.OldValue = change.Value.Item1 == null ? null : change.Value.Item1.ToString();
+                        changesModel.NewValue = change.Value.Item2 == null ? null : change.Value.Item2.ToString();
 
-        public List<DepartmentModel> GetDepartments()
-        {
-            List<DepartmentModel> data = new List<DepartmentModel>();
-
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
-            {
-                con.Open();
-
-                string qry = @"SELECT * FROM [RCBC].[dbo].[Department]";
-                data = con.Query<DepartmentModel>(qry).ToList();
-
-                con.Close();
-            }
-            return data;
-        }
-
-        public List<EmailTypeModel> GetEmailTypes()
-        {
-            List<EmailTypeModel> data = new List<EmailTypeModel>();
-
-            using (SqlConnection con = new SqlConnection(GetConnectionString()))
-            {
-                con.Open();
-
-                string qry = @"SELECT * FROM [RCBC].[dbo].[EmailType]";
-                data = con.Query<EmailTypeModel>(qry).ToList();
-
-                con.Close();
+                        data.Add(changesModel);
+                    }
+                }
             }
             return data;
         }

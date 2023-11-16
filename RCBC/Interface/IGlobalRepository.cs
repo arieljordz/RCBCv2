@@ -4,32 +4,57 @@ namespace RCBC.Interface
 {
     public interface IGlobalRepository
     {
-        public bool CheckUserStatus(int UserId);
-
+      
         List<ModuleModel> GetModulesByUserId(int UserId);
 
         List<SubModuleModel> GetSubModulesByUserId(int UserId);
 
         List<ChildModuleModel> GetChildModulesByUserId(int UserId);
 
-        List<AccessModuleModel> GetAccessModules();
+        List<AccessModuleModel> GetModulesAndSubModules();
 
-        List<AccessModuleModel> GetUserAccessModules();
+        List<AccessModuleModel> GetUserAccess();
 
         List<AccessModuleModel> GetUserAccessById(int UserId);
 
+        public List<UserModel> GetUserInformation();
+       
+        public List<UserRoleModel> GetUserRole();
+       
+        public List<AccessModuleModel> GetUserAccessModules();
+       
+        public List<SubModuleModel> GetSubModule();
+       
+        public List<PickupLocationModel> GetPickupLocation();
+       
+        public List<PartnerVendorModel> GetPartnerVendor();
+       
+        public List<ModuleModel> GetModule();
+       
+        public List<EmailTypeModel> GetEmailType();
+       
+        public List<DepartmentModel> GetDepartment();
+       
+        public List<CorporateClientModel> GetCorporateClient();
+       
+        public List<ContactModel> GetContacts();
+       
+        public List<ChildModuleModel> GetChildModule();
+       
+        public List<AuditLogsModel> GetAuditLogs();
+        
+        public List<AccountModel> GetAccounts();
+
         bool IsStrongPassword(string password);
+        
+        public bool CheckUserStatus(int UserId);
 
-        List<ModuleModel> GetAllModules();
+        public string GetLocalIPAddress();
 
-        List<SubModuleModel> GetAllSubModules();
+        public bool SaveAuditLogs(AuditLogsModel model);
 
-        List<ChildModuleModel> GetAllChildModules();
+        public List<DataChangesModel> GetChangesDetails(int Id, string TableName);
 
-        List<UserRoleModel> GetUserRoles();
 
-        List<DepartmentModel> GetDepartments();
-
-        List<EmailTypeModel> GetEmailTypes();
     }
 }

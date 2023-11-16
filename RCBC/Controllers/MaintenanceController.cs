@@ -13,6 +13,10 @@ using Dapper;
 using System.Transactions;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.Sockets;
+using System;
+using static System.Collections.Specialized.BitVector32;
+using System.Data.Common;
 
 namespace RCBC.Controllers
 {
@@ -26,10 +30,12 @@ namespace RCBC.Controllers
             Configuration = _configuration;
             global = _global;
         }
+        
         private string GetConnectionString()
         {
             return Configuration.GetConnectionString("DefaultConnection");
         }
+        
         public IActionResult LoadViews()
         {
             ViewBag.DateNow = DateTime.Now;
@@ -51,13 +57,13 @@ namespace RCBC.Controllers
                         ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                        var UserRoles = global.GetUserRoles();
+                        var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                        var Departments = global.GetDepartments();
+                        var Departments = global.GetDepartment();
                         ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                        var EmailTypes = global.GetEmailTypes();
+                        var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
                         return View();
@@ -77,7 +83,6 @@ namespace RCBC.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
-
 
         public IActionResult ViewAllUsers()
         {
@@ -148,10 +153,12 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        
         public IActionResult EmailTemplate()
         {
             return LoadViews();
         }
+       
         public IActionResult SendForgotPassword(string Username)
         {
             string salt = string.Empty;
@@ -166,7 +173,7 @@ namespace RCBC.Controllers
 
             using (IDbConnection con = new SqlConnection(GetConnectionString()))
             {
-                var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Username = @Username", new { Username });
+                var user = global.GetUserInformation().Where(x => x.Username == Username).FirstOrDefault();
 
                 if (user != null)
                 {
@@ -200,6 +207,8 @@ namespace RCBC.Controllers
                 string password = "Pass1234." + salt;
                 string hashedPassword = Crypto.HashPassword(password);
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
@@ -213,8 +222,8 @@ namespace RCBC.Controllers
                                 // Insert into UsersInformation table
                                 string insertUsersInfoQuery = @"
                                     INSERT INTO [RCBC].[dbo].[UsersInformation] (Username, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt, Deactivated)
-                                    OUTPUT INSERTED.Id
-                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt, @Deactivated)";
+                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt, @Deactivated)
+                                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                                 var usersInfoParameters = new
                                 {
@@ -233,17 +242,17 @@ namespace RCBC.Controllers
                                 };
 
                                 // Execute the query and retrieve the inserted Id
-                                int insertedId = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
+                                model.Id = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
 
                                 if (model.ModuleIds != null)
                                 {
                                     string[] moduleIdsArray = model.ModuleIds.Split(',');
 
-                                    foreach (var Id in moduleIdsArray)
+                                    foreach (var subId in moduleIdsArray)
                                     {
-                                        int SubModuleId = Convert.ToInt32(Id);
-                                        var Roles = global.GetUserRoles().Where(x => x.UserRole == model.UserRole).FirstOrDefault();
-                                        var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+                                        int SubModuleId = Convert.ToInt32(subId);
+                                        var Roles = global.GetUserRole().Where(x => x.UserRole == model.UserRole).FirstOrDefault();
+                                        var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
                                         string insertQuery = @"
                                         INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId)
@@ -251,7 +260,7 @@ namespace RCBC.Controllers
 
                                         var insertParameters = new
                                         {
-                                            UserId = insertedId,
+                                            UserId = model.Id,
                                             RoleId = Roles?.Id ?? 0,
                                             ModuleId = Modules?.ModuleId ?? 0,
                                             SubModuleId = SubModuleId,
@@ -260,10 +269,14 @@ namespace RCBC.Controllers
                                     }
                                 }
                                 msg = "Successfully Saved.";
+                                action = "Add";
+                                previousData = null;
                             }
                             else
                             {
                                 // Update user information
+                                var userInfo = global.GetUserInformation().Where(x => x.Id == model.Id).FirstOrDefault();
+
                                 string updateUsersInfoQuery = @"
                                 UPDATE [RCBC].[dbo].[UsersInformation]
                                 SET Username = @Username, EmployeeName = @EmployeeName, Email = @Email, MobileNumber = @MobileNumber, GroupDept = @GroupDept, UserRole = @UserRole
@@ -283,9 +296,29 @@ namespace RCBC.Controllers
                                 con.Execute(updateUsersInfoQuery, usersInfoParameters, transaction);
 
                                 msg = "Successfully Updated.";
+                                action = "Update";
+                                previousData = JsonConvert.SerializeObject(userInfo);
                             }
 
                             transaction.Commit();
+
+                            var auditlogs = new AuditLogsModel
+                            {
+                                SystemName = "RCBC",
+                                Module = "Maintenance",
+                                SubModule = "User Maintenance",
+                                ChildModule = "View All Users",
+                                TableName = "UsersInformation",
+                                TableId = model.Id,
+                                Action = action,
+                                PreviousData = previousData,
+                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().Where(x => x.Id == model.Id).FirstOrDefault()),
+                                ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                                DateModified = DateTime.Now,
+                                IP = global.GetLocalIPAddress(),
+                            };
+
+                            var logs = global.SaveAuditLogs(auditlogs);
 
                             return Json(new { success = true, message = msg });
                         }
@@ -303,41 +336,6 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult SearchUser(string Username)
-        {
-            try
-            {
-                UserModel _user;
-                UserAccessModel _access;
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    _user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE UserStatus = 1 AND Username LIKE '%' + @Username + '%'", new { Username });
-
-                    int UserId = _user != null ? _user.Id : 0;
-
-                    _access = con.QueryFirstOrDefault<UserAccessModel>(@"SELECT * FROM [RCBC].[dbo].[UserAccessModules] WHERE UserId = @UserId", new { UserId });
-
-                    con.Close();
-                }
-
-                if (_user != null)
-                {
-                    return Json(new { success = true, data = _user, access = _access });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "User not found" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
         public IActionResult RegeneratePassword(int Id)
         {
             try
@@ -346,7 +344,7 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    var user = con.QueryFirstOrDefault<UserModel>(@"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id", new { Id });
+                    var user = global.GetUserInformation().Where(x => x.Id == Id).FirstOrDefault();
 
                     var random = new Random();
                     var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
@@ -401,6 +399,23 @@ namespace RCBC.Controllers
 
                     con.Close();
 
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = "User Maintenance",
+                        ChildModule = "User Password Reset",
+                        TableName = "UsersInformation",
+                        Action = "Update",
+                        PreviousData = JsonConvert.SerializeObject(user),
+                        NewData = JsonConvert.SerializeObject(global.GetUserInformation().Where(x => x.Id == Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, password = finalString });
                 }
 
@@ -414,12 +429,7 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUsers()
         {
-            List<UserModel> data;
-
-            using (IDbConnection con = new SqlConnection(GetConnectionString()))
-            {
-                data = con.Query<UserModel>("SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Deactivated = 0").ToList();
-            }
+            var data = global.GetUserInformation().Where(x => x.Deactivated == false).ToList();
 
             return Json(new { data });
         }
@@ -428,17 +438,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserModel data = new UserModel();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<UserModel>(query, new { Id = Id });
-
-                    con.Close();
-                }
+                var data = global.GetUserInformation().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -477,22 +477,31 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetUserRole().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[UserRole] (UserRole)
-                        VALUES(@UserRole)";
+                        VALUES(@UserRole)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
                             UserRole = model.UserRole,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -507,7 +516,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = "Role Maintenance",
+                        ChildModule = "Create New Role",
+                        TableName = "UserRole",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetUserRole().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -521,15 +551,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserRoleModel data;
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[UserRole] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<UserRoleModel>(query, new { Id = Id });
-                }
+                var data = global.GetUserRole().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -565,17 +587,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                IEnumerable<UserRoleModel> data = new List<UserRoleModel>();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[UserRole]";
-                    data = con.Query<UserRoleModel>(query);
-
-                    con.Close();
-                }
+                var data = global.GetUserRole().ToList();
 
                 return Json(new { data = data });
             }
@@ -588,14 +600,7 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUsersForApproval()
         {
-            List<UserModel> data;
-
-            using (IDbConnection con = new SqlConnection(GetConnectionString()))
-            {
-                data = con.Query<UserModel>(@"SELECT TOP 1 a.* FROM [RCBC].[dbo].[UsersInformation] a
-                                 INNER JOIN [RCBC].[dbo].[UserAccessModules] b
-                                 ON a.Id = b.UserId WHERE b.Active IS NULL").ToList();
-            }
+            var data = global.GetUserInformation().ToList();
 
             return Json(new { data });
         }
@@ -609,27 +614,18 @@ namespace RCBC.Controllers
                 {
                     try
                     {
-                        //UserModel user;
-
                         string msg = string.Empty;
 
-                        var user = con.QueryFirstOrDefault<UserModel>(
-                                   @"SELECT * FROM [RCBC].[dbo].[UsersInformation] WHERE Id = @userId",
-                                   new { userId }, transaction);
-
+                        var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
 
                         if (moduleIds.Length > 0)
                         {
                             foreach (var SubModuleId in moduleIds)
                             {
-                                var Roles = global.GetUserRoles().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
-                                var Modules = global.GetAllSubModules().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
+                                var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                                var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
-                                var existingAccess = con.QueryFirstOrDefault<UserAccessModel>(
-                                    @"SELECT * FROM [RCBC].[dbo].[UserAccessModules] WHERE UserId = @userId AND SubModuleId = @SubModuleId",
-                                    new { userId, SubModuleId },
-                                    transaction
-                                );
+                                var existingAccess = global.GetUserAccess().Where(x => x.UserId == userId && x.SubModuleId == SubModuleId).FirstOrDefault();
 
                                 if (existingAccess == null)
                                 {
@@ -646,7 +642,9 @@ namespace RCBC.Controllers
                                         Active = true,
                                     };
 
-                                    con.Execute(insertQuery, insertParameters, transaction);
+                                    //con.Execute(insertQuery, insertParameters, transaction);
+                                    int Id = con.QuerySingleOrDefault<int>(insertQuery, insertParameters, transaction);
+
                                     msg = "Successfully saved.";
                                 }
                                 else
@@ -701,22 +699,32 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+                string? newData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetDepartment().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[Department] (GroupDept)
-                        VALUES(@GroupDept)";
+                        VALUES(@GroupDept)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
                             GroupDept = model.GroupDept,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -731,7 +739,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = "Group/Department",
+                        ChildModule = "Create New Department",
+                        TableName = "Department",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetDepartment().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -745,17 +774,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                DepartmentModel data = new DepartmentModel();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Department] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<DepartmentModel>(query, new { Id = Id });
-
-                    con.Close();
-                }
+                var data = global.GetDepartment().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -791,17 +810,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                IEnumerable<DepartmentModel> data = new List<DepartmentModel>();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Department]";
-                    data = con.Query<DepartmentModel>(query);
-
-                    con.Close();
-                }
+                var data = global.GetDepartment().ToList();
 
                 return Json(new { data = data });
             }
@@ -814,9 +823,7 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUserAccessById(int UserId)
         {
-            List<AccessModuleModel> data;
-
-            data = global.GetUserAccessById(UserId).ToList();
+            var data = global.GetUserAccessById(UserId).ToList();
 
             return Json(new { data });
         }
@@ -825,17 +832,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                IEnumerable<PartnerVendorModel> data = new List<PartnerVendorModel>();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[PartnerVendor]";
-                    data = con.Query<PartnerVendorModel>(query);
-
-                    con.Close();
-                }
+                var data = global.GetPartnerVendor().ToList();
 
                 return Json(new { data = data });
             }
@@ -851,13 +848,20 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+                string? newData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[PartnerVendor] (VendorName, VendorCode, AssignedGL, Email, Active, IsApproved)
-                        VALUES(@VendorName, @VendorCode, @AssignedGL, @Email, @Active, @IsApproved)";
+                        VALUES(@VendorName, @VendorCode, @AssignedGL, @Email, @Active, @IsApproved)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
@@ -869,9 +873,12 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -893,7 +900,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = "Partner Vendor",
+                        ChildModule = "Add New Partner Vendor",
+                        TableName = "PartnerVendor",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -907,17 +935,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                PartnerVendorModel data = new PartnerVendorModel();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[PartnerVendor] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<PartnerVendorModel>(query, new { Id = Id });
-
-                    con.Close();
-                }
+                var data = global.GetPartnerVendor().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -953,17 +971,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                IEnumerable<PickupLocationModel> data = new List<PickupLocationModel>();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[PickupLocation]";
-                    data = con.Query<PickupLocationModel>(query);
-
-                    con.Close();
-                }
+                var data = global.GetPickupLocation().ToList();
 
                 return Json(new { data = data });
             }
@@ -979,13 +987,20 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+                string? newData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[PickupLocation] (CorporateName, Site, SiteAddress, PartnerCode, Location, SOLID, Active, IsApproved)
-                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @Location, @SOLID, @Active, @IsApproved)";
+                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @Location, @SOLID, @Active, @IsApproved)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
@@ -999,9 +1014,12 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -1025,7 +1043,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = "Pickup Location",
+                        ChildModule = "Add New Pickup Locations",
+                        TableName = "PickupLocation",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -1039,17 +1078,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                PickupLocationModel data = new PickupLocationModel();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[PickupLocation] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
-
-                    con.Close();
-                }
+                var data = global.GetPickupLocation().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -1101,15 +1130,7 @@ namespace RCBC.Controllers
                 new AccountTypeModel { Id = 2, AccountType = "SA" },
                 };
 
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts] WHERE LocationId IS NOT NULL";
-                    data = con.Query<AccountModel>(query);
-
-                    con.Close();
-                }
+                data = global.GetAccounts().Where(x => x.LocationId != 0).ToList();
 
                 List<AccountModel> result = data.Select(account => new AccountModel
                 {
@@ -1135,13 +1156,20 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+                string? newData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetAccounts().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[Accounts] (LocationId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
-                        VALUES(@LocationId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)";
+                        VALUES(@LocationId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
@@ -1152,9 +1180,12 @@ namespace RCBC.Controllers
                             AccountTypeId = model.AccountTypeId,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -1176,7 +1207,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = model.LocationId == 0 ? "Corporate Management" : "Pickup Location",
+                        ChildModule = model.LocationId == 0 ? "Create New Client" : "Add New Pickup Location",
+                        TableName = "Accounts",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetAccounts().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -1190,15 +1242,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                PickupLocationModel data;
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
-                }
+                var data = global.GetAccounts().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -1234,18 +1278,8 @@ namespace RCBC.Controllers
         {
             try
             {
-                IEnumerable<ContactModel> data = new List<ContactModel>();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts] WHERE LocationId IS NOT NULL";
-                    data = con.Query<ContactModel>(query);
-
-                    con.Close();
-                }
-
+                var data = global.GetContacts().Where(x => x.LocationId != 0).ToList();
+               
                 return Json(new { data = data });
             }
             catch (Exception ex)
@@ -1260,13 +1294,20 @@ namespace RCBC.Controllers
             try
             {
                 string msg = string.Empty;
+                string action = string.Empty;
+                string? previousData = string.Empty;
+                string? newData = string.Empty;
+
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
+                    var qry = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+
                     if (model.Id == 0)
                     {
                         string insertQuery = @"
                         INSERT INTO [RCBC].[dbo].[Contacts] (LocationId, ContactPerson, Email, MobileNumber)
-                        VALUES(@LocationId, @ContactPerson, @Email, @MobileNumber)";
+                        VALUES(@LocationId, @ContactPerson, @Email, @MobileNumber)
+                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
 
                         var parameters = new
                         {
@@ -1276,9 +1317,12 @@ namespace RCBC.Controllers
                             MobileNumber = model.MobileNumber,
                         };
 
-                        con.Execute(insertQuery, parameters);
+                        //con.Execute(insertQuery, parameters);
+                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
 
                         msg = "Successfully saved.";
+                        action = "Add";
+                        previousData = null;
                     }
                     else
                     {
@@ -1299,7 +1343,28 @@ namespace RCBC.Controllers
                         con.Execute(updateQuery, parameters);
 
                         msg = "Successfully updated.";
+                        action = "Update";
+                        previousData = JsonConvert.SerializeObject(qry);
                     }
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        SystemName = "RCBC",
+                        Module = "Maintenance",
+                        SubModule = model.LocationId == 0 ? "Corporate Management" : "Pickup Location",
+                        ChildModule = model.LocationId == 0 ? "Create New Client" : "Add New Pickup Location",
+                        TableName = "Accounts",
+                        TableId = model.Id,
+                        Action = action,
+                        PreviousData = previousData,
+                        NewData = JsonConvert.SerializeObject(global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault()),
+                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
+
                     return Json(new { success = true, message = msg });
                 }
             }
@@ -1313,15 +1378,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                PickupLocationModel data;
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
-
-                    string query = @"SELECT * FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
-                    data = con.QuerySingleOrDefault<PickupLocationModel>(query, new { Id = Id });
-                }
+                var data = global.GetContacts().Where(x => x.Id == Id).FirstOrDefault();
 
                 return Json(new { data = data });
             }
@@ -1378,6 +1435,7 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+
         public IActionResult UpdateEmailType(string Subject, string Content, string EmailType)
         {
             try
@@ -1406,6 +1464,21 @@ namespace RCBC.Controllers
             }
         }
 
+        public IActionResult LoadChangesDetails(int Id)
+        {
+            try
+            {
+                List<DataChangesModel> data = new List<DataChangesModel>();
+
+                data = global.GetChangesDetails(Id, "PickupLocation");
+
+                return Json(new { data = data });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
     } //end
 

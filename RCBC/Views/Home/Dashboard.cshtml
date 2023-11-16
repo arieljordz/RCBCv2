@@ -32,6 +32,9 @@
     <section class="content">
         <div class="container-fluid">
             <!-- Info boxes -->
+         @*   <div class="row">
+                <button class="btn btn-primary" type="button" id="btnSample">Sample</button>
+            </div>*@
             <div class="row">
                 <div class="col-12 col-sm-6 col-md-3">
                     <div class="info-box">
@@ -239,7 +242,34 @@
     {
     <script>
 
-       
+        $("#btnSample").click(function (e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "../Home/Sample",
+                success: function (res) {
+                    console.log(res);
+                    if (res.success === true) {
+                        var data = "";
+                        if (Array.isArray(res.message)) {
+                            // Loop through an array of messages
+                            for (var i = 0; i < res.message.length; i++) {
+                                data += res.message[i] + '<br>'; // Add a line break between messages
+                            }
+                            Swal.fire('Warning!', data, 'warning');
+                        } else {
+                            // Handle other cases where messages are not an array or string
+                            console.error('Invalid message format');
+                        }
+                    } else {
+                        Swal.fire('Warning!', 'Invalid login attempt', 'warning');
+                    }
+                }
+            });
+        });
+
+
+
 
         ActiveMenu("#dashboard");
     </script>

@@ -147,6 +147,34 @@
         </div>
     </div>
 
+    <div id="modal_client_changes" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Changes Details</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="p-3">
+
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                <table id="tbl_changes_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnCancelChanges" class="btn btn-danger">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
@@ -202,8 +230,19 @@
                                 }
                             },
                             {
-                                "data": "id", title: "View", render: function (data) {
-                                    return "<button type='button' class='btn btn-xs btn-primary view'><i class='fa fa-eye p-1 view'></i></button>";
+                                "data": "id", title: "Action", render: function (data) {
+                                    return "<div class='row justify-content-center'>" +
+                                        "<div class='dropdown dropleft'>" +
+                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                        "<i class='fa fa-bars'></i>" +
+                                        "</button> <div class='dropdown-menu'>" +
+                                        "<div class='container fluid'> " +
+                                        "<a id='btnUpdate' class='btn btn-success btn-sm fa fa-eye col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                        "&nbspView Details</a>" +
+                                        "<br />" +
+                                        "<a id='btnDelete' class='btn btn-info btn-sm fa fa-exchange col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                        "&nbspView Changes</a>" +
+                                        "</div></div></div ></div>";
                                 }
                             }
                         ]
@@ -211,8 +250,13 @@
 
                 $('#tbl_client_details tbody').off().on('click', 'tr', function (e) {
                     e.preventDefault();
-
-                    if (!$(e.target).is(".view")) {
+                    if ($(e.target).is("[id^=btnUpdate],[id^=btnUpdate] i")) {
+                        UpdateClientDetails();
+                    }
+                    else if ($(e.target).is("[id^=btnDelete],[id^=btnDelete] i")) {
+                        ViewClientChanges();
+                    }
+                    else if (!$(e.target).is("[id^=btnbars],[id^=btnbars] i")) {
                         if (!$(this).hasClass("dtactive")) {
                             $(this).parent().find("tr").removeClass("dtactive");
                             $(this).addClass("dtactive");
@@ -225,16 +269,6 @@
                     }
                 });
             }
-
-            $(document).on('click', '.view', function () {
-                if ($("[name='Id']").val() != 0) {
-                    UpdateClientDetails();
-                }
-                else {
-                    Swal.fire('Information!', 'Please select a record first.', 'info');
-                    $("[name='IsApproved']").val(false);
-                }
-            });
 
             function UpdateClientDetails() {
                 if ($("[name='Id']").val() != 0) {
@@ -266,6 +300,63 @@
                 else {
                     Swal.fire('Information!', 'Please select a record first.', 'info');
                 }
+            }
+
+            function ViewClientChanges() {
+                if ($("[name='Id']").val() != 0) {
+                    LoadChangesDetails();
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            }
+
+            function LoadChangesDetails() {
+                $.ajax({
+                    url: "../CorporateManagement/LoadChangesDetails?Id=" + $("[name='Id']").val(),
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.data.length === 0) {
+                            Swal.fire('Information!', 'No Data changes for this record.', 'info');
+                        } else {
+                            $("#modal_client_changes").modal("show");
+                            $('#tbl_changes_details').DataTable({
+                                destroy: true,
+                                responsive: true,
+                                processing: false,
+                                search: true,
+                                stateSave: true,
+                                info: true,
+                                searching: true,
+                                paging: true,
+                                order: [[1, "asc"], [2, "asc"]],
+                                lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                                data: res.data,
+                                columns: [
+                                    { "data": "property", title: "Property", sClass: "dt-body-center", orderable: false },
+                                    { "data": "oldValue", title: "Old Value", sClass: "dt-body-center", orderable: false },
+                                    { "data": "newValue", title: "New Value", sClass: "dt-body-center", orderable: false },
+                                ]
+                            });
+                        }
+                    },
+                    error: function () {
+                        console.log("Error loading data.");
+                    }
+                });
+
+                $('#tbl_changes_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                        } else {
+                            $(this).removeClass("dtactive");
+                        }
+                    }
+                });
             }
 
             ValidateFormClient();
@@ -368,6 +459,11 @@
                 e.preventDefault();
                 $("#form_client").trigger("reset");
                 $("#modal_update_client").modal("hide");
+            });
+
+            $("#btnCancelChanges").click(function (e) {
+                e.preventDefault();
+                $("#modal_client_changes").modal("hide");
             });
 
         });

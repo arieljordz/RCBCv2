@@ -39,13 +39,13 @@ namespace RCBC.Controllers
                         ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
-                        var UserRoles = global.GetUserRoles();
+                        var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
-                        var Departments = global.GetDepartments();
+                        var Departments = global.GetDepartment();
                         ViewBag.cmbDepartments = new SelectList(Departments, "GroupDept", "GroupDept");
 
-                        var EmailTypes = global.GetEmailTypes();
+                        var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
                         return View();
