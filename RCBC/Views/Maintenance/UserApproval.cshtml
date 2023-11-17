@@ -90,6 +90,35 @@
         </div>
     </section>
 
+
+    <div id="modal_client_changes" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Changes Details</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="p-3">
+
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                <table id="tbl_changes_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnCancelChanges" class="btn btn-danger">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
@@ -119,31 +148,102 @@
                     },
                     columns:
                         [
-                            { "data": "id", title: "id", vissible: false, orderable: false },
+                            //{ "data": "id", title: "id", vissible: false, orderable: false },
                             { "data": "username", title: "Username", sClass: "dt-body-center", orderable: false },
                             { "data": "employeeName", title: "Employee Name", sClass: "dt-body-center", orderable: false },
                             { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
                             { "data": "groupDept", title: "Group Department", sClass: "dt-body-center", orderable: false },
-                            { "data": "userRole", title: "User Role", sClass: "dt-body-left", orderable: false }
+                            { "data": "userRole", title: "User Role", sClass: "dt-body-left", orderable: false },
+                            {
+                                "data": "id", title: "View", render: function (data) {
+                                    return "<button type='button' class='btn btn-xs btn-info view'><i class='fa fa-exchange p-1 view'></i></button>";
+                                }
+                            }
                         ]
                 });
 
                 $('#tbl_users_approval tbody').off().on('click', 'tr', function (e) {
                     e.preventDefault();
-                    if (!$(this).hasClass("dtactive")) {
-                        $(this).parent().find("tr").removeClass("dtactive");
-                        $(this).addClass("dtactive");
-                        Id = SelectedValue("tbl_users_approval", "id");
-                        $("[name='Id']").val(Id);
-                        LoadUserAccessById(Id);
-                    } else {
-                        $(this).removeClass("dtactive");
-                        $("[name='Id']").val(0);
-                        LoadUserAccessById(0);
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_users_approval", "id");
+                            $("[name='Id']").val(Id);
+                            LoadUserAccessById(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            LoadUserAccessById(0);
+                        }
+                    }
+              
+                });
+            }
+
+            $(document).on('click', '.view', function () {
+                if ($("[name='Id']").val() != 0) {
+                    LoadChangesDetails();
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            });
+
+            function LoadChangesDetails() {
+                $.ajax({
+                    url: "../Maintenance/LoadChangesDetails",
+                    data: { Id: $("[name='Id']").val(), TableName: "UsersInformation" },
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.data.length === 0) {
+                            Swal.fire('Information!', 'No Data changes for this record.', 'info');
+                        } else {
+                            $("#modal_client_changes").modal("show");
+                            $('#tbl_changes_details').DataTable({
+                                destroy: true,
+                                responsive: true,
+                                processing: false,
+                                search: true,
+                                stateSave: true,
+                                info: true,
+                                searching: true,
+                                paging: true,
+                                order: [[1, "asc"], [2, "asc"]],
+                                lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                                data: res.data,
+                                columns: [
+                                    { "data": "property", title: "Property", sClass: "dt-body-center", orderable: false },
+                                    { "data": "oldValue", title: "Old Value", sClass: "dt-body-center", orderable: false },
+                                    { "data": "newValue", title: "New Value", sClass: "dt-body-center", orderable: false },
+                                ]
+                            });
+                        }
+                    },
+                    error: function () {
+                        console.log("Error loading data.");
+                    }
+                });
+
+                $('#tbl_changes_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                        } else {
+                            $(this).removeClass("dtactive");
+                        }
                     }
                 });
             }
+
+            $("#btnCancelChanges").click(function (e) {
+                e.preventDefault();
+                $("#modal_client_changes").modal("hide");
+            });
 
             $('#btnApproved').click(function (e) {
                 e.preventDefault();

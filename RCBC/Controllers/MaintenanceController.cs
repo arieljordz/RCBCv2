@@ -1464,13 +1464,13 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult LoadChangesDetails(int Id)
+        public IActionResult LoadChangesDetails(int Id, string TableName)
         {
             try
             {
                 List<DataChangesModel> data = new List<DataChangesModel>();
 
-                data = global.GetChangesDetails(Id, "PickupLocation");
+                data = global.GetChangesDetails(Id, TableName);
 
                 return Json(new { data = data });
             }

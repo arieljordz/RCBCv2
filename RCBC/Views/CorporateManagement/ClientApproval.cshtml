@@ -313,7 +313,8 @@
 
             function LoadChangesDetails() {
                 $.ajax({
-                    url: "../CorporateManagement/LoadChangesDetails?Id=" + $("[name='Id']").val(),
+                    url: "../Maintenance/LoadChangesDetails",
+                    data: { Id: $("[name='Id']").val(), TableName: "CorporateClient" },
                     type: "GET",
                     dataType: "JSON",
                     success: function (res) {

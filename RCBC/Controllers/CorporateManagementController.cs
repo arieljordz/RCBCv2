@@ -552,22 +552,5 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult LoadChangesDetails(int Id)
-        {
-            try
-            {
-                List<DataChangesModel> data = new List<DataChangesModel>();
-
-                data = global.GetChangesDetails(Id, "CorporateClient");
-
-                return Json(new { data = data });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-
     }
 }

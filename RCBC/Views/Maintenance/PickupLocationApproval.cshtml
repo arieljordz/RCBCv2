@@ -304,7 +304,8 @@
 
             function LoadChangesDetails() {
                 $.ajax({
-                    url: "../Maintenance/LoadChangesDetails?Id=" + $("[name='Id']").val(),
+                    url: "../Maintenance/LoadChangesDetails",
+                    data: { Id: $("[name='Id']").val(), TableName: "PickupLocation" },
                     type: "GET",
                     dataType: "JSON",
                     success: function (res) {
