@@ -19,6 +19,7 @@ using System.IO;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json;
 using System.Text;
+using System.Transactions;
 
 namespace RCBC.Controllers
 {
@@ -431,20 +432,25 @@ namespace RCBC.Controllers
 
                         try
                         {
-                            //update password in Database
-                            var sql = "Update UsersInformation set HashPassword=@HashPassword, Salt=@Salt, LoginAttempt=@LoginAttempt where Username='" + model.Username + "'";
-                            using (var connection = new SqlConnection(GetConnectionString()))
+                            using (var con = new SqlConnection(GetConnectionString()))
                             {
-                                using (var command = new SqlCommand(sql, connection))
+                                var parameters = new
                                 {
-                                    command.Parameters.AddWithValue("@HashPassword", HashPassword);
-                                    command.Parameters.AddWithValue("@Salt", Salt);
-                                    command.Parameters.AddWithValue("@LoginAttempt", LoginAttempt + 1);
-                                    // repeat for all variables....
-                                    connection.Open();
-                                    command.ExecuteNonQuery();
-                                }
-                                connection.Close();
+                                    Id = user.Id,
+                                    HashPassword = HashPassword,
+                                    Salt = Salt,
+                                    Username = user.Username,
+                                    EmployeeName = user.EmployeeName,
+                                    Email = user.Email,
+                                    MobileNumber = user.MobileNumber,
+                                    GroupDept = user.GroupDept,
+                                    UserRole = user.UserRole,
+                                    Active = user.Active
+                                };
+                                con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
+
+                                con.Close();
+
                             }
                             return Json(new { success = true });
                         }
@@ -513,58 +519,6 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
-        }
-
-        public IActionResult Sample()
-        {
-            try
-            {
-                string jsonString1 = "{\"Id\":2,\"Username\":\"juan\",\"EmployeeName\":\"Juan Dela Cruz\",\"Email\":\"juan@gmail.com\",\"MobileNumber\":\"2131231213\",\"GroupDept\":\"GTB-BizSol\",\"UserRole\":\"System Admin\"}";
-
-                string jsonString2 = "{\"Id\":2,\"Username\":\"juan\",\"EmployeeName\":\"Juan Dela Cruzsss\",\"Email\":\"juan@gmail.com\",\"MobileNumber\":\"094524271777\",\"GroupDept\":\"GTB-BizSol\",\"UserRole\":\"System Admin\"}";
-
-                var obj1 = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString1);
-                var obj2 = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString2);
-
-                var changes = FindChanges(obj1, obj2);
-
-                List<string> results = new List<string>();
-
-                foreach (var change in changes)
-                {
-                    string changeResult = $"Property: {change.Key}, Old Value: {change.Value.Item1}, New Value: {change.Value.Item2}";
-                    results.Add(changeResult);
-                }
-
-                return Json(new { success = true, message = results });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        public static List<KeyValuePair<string, Tuple<object, object>>> FindChanges(Dictionary<string, object> obj1, Dictionary<string, object> obj2)
-        {
-            List<KeyValuePair<string, Tuple<object, object>>> changes = new List<KeyValuePair<string, Tuple<object, object>>>();
-
-            foreach (var property in obj1)
-            {
-                if (obj2.ContainsKey(property.Key) && !object.Equals(obj2[property.Key], property.Value))
-                {
-                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(property.Value, obj2[property.Key])));
-                }
-            }
-
-            foreach (var property in obj2)
-            {
-                if (!obj1.ContainsKey(property.Key))
-                {
-                    changes.Add(new KeyValuePair<string, Tuple<object, object>>(property.Key, new Tuple<object, object>(null, property.Value)));
-                }
-            }
-
-            return changes;
         }
 
     } //end

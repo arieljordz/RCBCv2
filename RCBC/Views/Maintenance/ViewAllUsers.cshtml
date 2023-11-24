@@ -129,6 +129,16 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group clearfix">
+                                    <div class="icheck-primary d-inline">
+                                        @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                        @Html.Label("Active", "Active Status")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -210,8 +220,8 @@
                     url: '@Url.Action("Register", "Maintenance")',
                     data: formData,
                     success: function (response) {
+                        $('#loading-image').hide();
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmUsers").trigger("reset");
                             $("#modal_user").modal("hide");
@@ -264,6 +274,16 @@
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
                             { "data": "groupDept", title: "Group Department", sClass: "dt-body-center", orderable: false },
                             { "data": "userRole", title: "User Role", sClass: "dt-body-left", orderable: false },
+                            {
+                                "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Active</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">Inactive</span>'
+                                    }
+                                }
+                            },
                             {
                                 "data": "id", title: "Action", render: function (data) {
                                     return "<div class='row justify-content-center'>" +
@@ -323,6 +343,7 @@
                                 $("[name='MobileNumber']").val(res.data.mobileNumber);
                                 $("[name='GroupDept']").val(res.data.groupDept);
                                 $("[name='UserRole']").val(res.data.userRole);
+                                $("[name='Active']").prop('checked', res.data.active);
                             }
                         }
                     });

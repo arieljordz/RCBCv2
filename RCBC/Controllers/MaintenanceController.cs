@@ -30,12 +30,12 @@ namespace RCBC.Controllers
             Configuration = _configuration;
             global = _global;
         }
-        
+
         private string GetConnectionString()
         {
             return Configuration.GetConnectionString("DefaultConnection");
         }
-        
+
         public IActionResult LoadViews()
         {
             ViewBag.DateNow = DateTime.Now;
@@ -153,12 +153,12 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
-        
+
         public IActionResult EmailTemplate()
         {
             return LoadViews();
         }
-       
+
         public IActionResult SendForgotPassword(string Username)
         {
             string salt = string.Empty;
@@ -219,12 +219,6 @@ namespace RCBC.Controllers
                         {
                             if (model.Id == 0)
                             {
-                                // Insert into UsersInformation table
-                                string insertUsersInfoQuery = @"
-                                    INSERT INTO [RCBC].[dbo].[UsersInformation] (Username, HashPassword, Salt, EmployeeName, Email, MobileNumber, GroupDept, UserRole, UserStatus, DateAdded, LoginAttempt, Deactivated)
-                                    VALUES(@Username, @HashedPassword, @Salt, @EmployeeName, @Email, @MobileNumber, @GroupDept, @UserRole, @UserStatus, @DateAdded, @LoginAttempt, @Deactivated)
-                                    SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                                 var usersInfoParameters = new
                                 {
                                     Username = model.Username.Replace("'", "''"),
@@ -236,13 +230,13 @@ namespace RCBC.Controllers
                                     GroupDept = model.GroupDept,
                                     UserRole = model.UserRole,
                                     UserStatus = false,
-                                    DateAdded = DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss tt"),
+                                    DateAdded = DateTime.Now,
                                     LoginAttempt = 0,
-                                    Deactivated = false
+                                    Deactivated = false,
+                                    Active = true
                                 };
 
-                                // Execute the query and retrieve the inserted Id
-                                model.Id = con.QuerySingleOrDefault<int>(insertUsersInfoQuery, usersInfoParameters, transaction);
+                                model.Id = con.QuerySingle<int>("sp_saveUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 if (model.ModuleIds != null)
                                 {
@@ -251,12 +245,8 @@ namespace RCBC.Controllers
                                     foreach (var subId in moduleIdsArray)
                                     {
                                         int SubModuleId = Convert.ToInt32(subId);
-                                        var Roles = global.GetUserRole().Where(x => x.UserRole == model.UserRole).FirstOrDefault();
-                                        var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                                        string insertQuery = @"
-                                        INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId)
-                                        VALUES(@UserId, @RoleId, @ModuleId, @SubModuleId)";
+                                        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.Id == SubModuleId);
 
                                         var insertParameters = new
                                         {
@@ -264,8 +254,9 @@ namespace RCBC.Controllers
                                             RoleId = Roles?.Id ?? 0,
                                             ModuleId = Modules?.ModuleId ?? 0,
                                             SubModuleId = SubModuleId,
+                                            Active = (bool?)null
                                         };
-                                        con.Execute(insertQuery, insertParameters, transaction);
+                                        con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                     }
                                 }
                                 msg = "Successfully Saved.";
@@ -274,26 +265,23 @@ namespace RCBC.Controllers
                             }
                             else
                             {
-                                // Update user information
-                                var userInfo = global.GetUserInformation().Where(x => x.Id == model.Id).FirstOrDefault();
-
-                                string updateUsersInfoQuery = @"
-                                UPDATE [RCBC].[dbo].[UsersInformation]
-                                SET Username = @Username, EmployeeName = @EmployeeName, Email = @Email, MobileNumber = @MobileNumber, GroupDept = @GroupDept, UserRole = @UserRole
-                                WHERE Id = @Id";
+                                var userInfo = global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id);
 
                                 var usersInfoParameters = new
                                 {
                                     Id = model.Id,
+                                    HashPassword = userInfo.HashPassword,
+                                    Salt = userInfo.Salt,
                                     Username = model.Username,
                                     EmployeeName = model.EmployeeName,
                                     Email = model.Email,
                                     MobileNumber = model.MobileNumber,
                                     GroupDept = model.GroupDept,
                                     UserRole = model.UserRole,
+                                    Active = model.Active
                                 };
 
-                                con.Execute(updateUsersInfoQuery, usersInfoParameters, transaction);
+                                con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 msg = "Successfully Updated.";
                                 action = "Update";
@@ -312,7 +300,7 @@ namespace RCBC.Controllers
                                 TableId = model.Id,
                                 Action = action,
                                 PreviousData = previousData,
-                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().Where(x => x.Id == model.Id).FirstOrDefault()),
+                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id)),
                                 ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
                                 DateModified = DateTime.Now,
                                 IP = global.GetLocalIPAddress(),
@@ -385,17 +373,22 @@ namespace RCBC.Controllers
                     smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
                     smtpClient.EnableSsl = false;
                     smtpClient.Send(mailMessage);
-                    Trace.WriteLine("Email Sent Successfully.");
 
-
-                    string sql = "UPDATE [RCBC].[dbo].[UsersInformation] SET HashPassword = @HashPassword, Salt = @Salt WHERE Id = @Id";
                     var parameters = new
                     {
+                        Id = Id,
                         HashPassword = HashPassword,
                         Salt = Salt,
-                        Id = Id
+                        Username = user.Username,
+                        EmployeeName = user.EmployeeName,
+                        Email = user.Email,
+                        MobileNumber = user.MobileNumber,
+                        GroupDept = user.GroupDept,
+                        UserRole = user.UserRole,
+                        Active = user.Active
                     };
-                    con.Execute(sql, parameters);
+
+                    con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
 
                     con.Close();
 
@@ -452,16 +445,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                UserModel data = new UserModel();
-
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "UPDATE [RCBC].[dbo].[UsersInformation] SET UserStatus = @UserStatus WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id, UserStatus = false });
-
-                    con.Close();
+                    con.Execute("sp_deleteUser", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -486,18 +474,12 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[UserRole] (UserRole)
-                        VALUES(@UserRole)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             UserRole = model.UserRole,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveUserRole", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -505,15 +487,13 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"UPDATE [RCBC].[dbo].[UserRole] SET UserRole = @UserRole WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
                             UserRole = model.UserRole,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateUserRole", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -565,14 +545,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[UserRole] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteUserRole", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -610,86 +587,62 @@ namespace RCBC.Controllers
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
                 con.Open();
-                using (var transaction = con.BeginTransaction())
+                try
                 {
-                    try
+                    string msg = string.Empty;
+
+                    var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
+
+                    if (moduleIds.Length > 0)
                     {
-                        string msg = string.Empty;
-
-                        var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
-
-                        if (moduleIds.Length > 0)
+                        foreach (var SubModuleId in moduleIds)
                         {
-                            foreach (var SubModuleId in moduleIds)
+                            var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                            var Modules = global.GetSubModule().Where(x => x.Id == SubModuleId).FirstOrDefault();
+
+                            var existingAccess = global.GetUserAccess().Where(x => x.UserId == userId && x.SubModuleId == SubModuleId).FirstOrDefault();
+
+                            if (existingAccess == null)
                             {
-                                var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
-                                var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                                var existingAccess = global.GetUserAccess().Where(x => x.UserId == userId && x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                                if (existingAccess == null)
+                                var insertParameters = new
                                 {
-                                    string insertQuery = @"
-                                        INSERT INTO [RCBC].[dbo].[UserAccessModules] (UserId, RoleId, ModuleId, SubModuleId, Active)
-                                        VALUES(@UserId, @RoleId, @ModuleId, @SubModuleId, @Active)";
+                                    UserId = userId,
+                                    RoleId = Roles?.Id ?? 0,
+                                    ModuleId = Modules?.ModuleId ?? 0,
+                                    SubModuleId = SubModuleId,
+                                    Active = true,
+                                };
 
-                                    var insertParameters = new
-                                    {
-                                        UserId = userId,
-                                        RoleId = Roles?.Id ?? 0,
-                                        ModuleId = Modules?.ModuleId ?? 0,
-                                        SubModuleId = SubModuleId,
-                                        Active = true,
-                                    };
+                                int Id = con.QuerySingle<int>("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure);
 
-                                    //con.Execute(insertQuery, insertParameters, transaction);
-                                    int Id = con.QuerySingleOrDefault<int>(insertQuery, insertParameters, transaction);
-
-                                    msg = "Successfully saved.";
-                                }
-                                else
-                                {
-                                    string updateQuery = @"UPDATE [RCBC].[dbo].[UserAccessModules] SET Active = @Active, ModuleId = @ModuleId, SubModuleId = @SubModuleId WHERE SubModuleId = @SubModuleId AND UserId = @UserId";
-
-                                    var updateParameters = new
-                                    {
-                                        UserId = userId,
-                                        ModuleId = Modules?.ModuleId ?? 0,
-                                        SubModuleId = SubModuleId,
-                                        Active = true,
-                                    };
-
-                                    con.Execute(updateQuery, updateParameters, transaction);
-
-                                    msg = "Successfully saved.";
-                                }
+                                msg = "Successfully saved.";
                             }
-
-                            string updateQueryFalse = @"UPDATE [RCBC].[dbo].[UserAccessModules] SET Active = @Active WHERE SubModuleId NOT IN @SubModuleIds AND UserId = @UserId";
-
-                            var updateParametersFalse = new
+                            else
                             {
-                                UserId = userId,
-                                Active = false,
-                                SubModuleIds = moduleIds
-                            };
+                                var updateParameters = new
+                                {
+                                    UserId = userId,
+                                    ModuleId = Modules?.ModuleId ?? 0,
+                                    SubModuleId = SubModuleId,
+                                    Active = true,
+                                };
 
-                            con.Execute(updateQueryFalse, updateParametersFalse, transaction);
+                                con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure);
 
-                            transaction.Commit();
-
-                            return Json(new { success = true, message = msg, userId = userId });
+                                msg = "Successfully saved.";
+                            }
                         }
-                        else
-                        {
-                            return Json(new { success = false, message = "No selected Modules.", userId = userId });
-                        }
+
+                        return Json(new { success = true, message = msg, userId = userId });
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        transaction.Rollback();
-                        return Json(new { success = false, message = ex.Message, userId = userId });
+                        return Json(new { success = false, message = "No selected Modules.", userId = userId });
                     }
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = ex.Message, userId = userId });
                 }
             }
         }
@@ -709,18 +662,12 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Department] (GroupDept)
-                        VALUES(@GroupDept)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             GroupDept = model.GroupDept,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveDepartment", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -728,15 +675,13 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"UPDATE [RCBC].[dbo].[Department] SET GroupDept = @GroupDept WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
                             GroupDept = model.GroupDept,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateDepartment", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -788,14 +733,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[Department] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteDepartment", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -858,11 +800,6 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[PartnerVendor] (VendorName, VendorCode, AssignedGL, Email, Active, IsApproved)
-                        VALUES(@VendorName, @VendorCode, @AssignedGL, @Email, @Active, @IsApproved)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             VendorName = model.VendorName,
@@ -873,8 +810,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_savePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -882,10 +818,6 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"UPDATE [RCBC].[dbo].[PartnerVendor] SET VendorName = @VendorName,
-                        VendorCode = @VendorCode, AssignedGL = @AssignedGL, Email = @Email, Active = @Active, IsApproved = @IsApproved
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
@@ -897,7 +829,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updatePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -949,14 +881,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[PartnerVendor] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deletePartnerVendor", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -997,11 +926,6 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[PickupLocation] (CorporateName, Site, SiteAddress, PartnerCode, Location, SOLID, Active, IsApproved)
-                        VALUES(@CorporateName, @Site, @SiteAddress, @PartnerCode, @Location, @SOLID, @Active, @IsApproved)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             CorporateName = model.CorporateName,
@@ -1014,8 +938,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_savePickupLocation", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -1023,10 +946,6 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"UPDATE [RCBC].[dbo].[PickupLocation] SET CorporateName = @CorporateName,
-                        Site = @Site, SiteAddress = @SiteAddress, PartnerCode = @PartnerCode, Location = @Location, SOLID = @SOLID, Active = @Active, IsApproved = @IsApproved
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
@@ -1040,7 +959,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updatePickupLocation", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -1092,14 +1011,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[PickupLocation] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deletePickupLocation", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -1166,11 +1082,6 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Accounts] (LocationId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
-                        VALUES(@LocationId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             LocationId = model.LocationId,
@@ -1180,8 +1091,7 @@ namespace RCBC.Controllers
                             AccountTypeId = model.AccountTypeId,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveAccount", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -1189,11 +1099,6 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[Accounts] 
-                        SET LocationId = @LocationId, AccountNumber = @AccountNumber, AccountName = @AccountName, CurrencyId = @CurrencyId, AccountTypeId = @AccountTypeId
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
@@ -1204,7 +1109,7 @@ namespace RCBC.Controllers
                             AccountTypeId = model.AccountTypeId,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateAccount", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -1256,14 +1161,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteAccount", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -1279,7 +1181,7 @@ namespace RCBC.Controllers
             try
             {
                 var data = global.GetContacts().Where(x => x.LocationId != 0).ToList();
-               
+
                 return Json(new { data = data });
             }
             catch (Exception ex)
@@ -1304,11 +1206,6 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Contacts] (LocationId, ContactPerson, Email, MobileNumber)
-                        VALUES(@LocationId, @ContactPerson, @Email, @MobileNumber)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             LocationId = model.LocationId,
@@ -1317,8 +1214,7 @@ namespace RCBC.Controllers
                             MobileNumber = model.MobileNumber,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveContact", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -1326,11 +1222,6 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[Contacts] 
-                        SET LocationId = @LocationId, ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
@@ -1340,7 +1231,7 @@ namespace RCBC.Controllers
                             MobileNumber = model.MobileNumber,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -1392,14 +1283,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteContact", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -1414,21 +1302,9 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    con.Open();
+                var data = global.GetEmailType().Where(x => x.EmailType == EmailType).FirstOrDefault();
 
-                    EmailTypeModel data = con.QueryFirstOrDefault<EmailTypeModel>("SELECT Subject, Content FROM [RCBC].[dbo].[EmailType] WHERE EmailType = @EmailType", new { EmailType });
-
-                    if (data != null)
-                    {
-                        return Json(new { data = data });
-                    }
-                    else
-                    {
-                        return Json(new { success = false, message = "Email type not found" });
-                    }
-                }
+                return Json(new { data = data });
             }
             catch (Exception ex)
             {
@@ -1444,18 +1320,16 @@ namespace RCBC.Controllers
                 {
                     con.Open();
 
-                    string query = "UPDATE [RCBC].[dbo].[EmailType] SET Subject = @Subject, Content = @Content WHERE EmailType = @EmailType";
-
-                    int affectedRows = con.Execute(query, new { Subject, Content, EmailType });
-
-                    if (affectedRows > 0)
+                    var parameters = new
                     {
-                        return Json(new { success = true });
-                    }
-                    else
-                    {
-                        return Json(new { success = false, message = "No records updated" });
-                    }
+                        EmailType = EmailType,
+                        Subject = Subject,
+                        Content = Content,
+                    };
+
+                    con.Execute("sp_updateEmailType", parameters, commandType: CommandType.StoredProcedure);
+
+                    return Json(new { success = true });
                 }
             }
             catch (Exception ex)

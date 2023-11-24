@@ -4,6 +4,7 @@
     {
         public string Module { get; set; }
         public string SubModule { get; set; }
+        public int Id { get; set; }
         public int ModuleId { get; set; }
         public int SubModuleId { get; set; }
         public string ChildModule { get; set; }
