@@ -264,6 +264,7 @@
             }
 
             function UpdatePickupLocation() {
+                console.log($("[name='Id']").val());
                 if ($("[name='Id']").val() != 0) {
                     $.ajax({
                         url: "../Maintenance/UpdatePickupLocation?Id= " + $("[name='Id']").val(),
@@ -294,6 +295,7 @@
             }
 
             function ViewPickupLocationChanges() {
+                console.log($("[name='Id']").val());
                 if ($("[name='Id']").val() != 0) {
                     LoadChangesDetails();
                 }
