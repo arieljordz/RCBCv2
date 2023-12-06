@@ -29,6 +29,11 @@ body {
     margin: 10px 0;
 }
 
+.logo-height {
+    /*width: 100% !important;*/
+    height: 56px !important;
+}
+
 .bg-light-blue {
     background-color: #38b7fe !important;
 }
