@@ -46,6 +46,10 @@ body {
     background-color: #bfbfbb !important;
 }
 
+.h2-bold {
+    font-weight: 600 !important;
+}
+
 .loader {
 /*    position: fixed;
     left: 0px;

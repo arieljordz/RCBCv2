@@ -380,7 +380,7 @@ namespace RCBC.Controllers
 
                 salt = user.Salt;
                 OldPassword = user.HashPassword;
-                LoginAttempt = user.LoginAttempt;
+                LoginAttempt = user.LoginAttempt + 1;
 
                 model.OldPassword = model.OldPassword + salt;
                 result = Crypto.VerifyHashedPassword(OldPassword, model.OldPassword);
@@ -445,7 +445,8 @@ namespace RCBC.Controllers
                                     MobileNumber = user.MobileNumber,
                                     GroupDept = user.GroupDept,
                                     UserRole = user.UserRole,
-                                    Active = user.Active
+                                    Active = user.Active,
+                                    LoginAttempt = LoginAttempt,
                                 };
                                 con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
 

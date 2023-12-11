@@ -246,7 +246,7 @@ namespace RCBC.Controllers
                                     {
                                         int SubModuleId = Convert.ToInt32(subId);
                                         var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.Id == SubModuleId);
+                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
 
                                         var insertParameters = new
                                         {
@@ -278,7 +278,8 @@ namespace RCBC.Controllers
                                     MobileNumber = model.MobileNumber,
                                     GroupDept = model.GroupDept,
                                     UserRole = model.UserRole,
-                                    Active = model.Active
+                                    Active = model.Active,
+                                    LoginAttempt = userInfo.LoginAttempt,
                                 };
 
                                 con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -385,7 +386,8 @@ namespace RCBC.Controllers
                         MobileNumber = user.MobileNumber,
                         GroupDept = user.GroupDept,
                         UserRole = user.UserRole,
-                        Active = user.Active
+                        Active = user.Active,
+                        LoginAttempt = user.LoginAttempt,
                     };
 
                     con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);

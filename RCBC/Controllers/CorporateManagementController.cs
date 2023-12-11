@@ -420,7 +420,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetContacts().Where(x => x.LocationId != 0).ToList();
+                var data = global.GetContacts().Where(x => x.LocationId != null).ToList();
 
                 return Json(new { data = data });
             }
