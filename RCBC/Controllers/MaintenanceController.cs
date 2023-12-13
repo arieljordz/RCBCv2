@@ -66,6 +66,9 @@ namespace RCBC.Controllers
                         var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
+                        var Contacts = global.GetContacts().OrderBy(x => x.Id);
+                        ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
+
                         return View();
                     }
                     else
@@ -767,7 +770,9 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUserAccessById(int UserId)
         {
-            var data = global.GetUserAccessById(UserId).ToList();
+            List<AccessModuleModel> data = new List<AccessModuleModel>();
+
+            data = UserId == 0 ? data : global.GetUserAccessById(UserId).ToList();
 
             return Json(new { data });
         }
@@ -1087,6 +1092,7 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             LocationId = model.LocationId,
+                            CorporateClientId = 0,
                             AccountNumber = model.AccountNumber,
                             AccountName = model.AccountName,
                             CurrencyId = model.CurrencyId,
@@ -1105,6 +1111,7 @@ namespace RCBC.Controllers
                         {
                             Id = model.Id,
                             LocationId = model.LocationId,
+                            CorporateClientId = 0,
                             AccountNumber = model.AccountNumber,
                             AccountName = model.AccountName,
                             CurrencyId = model.CurrencyId,
@@ -1211,6 +1218,7 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             LocationId = model.LocationId,
+                            CorporateClientId = 0,
                             ContactPerson = model.ContactPerson,
                             Email = model.Email,
                             MobileNumber = model.MobileNumber,
@@ -1224,13 +1232,16 @@ namespace RCBC.Controllers
                     }
                     else
                     {
+                        var contact = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+
                         var parameters = new
                         {
                             Id = model.Id,
-                            LocationId = model.LocationId,
-                            ContactPerson = model.ContactPerson,
-                            Email = model.Email,
-                            MobileNumber = model.MobileNumber,
+                            LocationId = model.LocationId == 0 ? contact.LocationId : model.LocationId,
+                            CorporateClientId = 0,
+                            ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
+                            Email = model.Email == null ? contact.Email : model.Email,
+                            MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
                         };
 
                         con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);

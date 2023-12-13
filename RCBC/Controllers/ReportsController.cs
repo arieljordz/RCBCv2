@@ -48,6 +48,9 @@ namespace RCBC.Controllers
                         var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
 
+                        var Contacts = global.GetContacts().OrderBy(x => x.Id);
+                        ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
+
                         return View();
                     }
                     else

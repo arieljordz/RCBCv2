@@ -48,9 +48,9 @@
                                         <li class="nav-item">
                                             <a class="nav-link active" id="tab_pickup_location" data-toggle="pill" href="#custom_tab_pickup_location" role="tab" aria-controls="custom_tab_pickup_location" aria-selected="true">Pickup Location Details</a>
                                         </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link" id="tab_account_details" data-toggle="pill" href="#custom_tab_account_details" role="tab" aria-controls="custom_tab_account_details" aria-selected="false">Account Details</a>
-                                        </li>
+                                        @*      <li class="nav-item">
+                                        <a class="nav-link" id="tab_account_details" data-toggle="pill" href="#custom_tab_account_details" role="tab" aria-controls="custom_tab_account_details" aria-selected="false">Account Details</a>
+                                        </li> *@
                                         <li class="nav-item">
                                             <a class="nav-link" id="tab_contact_details" data-toggle="pill" href="#custom_tab_contact_details" role="tab" aria-controls="custom_tab_contact_details" aria-selected="false">Contact Details</a>
                                         </li>
@@ -129,21 +129,21 @@
                                             </form>
 
                                         </div>
-                                        <div class="tab-pane fade" id="custom_tab_account_details" role="tabpanel" aria-labelledby="tab_account_details">
-                                            <div class="row pl-2">
-                                                <button type="button" class="btn btn-primary" id="btn_add_account"><i class="fa fa-plus mr-2"></i>Add New Account</button>
-                                            </div>
-                                            <div class="row pb-3 pt-3">
-                                                <div class="col-md-12">
-                                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
-                                                        <table id="tbl_account_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        @*       <div class="tab-pane fade" id="custom_tab_account_details" role="tabpanel" aria-labelledby="tab_account_details">
+                                        <div class="row pl-2">
+                                        <button type="button" class="btn btn-primary" id="btn_add_account"><i class="fa fa-plus mr-2"></i>Add New Account</button>
                                         </div>
+                                        <div class="row pb-3 pt-3">
+                                        <div class="col-md-12">
+                                        <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_account_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                        </div>
+                                        </div>
+                                        </div>
+                                        </div> *@
                                         <div class="tab-pane fade" id="custom_tab_contact_details" role="tabpanel" aria-labelledby="tab_contact_details">
                                             <div class="row pl-2">
-                                                <button type="button" class="btn btn-primary" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
+                                                <button type="button" class="btn btn-primary" id="btn_browse_contact"><i class="fa fa-users mr-2"></i>Browse Contacts</button>
                                             </div>
                                             <div class="row pb-3 pt-3">
                                                 <div class="col-md-12">
@@ -262,38 +262,62 @@
                     </div>
                 </div>
 
+
+
                 <form id="form_contact" novalidate="novalidate">
                     <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_contact">
+
                         <div class="card-header p-0 pt-1 border-bottom-0">
                             <div class="modal-body pb-0">
+
                                 @Html.HiddenFor(x => x.Id)
                                 @Html.HiddenFor(x => x.AccountId)
                                 @Html.HiddenFor(x => x.LocationId)
                                 @Html.HiddenFor(x => x.IsApproved)
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Contact Person", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
-                                            @Html.ValidationMessageFor(x => x.ContactPerson)
+
+                                <div id="div_ContactPerson">
+                                    <div class="row mb-4">
+                                        <div class="col-md-9">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                                @Html.DropDownList("Id", ViewBag.cmbContacts as SelectList, "", new { @class = "form-control select2", id = "cmb_contacts" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 pt-4">
+                                            <button type="button" class="btn btn-primary mt-2" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Email", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
-                                            @Html.ValidationMessageFor(x => x.Email)
-                                        </div>
-                                    </div>
+
                                 </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
-                                            @Html.ValidationMessageFor(x => x.MobileNumber)
+
+                                <div id="div_Add_ContactPerson">
+
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
+                                                @Html.ValidationMessageFor(x => x.ContactPerson)
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Email", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                                @Html.ValidationMessageFor(x => x.Email)
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                                @Html.ValidationMessageFor(x => x.MobileNumber)
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -312,10 +336,15 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
+
+            $('#cmb_contacts').select2()
+
             $('#tab_pickup_location').addClass('active');
+
+            $("#div_Add_ContactPerson").css("display", "none");
 
             ValidateFormLocation();
             function ValidateFormLocation() {
@@ -832,7 +861,7 @@
                 }
             }
 
-            $("#btn_add_contact").click(function (e) {
+            $("#btn_browse_contact").click(function (e) {
                 e.preventDefault();
                 $("#modal_add_contact").modal("show");
                 $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Add New Contact');
@@ -847,12 +876,16 @@
             $("#btnCloseContact").click(function (e) {
                 e.preventDefault();
                 $("#form_contact").trigger("reset");
+                $("#div_ContactPerson").removeAttr("style");
+                $("#div_Add_ContactPerson").css("display", "none");
             });
 
             $("#btnCancelContact").click(function (e) {
                 e.preventDefault();
                 $("#form_contact").trigger("reset");
                 $("#modal_add_contact").modal("hide");
+                $("#div_ContactPerson").removeAttr("style");
+                $("#div_Add_ContactPerson").css("display", "none");
             });
 
             LoadLocationContactDetails();
@@ -972,6 +1005,8 @@
                                 $("[name='LocationId']").val(0);
                                 $("[name='Id']").val(0);
                                 LoadContactDetails();
+                                $("#div_ContactPerson").removeAttr("style");
+                                $("#div_Add_ContactPerson").css("display", "none");
                             }
                             else {
                                 Swal.fire('Warning!', 'Contact Already Exists.', 'warning');
@@ -992,6 +1027,17 @@
                 }
             }
 
+            $("#btn_add_contact").click(function (e) {
+                e.preventDefault();
+                $("#div_Add_ContactPerson").removeAttr("style");
+                $("#div_ContactPerson").css("display", "none");
+                $("[name='Id']").val(0);
+            });
+
+            $('#cmb_contacts').on('change', function () {
+                var selectedValue = $(this).val();
+                $("[name='Id']").val(selectedValue);
+            });
 
         });
 

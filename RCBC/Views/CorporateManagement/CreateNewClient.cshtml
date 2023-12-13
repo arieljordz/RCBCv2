@@ -151,7 +151,7 @@
                                         </div>
                                         <div class="tab-pane fade" id="custom_tab_contact_details" role="tabpanel" aria-labelledby="tab_contact_details">
                                             <div class="row pl-2">
-                                                <button type="button" class="btn btn-primary" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
+                                                <button type="button" class="btn btn-primary" id="btn_browse_contact"><i class="fa fa-users mr-2"></i>Browse Contact</button>
                                             </div>
                                             <div class="row pb-3 pt-3">
                                                 <div class="col-md-12">
@@ -273,34 +273,55 @@
                     <div class="card card-primary card-outline card-tabs ml-4 mr-4 mb-4" id="div_contact">
                         <div class="card-header p-0 pt-1 border-bottom-0">
                             <div class="modal-body pb-0">
+
                                 @Html.HiddenFor(x => x.Id)
                                 @Html.HiddenFor(x => x.AccountId)
                                 @Html.HiddenFor(x => x.CorporateClientId)
                                 @Html.HiddenFor(x => x.IsApproved)
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Contact Person", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
-                                            @Html.ValidationMessageFor(x => x.ContactPerson)
+
+                                <div id="div_ContactPerson">
+                                    <div class="row mb-4">
+                                        <div class="col-md-9">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                                @Html.DropDownList("Id", ViewBag.cmbContacts as SelectList, "", new { @class = "form-control select2", id = "cmb_contacts" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 pt-4">
+                                            <button type="button" class="btn btn-primary mt-2" id="btn_add_contact"><i class="fa fa-plus mr-2"></i>Add New Contact</button>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Email", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
-                                            @Html.ValidationMessageFor(x => x.Email)
-                                        </div>
-                                    </div>
+
                                 </div>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
-                                            @Html.ValidationMessageFor(x => x.MobileNumber)
+
+                                <div id="div_Add_ContactPerson">
+
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Contact Person", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.ContactPerson, new { @class = "form-control", placeholder = "Contact Person" })
+                                                @Html.ValidationMessageFor(x => x.ContactPerson)
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Email", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                                @Html.ValidationMessageFor(x => x.Email)
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
+                                                @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                                @Html.ValidationMessageFor(x => x.MobileNumber)
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                             </div>
@@ -322,7 +343,12 @@
     {
     <script>
         $(document).ready(function () {
+
+            $('#cmb_contacts').select2()
+
             $('#tab_corporate_client').addClass('active');
+
+            $("#div_Add_ContactPerson").css("display", "none");
 
             ValidateFormClient();
             function ValidateFormClient() {
@@ -569,12 +595,16 @@
             $("#btnCloseAccount").click(function (e) {
                 e.preventDefault();
                 $("#form_account").trigger("reset");
+                $("#div_ContactPerson").removeAttr("style");
+                $("#div_Add_ContactPerson").css("display", "none");
             });
 
             $("#btnCancelAccount").click(function (e) {
                 e.preventDefault();
                 $("#form_account").trigger("reset");
                 $("#modal_add_account").modal("hide");
+                $("#div_ContactPerson").removeAttr("style");
+                $("#div_Add_ContactPerson").css("display", "none");
             });
 
             LoadClientAccountDetails();
@@ -835,7 +865,7 @@
                 }
             }
 
-            $("#btn_add_contact").click(function (e) {
+            $("#btn_browse_contact").click(function (e) {
                 e.preventDefault();
                 $("#modal_add_contact").modal("show");
                 $("#modal_name_contact").html('<i class="fa fa-address-book-o pr-2"></i>Add New Contact');
@@ -972,6 +1002,8 @@
                                 $("[name='CorporateClientId']").val(0);
                                 $("[name='Id']").val(0);
                                 LoadContactDetails();
+                                $("#div_ContactPerson").removeAttr("style");
+                                $("#div_Add_ContactPerson").css("display", "none");
                             }
                             else {
                                 Swal.fire('Warning!', 'Contact Already Exists.', 'warning');
@@ -992,6 +1024,18 @@
                 }
             }
 
+
+            $("#btn_add_contact").click(function (e) {
+                e.preventDefault();
+                $("#div_Add_ContactPerson").removeAttr("style");
+                $("#div_ContactPerson").css("display", "none");
+                $("[name='Id']").val(0);
+            });
+
+            $('#cmb_contacts').on('change', function () {
+                var selectedValue = $(this).val();
+                $("[name='Id']").val(selectedValue);
+            });
 
         });
 

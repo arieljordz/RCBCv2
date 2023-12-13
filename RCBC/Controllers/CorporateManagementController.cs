@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using RCBC.Interface;
 using RCBC.Models;
+using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -55,6 +56,9 @@ namespace RCBC.Controllers
 
                         var EmailTypes = global.GetEmailType();
                         ViewBag.cmbEmailTypes = new SelectList(EmailTypes, "EmailType", "EmailType");
+
+                        var Contacts = global.GetContacts().OrderBy(x => x.Id);
+                        ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
 
                         return View();
                     }
@@ -119,11 +123,6 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                            INSERT INTO [RCBC].[dbo].[CorporateClient] (CorporateGroup, CorporateCode, CorporateName, ContactPerson, Email, MobileNumber, GlobalAccount, Active, IsApproved)
-                            VALUES(@CorporateGroup, @CorporateCode, @CorporateName, @ContactPerson, @Email, @MobileNumber, @GlobalAccount, @Active, @IsApproved)
-                            SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
                             CorporateGroup = model.CorporateGroup,
@@ -137,7 +136,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveCorporateClient", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -145,12 +144,6 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[CorporateClient] 
-                        SET CorporateGroup = @CorporateGroup, CorporateCode = @CorporateCode, CorporateName = @CorporateName,
-                        ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber, GlobalAccount = @GlobalAccount, Active = @Active, IsApproved = @IsApproved
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
@@ -165,7 +158,7 @@ namespace RCBC.Controllers
                             IsApproved = model.IsApproved,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateCorporateClient", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -308,13 +301,9 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Accounts] (CorporateClientId, AccountNumber, AccountName, CurrencyId, AccountTypeId)
-                        VALUES(@CorporateClientId, @AccountNumber, @AccountName, @CurrencyId, @AccountTypeId)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
+                            LocationId = 0,
                             CorporateClientId = model.CorporateClientId,
                             AccountNumber = model.AccountNumber,
                             AccountName = model.AccountName,
@@ -322,8 +311,7 @@ namespace RCBC.Controllers
                             AccountTypeId = model.AccountTypeId,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveAccount", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -331,14 +319,10 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[Accounts] 
-                        SET CorporateClientId = @CorporateClientId, AccountNumber = @AccountNumber, AccountName = @AccountName, CurrencyId = @CurrencyId, AccountTypeId = @AccountTypeId
-                        WHERE Id = @Id";
-
                         var parameters = new
                         {
                             Id = model.Id,
+                            LocationId = 0,
                             CorporateClientId = model.CorporateClientId,
                             AccountNumber = model.AccountNumber,
                             AccountName = model.AccountName,
@@ -346,7 +330,7 @@ namespace RCBC.Controllers
                             AccountTypeId = model.AccountTypeId,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateAccount", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -398,14 +382,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteAccount", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
@@ -420,7 +401,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetContacts().Where(x => x.LocationId != null).ToList();
+                var data = global.GetContacts().Where(x => x.CorporateClientId != 0).ToList();
 
                 return Json(new { data = data });
             }
@@ -446,21 +427,16 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        string insertQuery = @"
-                        INSERT INTO [RCBC].[dbo].[Contacts] (CorporateClientId, ContactPerson, Email, MobileNumber)
-                        VALUES(@CorporateClientId, @ContactPerson, @Email, @MobileNumber)
-                        SELECT CAST(SCOPE_IDENTITY() AS INT)";
-
                         var parameters = new
                         {
+                            LocationId = 0,
                             CorporateClientId = model.CorporateClientId,
                             ContactPerson = model.ContactPerson,
                             Email = model.Email,
                             MobileNumber = model.MobileNumber,
                         };
 
-                        //con.Execute(insertQuery, parameters);
-                        model.Id = con.QuerySingleOrDefault<int>(insertQuery, parameters);
+                        model.Id = con.QuerySingle<int>("sp_saveContact", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully saved.";
                         action = "Add";
@@ -468,21 +444,19 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        string updateQuery = @"
-                        UPDATE [RCBC].[dbo].[Contacts] 
-                        SET CorporateClientId = @CorporateClientId, ContactPerson = @ContactPerson, Email = @Email, MobileNumber = @MobileNumber
-                        WHERE Id = @Id";
+                        var contact = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
 
                         var parameters = new
                         {
                             Id = model.Id,
-                            CorporateClientId = model.CorporateClientId,
-                            ContactPerson = model.ContactPerson,
-                            Email = model.Email,
-                            MobileNumber = model.MobileNumber,
+                            LocationId = 0,
+                            CorporateClientId = model.CorporateClientId == 0 ? contact.CorporateClientId : model.CorporateClientId,
+                            ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
+                            Email = model.Email == null ? contact.Email : model.Email,
+                            MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
                         };
 
-                        con.Execute(updateQuery, parameters);
+                        con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
                         action = "Update";
@@ -534,14 +508,11 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (SqlConnection con = new SqlConnection(GetConnectionString()))
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
                     con.Open();
 
-                    string query = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE Id = @Id";
-                    con.Execute(query, new { Id = Id });
-
-                    con.Close();
+                    con.Execute("sp_deleteContact", new { Id = Id }, commandType: CommandType.StoredProcedure);
                 }
 
                 return Json(new { success = true });
