@@ -248,7 +248,7 @@
                             {
                                 data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
-                                    if (data == true) {
+                                    if (data == false || data == true) {
                                         return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
                                     }
                                     else {

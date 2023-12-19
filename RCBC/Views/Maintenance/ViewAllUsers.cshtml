@@ -62,7 +62,7 @@
 
     <!-- Modal -->
     <div id="modal_user" class="modal fade" role="dialog" data-backdrop="static">
-        <div class="modal-dialog modal-md pt-5">
+        <div class="modal-dialog modal-lg pt-5">
 
             <!-- Modal content-->
             <div class="modal-content">
@@ -76,66 +76,64 @@
                     <div class="modal-body">
                         @Html.HiddenFor(x => x.Id)
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Username", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username" })
+                                    @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username", @readonly = "readonly" })
                                     @Html.ValidationMessageFor(x => x.Username)
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Employee Name", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.EmployeeName, new { @class = "form-control", placeholder = "Employee Name" })
                                     @Html.ValidationMessageFor(x => x.EmployeeName)
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Email", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type="email", placeholder = "Email" })
+                                    @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type = "email", placeholder = "Email" })
                                     @Html.ValidationMessageFor(x => x.Email)
                                 </div>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     @Html.LabelForModel("MobileNumber", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "Mobile Number" })
                                     @Html.ValidationMessageFor(x => x.MobileNumber)
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     @Html.LabelForModel("Group/Department", new { @class = "label-control" })
                                     @Html.DropDownList("GroupDept", ViewBag.cmbDepartments as SelectList, new { @class = "form-control" })
                                     @Html.ValidationMessageFor(x => x.GroupDept)
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     @Html.LabelForModel("User Role", new { @class = "label-control" })
                                     @Html.DropDownList("UserRole", ViewBag.cmbUserRoles as SelectList, new { @class = "form-control" })
                                     @Html.ValidationMessageFor(x => x.UserRole)
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group clearfix">
+                            <div class="col-md-3 pt-4">
+                                <div class="form-group clearfix pt-3">
                                     <div class="icheck-primary d-inline">
                                         @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
                                         @Html.Label("Active", "Active Status")
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row pb-3 pt-3">
+                            <div class="col-md-12">
+                                <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                    <table id="tbl_modules" class="table table-sm table-bordered table-hover" style="width:100%"></table>
                                 </div>
                             </div>
                         </div>
@@ -213,12 +211,28 @@
 
             function Register() {
                 $('#loading-image').show();
-                var formData = $("#frmUsers").serialize();
+
+                var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
+                var checkedCheckboxIds = [];
+
+                checkedCheckboxes.each(function () {
+                    var checkboxId = $(this).attr('id');
+                    checkedCheckboxIds.push(checkboxId);
+                });
+                console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+
+                var formData = new FormData($("#frmUsers")[0]);
+
+                formData.append("ModuleIds", checkedCheckboxIds.join(','));
+
+                console.log(formData);
 
                 $.ajax({
                     type: "POST",
                     url: '@Url.Action("Register", "Maintenance")',
                     data: formData,
+                    contentType: false,
+                    processData: false,
                     success: function (response) {
                         $('#loading-image').hide();
                         if (response.success == true) {
@@ -241,7 +255,6 @@
                     }
                 });
             }
-
 
             $('#btnCancel').click(function () {
                 $("#frmUsers").trigger("reset");
@@ -269,7 +282,7 @@
                     columns:
                         [
                             { "data": "username", title: "Username", sClass: "dt-body-center", orderable: false },
-                            { "data": "employeeName", title: "Employee Name", sClass: "dt-body-center", orderable: false },
+                            { "data": "employeeName", title: "FullName", sClass: "dt-body-center", orderable: false },
                             { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
                             { "data": "mobileNumber", title: "Mobile Number", sClass: "dt-body-center", orderable: false },
                             { "data": "groupDept", title: "Group Department", sClass: "dt-body-center", orderable: false },
@@ -344,6 +357,7 @@
                                 $("[name='GroupDept']").val(res.data.groupDept);
                                 $("[name='UserRole']").val(res.data.userRole);
                                 $("[name='Active']").prop('checked', res.data.active);
+                                LoadUserAccessById(res.data.id);
                             }
                         }
                     });
@@ -383,6 +397,64 @@
                 else {
                     Swal.fire('Information!', 'Please select a record first.', 'info');
                 }
+            }
+            
+            LoadUserAccessById(0);
+            function LoadUserAccessById(UserId) {
+                var tbl_modules = $('#tbl_modules').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: false,
+                    stateSave: true,
+                    info: false,
+                    searching: false,
+                    paging: false,
+                    ajax: {
+                        "url": "../Maintenance/LoadUserAccessById",
+                        "type": "GET",
+                        "data": { UserId: UserId },
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            {
+                                data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
+                                    var subModuleId = row.subModuleId;
+                                    if (data == false || data == true) {
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
+                                    }
+                                    else {
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
+                                    }
+                                }
+                            },
+                            { "data": "subModuleId", visible: false, "orderable": false },
+                            { "data": "module", title: "Module", sClass: "text-left", orderable: false },
+                            { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+
+                        ]
+                });
+
+                $('#tbl_modules tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    var row = tbl_modules.row(this);
+                    var checkbox = row.nodes().to$().find('input[type="checkbox"]');
+                    var checkboxId = checkbox.attr('id');
+
+                    if (!$(this).hasClass("dtactives")) {
+                        $(this).parent().find("tr").removeClass("dtactives");
+                        $(this).addClass("dtactives");
+                        checkbox.prop('checked', !checkbox.prop('checked'));
+                    } else {
+                        $(this).removeClass("dtactives");
+
+                        checkbox.prop('checked', false);
+                    }
+                });
+
+
+
             }
 
 

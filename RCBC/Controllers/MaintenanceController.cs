@@ -17,6 +17,7 @@ using System.Net.Sockets;
 using System;
 using static System.Collections.Specialized.BitVector32;
 using System.Data.Common;
+using System.Linq;
 
 namespace RCBC.Controllers
 {
@@ -212,6 +213,7 @@ namespace RCBC.Controllers
                 string msg = string.Empty;
                 string action = string.Empty;
                 string? previousData = string.Empty;
+                bool? active = null;
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
@@ -241,27 +243,52 @@ namespace RCBC.Controllers
 
                                 model.Id = con.QuerySingle<int>("sp_saveUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                if (model.ModuleIds != null)
+                                var subModules = global.GetSubModule().Select(x => x.SubModuleId).ToList();
+
+                                foreach (var subId in subModules)
                                 {
+                                    int SubModuleId = Convert.ToInt32(subId);
+                                    var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                    var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+
                                     string[] moduleIdsArray = model.ModuleIds.Split(',');
 
-                                    foreach (var subId in moduleIdsArray)
-                                    {
-                                        int SubModuleId = Convert.ToInt32(subId);
-                                        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+                                    bool isExists = Array.Exists<string>(moduleIdsArray, x => x.Equals(SubModuleId.ToString()));
 
-                                        var insertParameters = new
-                                        {
-                                            UserId = model.Id,
-                                            RoleId = Roles?.Id ?? 0,
-                                            ModuleId = Modules?.ModuleId ?? 0,
-                                            SubModuleId = SubModuleId,
-                                            Active = (bool?)null
-                                        };
-                                        con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                    }
+                                    var insertParameters = new
+                                    {
+                                        UserId = model.Id,
+                                        RoleId = Roles?.Id ?? 0,
+                                        ModuleId = Modules?.ModuleId ?? 0,
+                                        SubModuleId = SubModuleId,
+                                        Active = isExists ? false : (bool?)null
+                                    };
+
+                                    con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                 }
+
+                                //if (model.ModuleIds != null)
+                                //{
+                                //    string[] moduleIdsArray = model.ModuleIds.Split(',');
+
+                                //    foreach (var subId in moduleIdsArray)
+                                //    {
+                                //        int SubModuleId = Convert.ToInt32(subId);
+                                //        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                //        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+
+                                //        var insertParameters = new
+                                //        {
+                                //            UserId = model.Id,
+                                //            RoleId = Roles?.Id ?? 0,
+                                //            ModuleId = Modules?.ModuleId ?? 0,
+                                //            SubModuleId = SubModuleId,
+                                //            Active = (bool?)null
+                                //        };
+                                //        con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                //    }
+                                //}
+
                                 msg = "Successfully Saved.";
                                 action = "Add";
                                 previousData = null;
@@ -286,6 +313,71 @@ namespace RCBC.Controllers
                                 };
 
                                 con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                var subModules = global.GetSubModule().Select(x => x.SubModuleId).ToList();
+
+                                foreach (var subId in subModules)
+                                {
+                                    int SubModuleId = Convert.ToInt32(subId);
+                                    var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                    var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+
+                                    string[] moduleIdsArray = model.ModuleIds.Split(',');
+
+                                    bool isExists = Array.Exists<string>(moduleIdsArray, x => x.Equals(SubModuleId.ToString()));
+
+                                    var updateParameters = new
+                                    {
+                                        UserId = model.Id,
+                                        RoleId = Roles?.Id ?? 0,
+                                        ModuleId = Modules?.ModuleId ?? 0,
+                                        SubModuleId = SubModuleId,
+                                        Active = isExists ? false : (bool?)null
+                                    };
+
+                                    con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                }
+
+                                //if (model.ModuleIds != null)
+                                //{
+                                //    string[] moduleIdsArray = model.ModuleIds.Split(',');
+
+                                //    foreach (var subId in moduleIdsArray)
+                                //    {
+                                //        int SubModuleId = Convert.ToInt32(subId);
+                                //        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                //        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+
+                                //        var UserAccess = global.GetUserAccess().Where(x => x.UserId == model.Id && x.SubModuleId == SubModuleId).FirstOrDefault();
+
+                                //        if (UserAccess != null)
+                                //        {
+                                //            var updateParameters = new
+                                //            {
+                                //                UserId = model.Id,
+                                //                RoleId = Roles?.Id ?? 0,
+                                //                ModuleId = Modules?.ModuleId ?? 0,
+                                //                SubModuleId = SubModuleId,
+                                //                Active = true,
+                                //            };
+
+                                //            con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                //        }
+                                //        else
+                                //        {
+                                //            var insertParameters = new
+                                //            {
+                                //                UserId = model.Id,
+                                //                RoleId = Roles?.Id ?? 0,
+                                //                ModuleId = Modules?.ModuleId ?? 0,
+                                //                SubModuleId = SubModuleId,
+                                //                Active = (bool?)null
+                                //            };
+                                //            con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                //        }
+
+                                //    }
+                                //}
 
                                 msg = "Successfully Updated.";
                                 action = "Update";
@@ -603,7 +695,7 @@ namespace RCBC.Controllers
                         foreach (var SubModuleId in moduleIds)
                         {
                             var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
-                            var Modules = global.GetSubModule().Where(x => x.Id == SubModuleId).FirstOrDefault();
+                            var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
                             var existingAccess = global.GetUserAccess().Where(x => x.UserId == userId && x.SubModuleId == SubModuleId).FirstOrDefault();
 
@@ -627,6 +719,7 @@ namespace RCBC.Controllers
                                 var updateParameters = new
                                 {
                                     UserId = userId,
+                                    RoleId = Roles?.Id ?? 0,
                                     ModuleId = Modules?.ModuleId ?? 0,
                                     SubModuleId = SubModuleId,
                                     Active = true,
@@ -773,6 +866,13 @@ namespace RCBC.Controllers
             List<AccessModuleModel> data = new List<AccessModuleModel>();
 
             data = UserId == 0 ? data : global.GetUserAccessById(UserId).ToList();
+
+            return Json(new { data });
+        }
+
+        public IActionResult LoadUserAccess()
+        {
+            var data = global.GetUserAccessById(0).ToList();
 
             return Json(new { data });
         }

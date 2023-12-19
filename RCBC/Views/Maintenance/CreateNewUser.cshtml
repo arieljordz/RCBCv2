@@ -228,8 +228,8 @@
                 });
             }
 
-            LoadUserAccessById(0);
-            function LoadUserAccessById(UserId) {
+            LoadUserAccess();
+            function LoadUserAccess() {
                 var tbl_modules = $('#tbl_modules').DataTable({
                     destroy: true,
                     responsive: true,
@@ -240,9 +240,8 @@
                     searching: false,
                     paging: false,
                     ajax: {
-                        "url": "../Maintenance/LoadUserAccessById",
+                        "url": "../Maintenance/LoadUserAccess",
                         "type": "GET",
-                        "data": { UserId: UserId },
                         "datatype": "JSON",
                     },
                     columns:
