@@ -60,6 +60,12 @@ namespace RCBC.Controllers
                         var Contacts = global.GetContacts().OrderBy(x => x.Id);
                         ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
 
+                        var CorporateNames = global.GetCorporateClient();
+                        ViewBag.cmbCorporateNames = new SelectList(CorporateNames, "CorporateName", "CorporateName");
+
+                        var CorporateCodes = global.GetCorporateClient();
+                        ViewBag.cmbCorporateCodes = new SelectList(CorporateCodes, "PartnerCode", "CorporateCode");
+
                         return View();
                     }
                     else
@@ -126,7 +132,7 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             CorporateGroup = model.CorporateGroup,
-                            CorporateCode = model.CorporateCode,
+                            PartnerCode = model.PartnerCode,
                             CorporateName = model.CorporateName,
                             ContactPerson = model.ContactPerson,
                             Email = model.Email,
@@ -148,7 +154,7 @@ namespace RCBC.Controllers
                         {
                             Id = model.Id,
                             CorporateGroup = model.CorporateGroup,
-                            CorporateCode = model.CorporateCode,
+                            PartnerCode = model.PartnerCode,
                             CorporateName = model.CorporateName,
                             ContactPerson = model.ContactPerson,
                             Email = model.Email,
@@ -444,23 +450,45 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        var contact = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+                        var contact = global.GetContacts().Where(x => x.Id == model.Id && x.CorporateClientId == model.CorporateClientId).FirstOrDefault();
 
-                        var parameters = new
+                        if (contact != null)
                         {
-                            Id = model.Id,
-                            LocationId = 0,
-                            CorporateClientId = model.CorporateClientId == 0 ? contact.CorporateClientId : model.CorporateClientId,
-                            ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
-                            Email = model.Email == null ? contact.Email : model.Email,
-                            MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
-                        };
+                            var parameters = new
+                            {
+                                Id = model.Id,
+                                LocationId = 0,
+                                CorporateClientId = model.CorporateClientId == 0 ? contact.CorporateClientId : model.CorporateClientId,
+                                ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
+                                Email = model.Email == null ? contact.Email : model.Email,
+                                MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
+                            };
 
-                        con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
+                            con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
 
-                        msg = "Successfully updated.";
-                        action = "Update";
-                        previousData = JsonConvert.SerializeObject(qry);
+                            msg = "Successfully updated.";
+                            action = "Update";
+                            previousData = JsonConvert.SerializeObject(qry);
+                        }
+                        else
+                        {
+                            var contacts = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+
+                            var parameters = new
+                            {
+                                LocationId = 0,
+                                CorporateClientId = model.CorporateClientId == 0 ? contacts.CorporateClientId : model.CorporateClientId,
+                                ContactPerson = model.ContactPerson == null ? contacts.ContactPerson : model.ContactPerson,
+                                Email = model.Email == null ? contacts.Email : model.Email,
+                                MobileNumber = model.MobileNumber == null ? contacts.MobileNumber : model.MobileNumber,
+                            };
+
+                            model.Id = con.QuerySingle<int>("sp_saveContact", parameters, commandType: CommandType.StoredProcedure);
+
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
                     }
 
                     var auditlogs = new AuditLogsModel

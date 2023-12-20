@@ -72,53 +72,60 @@
                         @Html.HiddenFor(x => x.Id)
                         @Html.HiddenFor(x => x.IsApproved)
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Corporate Name", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.CorporateName, new { @class = "form-control", placeholder = "CorporateName", @readonly = "readonly" })
                                     @Html.ValidationMessageFor(x => x.CorporateName)
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @Html.LabelForModel("Site", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.Site, new { @class = "form-control", placeholder = "Site", @readonly = "readonly" })
-                                    @Html.ValidationMessageFor(x => x.Site)
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @Html.LabelForModel("Site Address", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.SiteAddress, new { @class = "form-control", placeholder = "Site Address", @readonly = "readonly" })
-                                    @Html.ValidationMessageFor(x => x.SiteAddress)
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Partner Code", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.PartnerCode, new { @class = "form-control", placeholder = "PartnerCode", @readonly = "readonly" })
                                     @Html.ValidationMessageFor(x => x.PartnerCode)
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Account Number", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.AccountNumber, new { @class = "form-control", placeholder = "AccountNumber", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.AccountNumber)
+                                </div>
+                            </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Site", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.Site, new { @class = "form-control", placeholder = "Site", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.Site)
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    @Html.LabelForModel("Site Address", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.SiteAddress, new { @class = "form-control", placeholder = "Site Address", @readonly = "readonly" })
+                                    @Html.ValidationMessageFor(x => x.SiteAddress)
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("Location", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.Location, new { @class = "form-control", placeholder = "Location", @readonly = "readonly" })
                                     @Html.ValidationMessageFor(x => x.Location)
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     @Html.LabelForModel("SOL ID", new { @class = "label-control" })
                                     @Html.TextBoxFor(x => x.SOLID, new { @class = "form-control", placeholder = "SOLID", @readonly = "readonly" })
                                     @Html.ValidationMessageFor(x => x.SOLID)
                                 </div>
                             </div>
-                            <div class="col-md-2 pt-4">
+                            <div class="col-md-4 pt-4">
                                 <div class="form-group clearfix pt-3">
                                     <div class="icheck-primary d-inline">
                                         @Html.CheckBoxFor(x => x.Active, new { @id = "Active", @disabled = "disabled" })
@@ -200,6 +207,7 @@
                             { "data": "site", title: "Site", sClass: "dt-body-center", orderable: false },
                             { "data": "siteAddress", title: "Site Address", sClass: "dt-body-center", orderable: false },
                             { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "accountNumber", title: "Account Number", sClass: "dt-body-center", orderable: false },
                             { "data": "solid", title: "SOL ID", sClass: "dt-body-center", orderable: false },
                             {
                                 "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
@@ -280,6 +288,7 @@
                                 $("[name='Site']").val(res.data.site);
                                 $("[name='SiteAddress']").val(res.data.siteAddress);
                                 $("[name='PartnerCode']").val(res.data.partnerCode);
+                                $("[name='AccountNumber']").val(res.data.accountNumber);
                                 $("[name='Location']").val(res.data.location);
                                 $("[name='SOLID']").val(res.data.solid);
                                 $("[name='Active']").prop('checked', res.data.active);

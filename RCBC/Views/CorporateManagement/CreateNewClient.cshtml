@@ -72,9 +72,9 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            @Html.LabelForModel("Corporate Code", new { @class = "label-control" })
-                                                            @Html.TextBoxFor(x => x.CorporateCode, new { @class = "form-control", placeholder = "CorporateCode" })
-                                                            @Html.ValidationMessageFor(x => x.CorporateCode)
+                                                            @Html.LabelForModel("Partner Code", new { @class = "label-control" })
+                                                            @Html.TextBoxFor(x => x.PartnerCode, new { @class = "form-control", placeholder = "PartnerCode" })
+                                                            @Html.ValidationMessageFor(x => x.PartnerCode)
                                                         </div>
                                                     </div>
                                                 </div>
@@ -629,7 +629,7 @@
                         [
                             { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
                             { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
-                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
                             { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
                             {
                                 "data": "active", title: "Status", sClass: "text-center", render: function (data, type, row) {
@@ -910,7 +910,7 @@
                         [
                             { "data": "id", title: "id", sClass: "dt-body-center", orderable: false, visible: false },
                             { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
-                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
                             { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
                             {
                                 data: "active", title: "Status", sClass: "text-center", render: function (data, type, row) {

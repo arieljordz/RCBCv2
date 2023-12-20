@@ -74,6 +74,12 @@ namespace RCBC.Controllers
                         var Contacts = global.GetContacts().OrderBy(x => x.Id);
                         ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
 
+                        var CorporateNames = global.GetCorporateClient();
+                        ViewBag.cmbCorporateNames = new SelectList(CorporateNames, "CorporateName", "CorporateName");
+
+                        var CorporateCodes = global.GetCorporateClient();
+                        ViewBag.cmbCorporateCodes = new SelectList(CorporateCodes, "PartnerCode", "CorporateCode");
+
                         return View();
                     }
                     else

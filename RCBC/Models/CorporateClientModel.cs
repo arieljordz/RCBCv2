@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }    
         public string CorporateGroup { get; set; }    
-        public string CorporateCode { get; set; }    
+        public string PartnerCode { get; set; }    
         public string CorporateName { get; set; }    
         public string ContactPerson { get; set; }    
         public string Email { get; set; }    

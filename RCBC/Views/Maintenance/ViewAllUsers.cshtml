@@ -51,7 +51,6 @@
                         </div>
 
                         <div class="card-footer">
-                           
                         </div>
                     </div>
                 </div>
@@ -70,7 +69,7 @@
                     <h4 class="modal-title" id="modal_name"><i class="fa fa-user pr-2"></i>Update User</h4>
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
-             
+
                 <form id="frmUsers" novalidate="novalidate">
 
                     <div class="modal-body">
@@ -129,7 +128,7 @@
                                 </div>
                             </div>
                         </div>
-
+                     
                         <div class="row pb-3 pt-3">
                             <div class="col-md-12">
                                 <div class="dataTables_wrapper table-responsive dt-bootstrap4">
@@ -153,7 +152,7 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
 
@@ -398,7 +397,7 @@
                     Swal.fire('Information!', 'Please select a record first.', 'info');
                 }
             }
-            
+
             LoadUserAccessById(0);
             function LoadUserAccessById(UserId) {
                 var tbl_modules = $('#tbl_modules').DataTable({
@@ -419,41 +418,57 @@
                     columns:
                         [
                             {
-                                data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
+                                data: null,
+                                title: '<div class="icheck-primary d-inline"><input type="checkbox" id="checkAllHeader"><label for="checkAllHeader"></label></div>',
+                                orderable: false,
+                                sClass: "text-center",
+                                render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
-                                    if (data == false || data == true) {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
-                                    }
-                                    else {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
-                                    }
+                                    var checked = row.isActive == null ? '' : 'checked="checked"';
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+                            { "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
 
-                        ]
+                        ],
+                    initComplete: function () {
+                        var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
+
+                        $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+                    }
                 });
 
                 $('#tbl_modules tbody').off().on('click', 'tr', function (e) {
-                    e.preventDefault();
                     var row = tbl_modules.row(this);
                     var checkbox = row.nodes().to$().find('input[type="checkbox"]');
                     var checkboxId = checkbox.attr('id');
 
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+
                     if (!$(this).hasClass("dtactives")) {
                         $(this).parent().find("tr").removeClass("dtactives");
                         $(this).addClass("dtactives");
-                        checkbox.prop('checked', !checkbox.prop('checked'));
                     } else {
                         $(this).removeClass("dtactives");
-
-                        checkbox.prop('checked', false);
                     }
+
+                    var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
+                    $('#checkAllHeader').prop('checked', allCheckboxesChecked);
                 });
 
+                $('#tbl_modules').on('click', '#checkAllHeader', function () {
+                    var isChecked = $(this).prop('checked');
+                    tbl_modules.rows().nodes().to$().find('input[type="checkbox"]').prop('checked', isChecked);
 
+                    if (isChecked) {
+                        $('#tbl_modules tbody tr').addClass("dtactives");
+                    } else {
+                        $('#tbl_modules tbody tr').removeClass("dtactives");
+                    }
+                });
 
             }
 

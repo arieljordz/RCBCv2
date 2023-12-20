@@ -82,9 +82,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    @Html.LabelForModel("Corporate Code", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.CorporateCode, new { @class = "form-control", placeholder = "CorporateCode" })
-                                    @Html.ValidationMessageFor(x => x.CorporateCode)
+                                    @Html.LabelForModel("PartnerCode", new { @class = "label-control" })
+                                    @Html.TextBoxFor(x => x.PartnerCode, new { @class = "form-control", placeholder = "PartnerCode" })
+                                    @Html.ValidationMessageFor(x => x.PartnerCode)
                                 </div>
                             </div>
                         </div>
@@ -178,7 +178,7 @@
                     columns:
                         [
                             { "data": "corporateGroup", title: "Corporate Group", sClass: "dt-body-center", orderable: false },
-                            { "data": "corporateCode", title: "Corporate Code", sClass: "dt-body-center", orderable: false },
+                            { "data": "partnerCode", title: "Partner Code", sClass: "dt-body-center", orderable: false },
                             { "data": "corporateName", title: "Corporate Name", sClass: "dt-body-center", orderable: false },
                             { "data": "contactPerson", title: "Contact Person", sClass: "dt-body-center", orderable: false },
                             { "data": "email", title: "Email", sClass: "dt-body-center", orderable: false },
@@ -360,7 +360,7 @@
                                 $("#modal_update_client").modal("show");
                                 $("[name='Id']").val(res.data.id);
                                 $("[name='CorporateGroup']").val(res.data.corporateGroup);
-                                $("[name='CorporateCode']").val(res.data.corporateCode);
+                                $("[name='PartnerCode']").val(res.data.partnerCode);
                                 $("[name='CorporateName']").val(res.data.corporateName);
                                 $("[name='ContactPerson']").val(res.data.contactPerson);
                                 $("[name='Email']").val(res.data.email);

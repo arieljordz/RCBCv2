@@ -47,6 +47,7 @@
                                             @Html.LabelForModel("Username", new { @class = "label-control" })
                                             @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username" })
                                             @Html.ValidationMessageFor(x => x.Username)
+                                            <span id="string_validation" style="font-size: small;"></span>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
@@ -59,7 +60,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             @Html.LabelForModel("Email", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type="email", placeholder = "Email" })
+                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", type = "email", placeholder = "Email" })
                                             @Html.ValidationMessageFor(x => x.Email)
                                         </div>
                                     </div>
@@ -122,7 +123,7 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
 
@@ -184,48 +185,73 @@
                 $("#frmRegister").trigger("reset");
             })
 
+            $("[name='Username']").keyup(function () {
+                var Username = $("[name='Username']").val();
+                var IsTrue = CheckMinimunChars(Username);
+
+                if (IsTrue) {
+                    $('#string_validation').removeClass("text-danger");
+                    $('#string_validation').hide();
+                }
+                else {
+                    $('#string_validation').show();
+                    $('#string_validation').addClass("text-danger").html("username should be 8 or more characters");
+                }
+            });
+
             function Register() {
-                $('#loading-image').show();
 
-                var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
-                var checkedCheckboxIds = [];
+                var Username = $("[name='Username']").val();
+                var IsTrue = CheckMinimunChars(Username);
 
-                checkedCheckboxes.each(function () {
-                    var checkboxId = $(this).attr('id');
-                    checkedCheckboxIds.push(checkboxId);
-                });
-                console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+                if (IsTrue) {
 
-                var formData = new FormData($("#frmRegister")[0]);
+                    $('#loading-image').show();
 
-                formData.append("ModuleIds", checkedCheckboxIds.join(','));
+                    var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
+                    var checkedCheckboxIds = [];
 
-                console.log(formData);
+                    checkedCheckboxes.each(function () {
+                        var checkboxId = $(this).attr('id');
+                        checkedCheckboxIds.push(checkboxId);
+                    });
+                    console.log('IDs of checked checkboxes:', checkedCheckboxIds);
 
-                $.ajax({
-                    type: "POST",
-                    url: '@Url.Action("Register", "Maintenance")',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function (response) {
-                        $('#loading-image').hide();
-                        if (response.success == true) {
-                            Swal.fire('Success!', 'User successfully registered.', 'success');
-                            $("#frmRegister").trigger("reset");
-                        } else {
-                            Swal.fire('Warning!', 'User Already Exists.', 'warning');
+                    var formData = new FormData($("#frmRegister")[0]);
+
+                    formData.append("ModuleIds", checkedCheckboxIds.join(','));
+
+                    console.log(formData);
+
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("Register", "Maintenance")',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        success: function (response) {
+                            $('#loading-image').hide();
+                            if (response.success == true) {
+                                Swal.fire('Success!', 'User successfully registered.', 'success');
+                                $("#frmRegister").trigger("reset");
+                            } else {
+                                Swal.fire('Warning!', response.message, 'warning');
+                            }
+                        },
+                        failure: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
+                        },
+                        error: function (response) {
+                            $('#loading-image').hide();
+                            alert(response.responseText);
                         }
-                    },
-                    failure: function (response) {
-                        $('#loading-image').hide();
-                        alert(response.responseText);
-                    },
-                    error: function (response) {
-                        $('#loading-image').hide();
-                        alert(response.responseText);
-                    }
-                });
+                    });
+                }
+                else {
+                    Swal.fire('Warning!', 'Username should be 8 or more characters.', 'warning');
+                }
+
             }
 
             LoadUserAccess();
@@ -247,37 +273,54 @@
                     columns:
                         [
                             {
-                                data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
+                                data: null,
+                                title: '<div class="icheck-primary d-inline"><input type="checkbox" id="checkAllHeader"><label for="checkAllHeader"></label></div>',
+                                orderable: false,
+                                sClass: "text-center",
+                                render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
-                                    if (data == true) {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
-                                    }
-                                    else {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
-                                    }
+                                    var checked = row.isActive == false ? '' : 'checked="checked"';
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+                            //{ "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
+                        ],
+                    // initComplete: function () {
+                    //     var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
 
-                        ]
+                    //     $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+                    // }
                 });
 
                 $('#tbl_modules tbody').off().on('click', 'tr', function (e) {
-                    e.preventDefault();
                     var row = tbl_modules.row(this);
                     var checkbox = row.nodes().to$().find('input[type="checkbox"]');
                     var checkboxId = checkbox.attr('id');
 
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+
                     if (!$(this).hasClass("dtactives")) {
                         $(this).parent().find("tr").removeClass("dtactives");
                         $(this).addClass("dtactives");
-                        checkbox.prop('checked', !checkbox.prop('checked'));
                     } else {
                         $(this).removeClass("dtactives");
+                    }
 
-                        checkbox.prop('checked', false);
+                    var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
+                    $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+                });
+
+                $('#tbl_modules').on('click', '#checkAllHeader', function () {
+                    var isChecked = $(this).prop('checked');
+                    tbl_modules.rows().nodes().to$().find('input[type="checkbox"]').prop('checked', isChecked);
+
+                    if (isChecked) {
+                        $('#tbl_modules tbody tr').addClass("dtactives");
+                    } else {
+                        $('#tbl_modules tbody tr').removeClass("dtactives");
                     }
                 });
             }

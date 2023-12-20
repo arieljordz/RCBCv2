@@ -313,37 +313,55 @@
                     columns:
                         [
                             {
-                                data: "isActive", title: "Active", sClass: "text-center", render: function (data, type, row) {
+                                data: null,
+                                title: '<div class="icheck-primary d-inline"><input type="checkbox" id="checkAllHeader"><label for="checkAllHeader"></label></div>',
+                                orderable: false,
+                                sClass: "text-center",
+                                render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
-                                    if (data == false || data == true) {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" checked="checked"><label for="' + subModuleId + '"></label></div>'
-                                    }
-                                    else {
-                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '"><label for="' + subModuleId + '"></label></div>'
-                                    }
+                                    var checked = row.isActive == null ? '' : 'checked="checked"';
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+                            { "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
 
-                        ]
+                        ],
+                    initComplete: function () {
+                        var allCheckboxesChecked = tbl_access.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_access.rows().count();
+
+                        $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+                    }
                 });
 
                 $('#tbl_access tbody').off().on('click', 'tr', function (e) {
-                    e.preventDefault();
                     var row = tbl_access.row(this);
                     var checkbox = row.nodes().to$().find('input[type="checkbox"]');
                     var checkboxId = checkbox.attr('id');
 
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+
                     if (!$(this).hasClass("dtactives")) {
                         $(this).parent().find("tr").removeClass("dtactives");
                         $(this).addClass("dtactives");
-                        checkbox.prop('checked', !checkbox.prop('checked'));
                     } else {
                         $(this).removeClass("dtactives");
+                    }
 
-                        checkbox.prop('checked', false);
+                    var allCheckboxesChecked = tbl_access.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_access.rows().count();
+                    $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+                });
+
+                $('#tbl_access').on('click', '#checkAllHeader', function () {
+                    var isChecked = $(this).prop('checked');
+                    tbl_access.rows().nodes().to$().find('input[type="checkbox"]').prop('checked', isChecked);
+
+                    if (isChecked) {
+                        $('#tbl_access tbody tr').addClass("dtactives");
+                    } else {
+                        $('#tbl_access tbody tr').removeClass("dtactives");
                     }
                 });
 

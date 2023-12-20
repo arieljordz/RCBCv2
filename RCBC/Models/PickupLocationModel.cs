@@ -11,6 +11,9 @@
         public string SOLID { get; set; }        
         public bool Active { get; set; }        
         public bool IsApproved { get; set; }
+        public int AccountNumberId { get; set; }
+        public int CorporateNameId { get; set; }
+        public int PartnerCodeId { get; set; }
 
         public string ContactPerson { get; set; }
         public string Email { get; set; }

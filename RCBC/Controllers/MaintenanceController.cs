@@ -70,6 +70,15 @@ namespace RCBC.Controllers
                         var Contacts = global.GetContacts().OrderBy(x => x.Id);
                         ViewBag.cmbContacts = new SelectList(Contacts, "Id", "ContactPerson");
 
+                        var Accounts = global.GetAccounts().OrderBy(x => x.Id);
+                        ViewBag.cmbAccounts = new SelectList(Accounts, "Id", "AccountNumber");
+
+                        var CorporateNames = global.GetCorporateClient();
+                        ViewBag.cmbCorporateNames = new SelectList(CorporateNames, "Id", "CorporateName");
+
+                        var PartnerCodes = global.GetCorporateClient();
+                        ViewBag.cmbPartnerCodes = new SelectList(PartnerCodes, "Id", "PartnerCode");
+
                         return View();
                     }
                     else
@@ -267,28 +276,6 @@ namespace RCBC.Controllers
                                     con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                 }
 
-                                //if (model.ModuleIds != null)
-                                //{
-                                //    string[] moduleIdsArray = model.ModuleIds.Split(',');
-
-                                //    foreach (var subId in moduleIdsArray)
-                                //    {
-                                //        int SubModuleId = Convert.ToInt32(subId);
-                                //        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                //        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
-
-                                //        var insertParameters = new
-                                //        {
-                                //            UserId = model.Id,
-                                //            RoleId = Roles?.Id ?? 0,
-                                //            ModuleId = Modules?.ModuleId ?? 0,
-                                //            SubModuleId = SubModuleId,
-                                //            Active = (bool?)null
-                                //        };
-                                //        con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                //    }
-                                //}
-
                                 msg = "Successfully Saved.";
                                 action = "Add";
                                 previousData = null;
@@ -337,47 +324,6 @@ namespace RCBC.Controllers
 
                                     con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                 }
-
-                                //if (model.ModuleIds != null)
-                                //{
-                                //    string[] moduleIdsArray = model.ModuleIds.Split(',');
-
-                                //    foreach (var subId in moduleIdsArray)
-                                //    {
-                                //        int SubModuleId = Convert.ToInt32(subId);
-                                //        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                //        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
-
-                                //        var UserAccess = global.GetUserAccess().Where(x => x.UserId == model.Id && x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                                //        if (UserAccess != null)
-                                //        {
-                                //            var updateParameters = new
-                                //            {
-                                //                UserId = model.Id,
-                                //                RoleId = Roles?.Id ?? 0,
-                                //                ModuleId = Modules?.ModuleId ?? 0,
-                                //                SubModuleId = SubModuleId,
-                                //                Active = true,
-                                //            };
-
-                                //            con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                //        }
-                                //        else
-                                //        {
-                                //            var insertParameters = new
-                                //            {
-                                //                UserId = model.Id,
-                                //                RoleId = Roles?.Id ?? 0,
-                                //                ModuleId = Modules?.ModuleId ?? 0,
-                                //                SubModuleId = SubModuleId,
-                                //                Active = (bool?)null
-                                //            };
-                                //            con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-                                //        }
-
-                                //    }
-                                //}
 
                                 msg = "Successfully Updated.";
                                 action = "Update";
@@ -1031,18 +977,26 @@ namespace RCBC.Controllers
                 {
                     var qry = global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault();
 
+                    var AccountNumber = global.GetAccounts().Where(x => x.Id == model.AccountNumberId).FirstOrDefault().AccountNumber;
+                    var CorporateName = global.GetCorporateClient().Where(x => x.Id == model.CorporateNameId).FirstOrDefault().CorporateName;
+                    var PartnerCode = global.GetCorporateClient().Where(x => x.Id == model.PartnerCodeId).FirstOrDefault().PartnerCode;
+
                     if (model.Id == 0)
                     {
                         var parameters = new
                         {
-                            CorporateName = model.CorporateName,
+                            CorporateName = CorporateName,
                             Site = model.Site,
                             SiteAddress = model.SiteAddress,
-                            PartnerCode = model.PartnerCode,
+                            PartnerCode = PartnerCode,
                             Location = model.Location,
                             SOLID = model.SOLID,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            AccountNumber = AccountNumber,
+                            AccountNumberId = model.AccountNumberId,
+                            CorporateNameId = model.CorporateNameId,
+                            PartnerCodeId = model.PartnerCodeId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_savePickupLocation", parameters, commandType: CommandType.StoredProcedure);
@@ -1056,14 +1010,18 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             Id = model.Id,
-                            CorporateName = model.CorporateName,
+                            CorporateName = CorporateName,
                             Site = model.Site,
                             SiteAddress = model.SiteAddress,
-                            PartnerCode = model.PartnerCode,
+                            PartnerCode = PartnerCode,
                             Location = model.Location,
                             SOLID = model.SOLID,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            AccountNumber = AccountNumber,
+                            AccountNumberId = model.AccountNumberId,
+                            CorporateNameId = model.CorporateNameId,
+                            PartnerCodeId = model.PartnerCodeId,
                         };
 
                         con.Execute("sp_updatePickupLocation", parameters, commandType: CommandType.StoredProcedure);
@@ -1332,23 +1290,45 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        var contact = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+                        var contact = global.GetContacts().Where(x => x.Id == model.Id && x.LocationId == model.LocationId).FirstOrDefault();
 
-                        var parameters = new
+                        if (contact != null)
                         {
-                            Id = model.Id,
-                            LocationId = model.LocationId == 0 ? contact.LocationId : model.LocationId,
-                            CorporateClientId = 0,
-                            ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
-                            Email = model.Email == null ? contact.Email : model.Email,
-                            MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
-                        };
+                            var parameters = new
+                            {
+                                Id = model.Id,
+                                LocationId = model.LocationId == 0 ? contact.LocationId : model.LocationId,
+                                CorporateClientId = 0,
+                                ContactPerson = model.ContactPerson == null ? contact.ContactPerson : model.ContactPerson,
+                                Email = model.Email == null ? contact.Email : model.Email,
+                                MobileNumber = model.MobileNumber == null ? contact.MobileNumber : model.MobileNumber,
+                            };
 
-                        con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
+                            con.Execute("sp_updateContact", parameters, commandType: CommandType.StoredProcedure);
 
-                        msg = "Successfully updated.";
-                        action = "Update";
-                        previousData = JsonConvert.SerializeObject(qry);
+                            msg = "Successfully updated.";
+                            action = "Update";
+                            previousData = JsonConvert.SerializeObject(qry);
+                        }
+                        else
+                        {
+                            var contacts = global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault();
+
+                            var parameters = new
+                            {
+                                LocationId = model.LocationId == 0 ? contacts.LocationId : model.LocationId,
+                                CorporateClientId = 0,
+                                ContactPerson = model.ContactPerson == null ? contacts.ContactPerson : model.ContactPerson,
+                                Email = model.Email == null ? contacts.Email : model.Email,
+                                MobileNumber = model.MobileNumber == null ? contacts.MobileNumber : model.MobileNumber,
+                            };
+
+                            model.Id = con.QuerySingle<int>("sp_saveContact", parameters, commandType: CommandType.StoredProcedure);
+
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
                     }
 
                     var auditlogs = new AuditLogsModel

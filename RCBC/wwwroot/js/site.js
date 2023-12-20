@@ -48,6 +48,13 @@ function IsStrongPassword(password) {
     return true;
 }
 
+
+function CheckMinimunChars(string) {
+    const minLength = 8; // Minimum length
+    if (string.length < minLength) return false;
+
+    return true;
+}
 function SelectedValue(DataTableID, rowData) {
     var row = $("#" + DataTableID).find(".dtactive");
     if (row.length > 0) {
