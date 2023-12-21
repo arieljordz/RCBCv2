@@ -156,6 +156,16 @@
                             { "data": "groupDept", title: "Group Department", sClass: "dt-body-center", orderable: false },
                             { "data": "userRole", title: "User Role", sClass: "dt-body-left", orderable: false },
                             {
+                                "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
+                                    if (data == true) {
+                                        return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else {
+                                        return '<span class="badge bg-danger">For Approval</span>'
+                                    }
+                                }
+                            },
+                            {
                                 "data": "id", title: "View", render: function (data) {
                                     return "<button type='button' class='btn btn-xs btn-info view'><i class='fa fa-exchange p-1 view'></i></button>";
                                 }

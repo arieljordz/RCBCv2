@@ -297,6 +297,7 @@ namespace RCBC.Controllers
                                     UserRole = model.UserRole,
                                     Active = model.Active,
                                     LoginAttempt = userInfo.LoginAttempt,
+                                    IsApproved = userInfo.IsApproved,
                                 };
 
                                 con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -429,6 +430,7 @@ namespace RCBC.Controllers
                         UserRole = user.UserRole,
                         Active = user.Active,
                         LoginAttempt = user.LoginAttempt,
+                        IsApproved = user.IsApproved,
                     };
 
                     con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
@@ -630,38 +632,21 @@ namespace RCBC.Controllers
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
                 con.Open();
-                try
+                using (var transaction = con.BeginTransaction())
                 {
-                    string msg = string.Empty;
-
-                    var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
-
-                    if (moduleIds.Length > 0)
+                    try
                     {
-                        foreach (var SubModuleId in moduleIds)
+                        string msg = string.Empty;
+
+                        var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
+
+                        if (moduleIds.Length > 0)
                         {
-                            var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
-                            var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                            var existingAccess = global.GetUserAccess().Where(x => x.UserId == userId && x.SubModuleId == SubModuleId).FirstOrDefault();
-
-                            if (existingAccess == null)
+                            foreach (var SubModuleId in moduleIds)
                             {
-                                var insertParameters = new
-                                {
-                                    UserId = userId,
-                                    RoleId = Roles?.Id ?? 0,
-                                    ModuleId = Modules?.ModuleId ?? 0,
-                                    SubModuleId = SubModuleId,
-                                    Active = true,
-                                };
+                                var Roles = global.GetUserRole().Where(x => x.UserRole == user.UserRole).FirstOrDefault();
+                                var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
-                                int Id = con.QuerySingle<int>("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure);
-
-                                msg = "Successfully saved.";
-                            }
-                            else
-                            {
                                 var updateParameters = new
                                 {
                                     UserId = userId,
@@ -671,22 +656,43 @@ namespace RCBC.Controllers
                                     Active = true,
                                 };
 
-                                con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure);
+                                con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 msg = "Successfully saved.";
                             }
-                        }
 
-                        return Json(new { success = true, message = msg, userId = userId });
+                            var usersInfoParameters = new
+                            {
+                                Id = user.Id,
+                                HashPassword = user.HashPassword,
+                                Salt = user.Salt,
+                                Username = user.Username,
+                                EmployeeName = user.EmployeeName,
+                                Email = user.Email,
+                                MobileNumber = user.MobileNumber,
+                                GroupDept = user.GroupDept,
+                                UserRole = user.UserRole,
+                                Active = user.Active,
+                                LoginAttempt = user.LoginAttempt,
+                                IsApproved = true,
+                            };
+
+                            con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            transaction.Commit();
+
+                            return Json(new { success = true, message = msg, userId = userId });
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "No selected Modules.", userId = userId });
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        return Json(new { success = false, message = "No selected Modules.", userId = userId });
+                        transaction.Rollback();
+                        return Json(new { success = false, message = ex.Message, userId = userId });
                     }
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = ex.Message, userId = userId });
                 }
             }
         }

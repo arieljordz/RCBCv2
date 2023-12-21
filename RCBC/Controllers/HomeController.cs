@@ -456,6 +456,7 @@ namespace RCBC.Controllers
                                     UserRole = user.UserRole,
                                     Active = user.Active,
                                     LoginAttempt = LoginAttempt,
+                                    IsApproved = user.IsApproved,
                                 };
                                 con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
 
