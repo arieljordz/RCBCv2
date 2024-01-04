@@ -531,5 +531,58 @@ namespace RCBC.Repository
             return data;
         }
 
+        public DashboardModel GetDashboardDetails(string GroupDescription)
+        {
+            try
+            {
+                int NoOfUsers = 0;
+                int ForApproval = 0;
+                int Approved = 0;
+                int Rejected = 0;
+
+                if (GroupDescription.Contains("UAM/SISD"))
+                {
+                    NoOfUsers = GetUserInformation().Count();
+                    ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
+                    Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
+                    Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
+                }
+                else if (GroupDescription.Contains("GTB"))
+                {
+                    NoOfUsers = GetUserInformation().Count();
+                    ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
+                    Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
+                    Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
+                }
+                else if (GroupDescription.Contains("RSC"))
+                {
+                    NoOfUsers = GetUserInformation().Count();
+                    ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
+                    Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
+                    Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
+                }
+                else // IT
+                {
+                    NoOfUsers = GetUserInformation().Count();
+                    ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
+                    Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
+                    Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
+                }
+
+                DashboardModel dashboard = new DashboardModel();
+                dashboard.GroupDescription = GroupDescription;
+                dashboard.NoOfUsers = NoOfUsers;
+                dashboard.ForApproval = ForApproval;
+                dashboard.Approved = Approved;
+                dashboard.Rejected = Rejected;
+
+                return dashboard;
+            }
+            catch (Exception ex)
+            {
+                return new DashboardModel();
+            }
+        }
+
     }
 }

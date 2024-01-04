@@ -17,7 +17,7 @@
         public int LoginAttempt { get; set; }
         public bool Active { get; set; }
         public bool Deactivated { get; set; }
-        public bool IsApproved { get; set; }
+        public bool? IsApproved { get; set; }
         public string ModuleIds { get; set; }
     }
 }

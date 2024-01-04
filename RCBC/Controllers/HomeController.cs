@@ -62,6 +62,9 @@ namespace RCBC.Controllers
                         ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
+                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
@@ -174,6 +177,10 @@ namespace RCBC.Controllers
                 {
                     string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
                     string[] Link = input.Split('/');
+
+                    var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
+                    ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+
                     return RedirectToAction(Link[2], Link[1]);
                 }
             }

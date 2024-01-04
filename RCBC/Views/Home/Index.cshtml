@@ -56,12 +56,12 @@
                     data: { Username: Username, Password: Password },
                     success: function (res) {
                         if (res.success == true) {
-                            $('#loading-image').hide();
                             window.location.href = "/" + res.controller + "/" + res.action;
                         }
                         else {
                             Swal.fire('Warning!', 'Invalid login attempt', 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (res) {
                         $('#loading-image').hide();

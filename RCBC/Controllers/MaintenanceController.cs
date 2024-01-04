@@ -58,6 +58,9 @@ namespace RCBC.Controllers
                         ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
 
+                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
 
@@ -304,6 +307,8 @@ namespace RCBC.Controllers
 
                                 var subModules = global.GetSubModule().Select(x => x.SubModuleId).ToList();
 
+                                int[] subModuleIds = global.GetUserAccessModules().Where(x => x.UserId == model.Id && x.IsActive == true).Select(x => x.SubModuleId).ToArray();
+
                                 foreach (var subId in subModules)
                                 {
                                     int SubModuleId = Convert.ToInt32(subId);
@@ -313,6 +318,7 @@ namespace RCBC.Controllers
                                     string[] moduleIdsArray = model.ModuleIds.Split(',');
 
                                     bool isExists = Array.Exists<string>(moduleIdsArray, x => x.Equals(SubModuleId.ToString()));
+                                    bool hasAccess = Array.Exists<string>(subModuleIds.Select(i => i.ToString()).ToArray(), x => x.Equals(SubModuleId.ToString()));
 
                                     var updateParameters = new
                                     {
@@ -320,7 +326,7 @@ namespace RCBC.Controllers
                                         RoleId = Roles?.Id ?? 0,
                                         ModuleId = Modules?.ModuleId ?? 0,
                                         SubModuleId = SubModuleId,
-                                        Active = isExists ? false : (bool?)null
+                                        Active = isExists ? (hasAccess ? true : false) : (bool?)null
                                     };
 
                                     con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);

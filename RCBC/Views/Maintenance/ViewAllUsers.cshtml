@@ -233,7 +233,6 @@
                     contentType: false,
                     processData: false,
                     success: function (response) {
-                        $('#loading-image').hide();
                         if (response.success == true) {
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmUsers").trigger("reset");
@@ -243,6 +242,7 @@
                         else {
                             Swal.fire('Warning!', 'User Already Exists.', 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

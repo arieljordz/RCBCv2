@@ -55,6 +55,6 @@ namespace RCBC.Interface
 
         public List<DataChangesModel> GetChangesDetails(int Id, string TableName);
 
-
+        public DashboardModel GetDashboardDetails(string GroupDescription);
     }
 }
