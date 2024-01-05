@@ -549,10 +549,10 @@ namespace RCBC.Repository
                 }
                 else if (GroupDescription.Contains("GTB"))
                 {
-                    NoOfUsers = GetUserInformation().Count();
-                    ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
-                    Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
-                    Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
+                    NoOfUsers = GetCorporateClient().Count();
+                    ForApproval = GetCorporateClient().Where(x => x.IsApproved == null).Count();
+                    Approved = GetCorporateClient().Where(x => x.IsApproved == true).Count();
+                    Rejected = GetCorporateClient().Where(x => x.IsApproved == false).Count();
                 }
                 else if (GroupDescription.Contains("RSC"))
                 {

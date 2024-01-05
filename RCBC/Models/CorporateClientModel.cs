@@ -11,7 +11,7 @@
         public string MobileNumber { get; set; }    
         public bool GlobalAccount { get; set; }    
         public bool Active { get; set; }
-        public bool IsApproved { get; set; }
+        public bool? IsApproved { get; set; }
 
         public int AccountId { get; set; }
         public int CorporateClientId { get; set; }
