@@ -176,7 +176,6 @@ namespace RCBC.Controllers
 
                     var auditlogs = new AuditLogsModel
                     {
-                        SystemName = "RCBC",
                         Module = "Corporate Management",
                         SubModule = "Create New Client",
                         ChildModule = null,
@@ -348,7 +347,6 @@ namespace RCBC.Controllers
 
                     var auditlogs = new AuditLogsModel
                     {
-                        SystemName = "RCBC",
                         Module = "Maintenance",
                         SubModule = model.CorporateClientId != 0 ? "Corporate Management" : "Pickup Location",
                         ChildModule = model.CorporateClientId != 0 ? "Create New Client" : "Add New Pickup Location",
@@ -496,7 +494,6 @@ namespace RCBC.Controllers
 
                     var auditlogs = new AuditLogsModel
                     {
-                        SystemName = "RCBC",
                         Module = "Maintenance",
                         SubModule = model.CorporateClientId != 0 ? "Corporate Management" : "Pickup Location",
                         ChildModule = model.CorporateClientId != 0 ? "Create New Client" : "Add New Pickup Location",

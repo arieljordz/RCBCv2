@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using RCBC.Interface;
+using System.Diagnostics;
 
 namespace RCBC.Controllers
 {
@@ -78,9 +79,32 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult Reports()
+        public IActionResult AuditLogs()
         {
             return LoadViews();
         }
+
+        public IActionResult ElectronicJournal()
+        {
+            return LoadViews();
+        }
+
+        public IActionResult DPUStatus()
+        {
+            return LoadViews();
+        }
+
+        public IActionResult AuditTrailSummary()
+        {
+            return LoadViews();
+        }
+
+        public IActionResult LoadAuditLogs()
+        {
+            var data = global.GetAuditLogs().ToList();
+
+            return Json(new { data });
+        }
+
     }
 }

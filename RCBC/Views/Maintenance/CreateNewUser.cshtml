@@ -99,7 +99,7 @@
                                 <div class="row pb-2 pt-2">
                                     <div class="col-md-12">
                                         <div class="dataTables_wrapper table-responsive dt-bootstrap4">
-                                            <table id="tbl_modules" class="table table-bordered table-hover" style="width:100%"></table>
+                                            <table id="tbl_modules" class="table table-sm table-bordered table-hover" style="width:100%"></table>
                                         </div>
                                     </div>
                                 </div>
@@ -128,6 +128,7 @@
         $(document).ready(function () {
 
             var checkedCheckboxIds = [];
+            var selectedChildModuleIds = [];
 
             ValidateForm();
             function ValidateForm() {
@@ -212,14 +213,22 @@
                     var checkedCheckboxIds = [];
 
                     checkedCheckboxes.each(function () {
-                        var checkboxId = $(this).attr('id');
-                        checkedCheckboxIds.push(checkboxId);
+                        if ($(this).attr('id') !== 'checkAllHeader') {
+                            var checkboxId = $(this).attr('id');
+                            checkedCheckboxIds.push(checkboxId);
+
+                            var childModuleId = $(this).val();
+                            selectedChildModuleIds.push(childModuleId);
+                        }
                     });
+
                     console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+                    console.log('ChildModuleIDs of selected rows:', selectedChildModuleIds);
 
                     var formData = new FormData($("#frmRegister")[0]);
 
                     formData.append("ModuleIds", checkedCheckboxIds.join(','));
+                    formData.append("ChildModuleIds", selectedChildModuleIds.join(','));
 
                     console.log(formData);
 
@@ -280,37 +289,36 @@
                                 render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
                                     var checked = row.isActive == false ? '' : 'checked="checked"';
-                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + ' value="' + row.childModuleId + '"><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
+                            { "data": "childModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
-                            //{ "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
+                            { "data": "childModule", title: "Child Module", sClass: "text-left", orderable: false },
                         ],
-                    // initComplete: function () {
-                    //     var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
-
-                    //     $('#checkAllHeader').prop('checked', allCheckboxesChecked);
-                    // }
                 });
 
                 $('#tbl_modules tbody').off().on('click', 'tr', function (e) {
                     var row = tbl_modules.row(this);
                     var checkbox = row.nodes().to$().find('input[type="checkbox"]');
                     var checkboxId = checkbox.attr('id');
+                    var childModuleId = checkbox.attr('value');
 
                     checkbox.prop('checked', !checkbox.prop('checked'));
 
                     if (!$(this).hasClass("dtactives")) {
                         $(this).parent().find("tr").removeClass("dtactives");
                         $(this).addClass("dtactives");
+
                     } else {
                         $(this).removeClass("dtactives");
                     }
 
                     var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
                     $('#checkAllHeader').prop('checked', allCheckboxesChecked);
+
                 });
 
                 $('#tbl_modules').on('click', '#checkAllHeader', function () {
@@ -323,6 +331,7 @@
                         $('#tbl_modules tbody tr').removeClass("dtactives");
                     }
                 });
+
             }
 
         });

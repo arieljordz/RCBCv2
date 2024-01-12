@@ -128,7 +128,7 @@
                                 </div>
                             </div>
                         </div>
-                     
+
                         <div class="row pb-3 pt-3">
                             <div class="col-md-12">
                                 <div class="dataTables_wrapper table-responsive dt-bootstrap4">
@@ -155,6 +155,9 @@
 {
     <script>
         $(document).ready(function () {
+
+            var checkedCheckboxIds = [];
+            var selectedChildModuleIds = [];
 
             ValidateForm();
             function ValidateForm() {
@@ -213,18 +216,29 @@
 
                 var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
                 var checkedCheckboxIds = [];
+                var selectedChildModuleIds = [];
+
 
                 checkedCheckboxes.each(function () {
-                    var checkboxId = $(this).attr('id');
-                    checkedCheckboxIds.push(checkboxId);
+                    if ($(this).attr('id') !== 'checkAllHeader') {
+                        var checkboxId = $(this).attr('id');
+                        checkedCheckboxIds.push(checkboxId);
+
+                        var childModuleId = $(this).val();
+                        selectedChildModuleIds.push(childModuleId);
+                    }
                 });
+
                 console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+                console.log('ChildModuleIDs of selected rows:', selectedChildModuleIds);
 
                 var formData = new FormData($("#frmUsers")[0]);
 
                 formData.append("ModuleIds", checkedCheckboxIds.join(','));
+                formData.append("ChildModuleIds", selectedChildModuleIds.join(','));
 
                 console.log(formData);
+
 
                 $.ajax({
                     type: "POST",
@@ -240,16 +254,14 @@
                             LoadUsers();
                         }
                         else {
-                            Swal.fire('Warning!', 'User Already Exists.', 'warning');
+                            Swal.fire('Warning!', response.message, 'warning');
                         }
                         $('#loading-image').hide();
                     },
                     failure: function (response) {
-                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
-                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });
@@ -435,18 +447,21 @@
                                 render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
                                     var checked = row.isActive == null ? '' : 'checked="checked"';
-                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
+                                    if (row.childModuleId !== 0) {
+                                        return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + ' value="' + row.childModuleId + '"><label for="' + subModuleId + '"></label></div>';
+                                    }
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + ' value="'+ row.childModuleId +'"><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
+                            { "data": "childModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+                            { "data": "childModule", title: "Child Module", sClass: "text-left", orderable: false },
                             { "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
-
                         ],
                     initComplete: function () {
                         var allCheckboxesChecked = tbl_modules.rows().nodes().to$().find('input[type="checkbox"]:checked').length === tbl_modules.rows().count();
-
                         $('#checkAllHeader').prop('checked', allCheckboxesChecked);
                     }
                 });

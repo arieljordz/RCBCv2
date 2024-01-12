@@ -169,19 +169,19 @@ namespace RCBC.Controllers
                 var SubModules = global.GetSubModulesByUserId(UserId).FirstOrDefault();
                 var ChildModules = global.GetChildModulesByUserId(UserId).FirstOrDefault();
 
-                if (SubModules == null || ChildModules == null)
+                if (SubModules != null && ChildModules != null)
                 {
-                    return RedirectToAction("NoAccess");
-                }
-                else
-                {
-                    string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
+                    string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
                     string[] Link = input.Split('/');
 
                     var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
                     ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
 
                     return RedirectToAction(Link[2], Link[1]);
+                }
+                else
+                {
+                    return RedirectToAction("NoAccess");
                 }
             }
             else
@@ -318,10 +318,23 @@ namespace RCBC.Controllers
                             }
                             else
                             {
-                                string input = (SubModules != null && SubModules.Link != null) ? SubModules.Link : ChildModules.Link;
-                                string[] Link = input.Split('/');
-
-                                return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                if (SubModules != null)
+                                {
+                                    if (ChildModules != null)
+                                    {
+                                        string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
+                                        string[] Link = input.Split('/');
+                                        return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                    }
+                                    else
+                                    {
+                                        return Json(new { success = true, action = "Index", controller = "Home" });
+                                    }
+                                }
+                                else
+                                {
+                                    return Json(new { success = true, action = "Index", controller = "Home" });
+                                }
                             }
                         }
                     }

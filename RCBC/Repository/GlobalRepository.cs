@@ -27,7 +27,7 @@ namespace RCBC.Repository
             return Configuration.GetConnectionString("DefaultConnection");
         }
 
-        public List<ModuleModel> GetModulesByUserId(int UserId)
+        public List<AccessModuleModel> GetModulesByUserId(int UserId)
         {
             try
             {
@@ -37,17 +37,17 @@ namespace RCBC.Repository
                     {
                         UserId = UserId,
                     };
-                    List<ModuleModel> data = con.Query<ModuleModel>("sp_getModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
                     return data;
                 }
             }
             catch (Exception ex)
             {
-                return new List<ModuleModel>();
+                return new List<AccessModuleModel>();
             }
         }
 
-        public List<SubModuleModel> GetSubModulesByUserId(int UserId)
+        public List<AccessModuleModel> GetSubModulesByUserId(int UserId)
         {
             try
             {
@@ -57,17 +57,17 @@ namespace RCBC.Repository
                     {
                         UserId = UserId,
                     };
-                    List<SubModuleModel> data = con.Query<SubModuleModel>("sp_getSubModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getSubModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
                     return data;
                 }
             }
             catch (Exception ex)
             {
-                return new List<SubModuleModel>();
+                return new List<AccessModuleModel>();
             }
         }
 
-        public List<ChildModuleModel> GetChildModulesByUserId(int UserId)
+        public List<AccessModuleModel> GetChildModulesByUserId(int UserId)
         {
             try
             {
@@ -77,23 +77,7 @@ namespace RCBC.Repository
                     {
                         UserId = UserId,
                     };
-                    List<ChildModuleModel> data = con.Query<ChildModuleModel>("sp_getChildModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
-                    return data;
-                }
-            }
-            catch (Exception ex)
-            {
-                return new List<ChildModuleModel>();
-            }
-        }
-
-        public List<AccessModuleModel> GetUserAccess()
-        {
-            try
-            {
-                using (IDbConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getUserAccess", commandType: CommandType.StoredProcedure).ToList();
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getChildModulesByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
                     return data;
                 }
             }
@@ -123,14 +107,13 @@ namespace RCBC.Repository
         {
             List<AccessModuleModel> modules = new List<AccessModuleModel>();
 
-            var UserAccess = GetUserAccess();
             var AllModules = GetModulesAndSubModules();
 
             foreach (var module in AllModules)
             {
                 if (UserId != 0)
                 {
-                    var IsActive = UserAccess.Where(x => x.SubModuleId == module.SubModuleId && x.UserId == UserId).FirstOrDefault();
+                    var IsActive = GetUserAccessModules().Where(x => x.UserId == UserId && x.SubModuleId == module.SubModuleId && x.ChildModuleId == module.ChildModuleId).FirstOrDefault();
 
                     AccessModuleModel access = new AccessModuleModel();
 
@@ -144,7 +127,9 @@ namespace RCBC.Repository
                     }
                     access.Module = module.Module;
                     access.SubModule = module.SubModule;
+                    access.ChildModule = module.ChildModule;
                     access.SubModuleId = module.SubModuleId;
+                    access.ChildModuleId = module.ChildModuleId;
                     access.ModuleOrder = module.ModuleOrder;
                     access.Link = module.Link;
                     modules.Add(access);
@@ -155,7 +140,9 @@ namespace RCBC.Repository
                     access.IsActive = false;
                     access.Module = module.Module;
                     access.SubModule = module.SubModule;
+                    access.ChildModule = module.ChildModule;
                     access.SubModuleId = module.SubModuleId;
+                    access.ChildModuleId = module.ChildModuleId;
                     access.ModuleOrder = module.ModuleOrder;
                     access.Link = module.Link;
                     modules.Add(access);
@@ -455,7 +442,6 @@ namespace RCBC.Repository
                 {
                     var parameters = new
                     {
-                        SystemName = model.SystemName,
                         Module = model.Module,
                         SubModule = model.SubModule,
                         ChildModule = model.ChildModule,

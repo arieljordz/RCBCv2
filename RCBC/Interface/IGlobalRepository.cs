@@ -5,15 +5,13 @@ namespace RCBC.Interface
     public interface IGlobalRepository
     {
       
-        List<ModuleModel> GetModulesByUserId(int UserId);
+        List<AccessModuleModel> GetModulesByUserId(int UserId);
 
-        List<SubModuleModel> GetSubModulesByUserId(int UserId);
+        List<AccessModuleModel> GetSubModulesByUserId(int UserId);
 
-        List<ChildModuleModel> GetChildModulesByUserId(int UserId);
+        List<AccessModuleModel> GetChildModulesByUserId(int UserId);
 
         List<AccessModuleModel> GetModulesAndSubModules();
-
-        List<AccessModuleModel> GetUserAccess();
 
         List<AccessModuleModel> GetUserAccessById(int UserId);
 

@@ -126,8 +126,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjb25cUmVjb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Reports/Reports.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xSZXBvcnRzLmNzaHRtbA==
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Reports/AuditLogs.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xBdWRpdExvZ3MuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Reports/AuditTrailSummary.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xBdWRpdFRyYWlsU3VtbWFyeS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Reports/DPUStatus.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xEUFVTdGF0dXMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Reports/ElectronicJournal.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVwb3J0c1xFbGVjdHJvbmljSm91cm5hbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Shared/_EmailTools.cshtml]

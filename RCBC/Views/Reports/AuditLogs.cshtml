@@ -1,0 +1,194 @@
+﻿@model RCBC.Models.AuditLogsModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper" style="padding-top: 60px;">
+
+    <div class="pl-3 pr-3 pt-3">
+        <label>Last Login: @ViewBag.DateNow.ToString("MMMM dd, yyyy HH:mm:ss")</label>
+    </div>
+
+    <div class="ln_solid"></div>
+    <!-- Content Header (Page header) -->
+    <div class="content-header pt-0 pb-0">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                </div><!-- /.col -->
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="">Audit Logs</a></li>
+                        <li class="breadcrumb-item active">Reports</li>
+                    </ol>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-center">
+
+                <div class="col-md-12">
+                    <div class="card card-light-blue">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa fa-user pr-2"></i>Audit Logs</h3>
+                        </div>
+
+                        @Html.HiddenFor(x => x.Id)
+                        @Html.HiddenFor(x => x.PreviousData)
+                        @Html.HiddenFor(x => x.NewData)
+
+                        <div class="card-body">
+                            <div class="row pb-3 pt-3">
+                                <div class="col-md-12">
+                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_auditLogs" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!--/. container-fluid -->
+    </section>
+
+    <div id="modal_data" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Information</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="p-3">
+
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @Html.LabelForModel("Previous Data", new { @class = "label-control" })
+                                <textarea class="form-control" id="previous_textarea" readonly="readonly" style="height: 100px"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @Html.LabelForModel("New Data", new { @class = "label-control" })
+                                <textarea class="form-control" id="new_textarea" readonly="readonly" style="height: 100px"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnCancel" class="btn btn-danger">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- /.content-wrapper -->
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            LoadAuditLogs();
+            function LoadAuditLogs() {
+                $('#tbl_auditLogs').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Reports/LoadAuditLogs",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "systemName", title: "SystemName", sClass: "text-center", orderable: false },
+                            { "data": "module", title: "Module", sClass: "text-center", orderable: false },
+                            // { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false, visible: false },
+                            // { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false },
+                            // { "data": "tableId", title: "TableId", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "action", title: "Action", sClass: "text-center", orderable: false },
+                            { "data": "previousData", title: "PreviousData", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "newData", title: "NewData", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "modifiedBy", title: "ModifiedBy ID", sClass: "text-center", orderable: false },
+                            // { "data": "dateModified", title: "DateModified", sClass: "text-center", orderable: false },
+                            {
+                                "data": "dateModified", title: "DateModified", sClass: "text-center", render: function (data, type, row) {
+                                    return DateDataTable(data);
+                                }
+                            },
+                            { "data": "ip", title: "IP Address", sClass: "text-center", orderable: false },
+                            {
+                                "data": "id", title: "View Data", render: function (data) {
+                                    return "<button type='button' class='btn btn-xs btn-info view'><i class='fa fa-exchange p-1 view'></i></button>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_auditLogs tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_auditLogs", "id");
+                            $("[name='Id']").val(Id);
+                            $("[name='PreviousData']").val(SelectedValue("tbl_auditLogs", "previousData"));
+                            $("[name='NewData']").val(SelectedValue("tbl_auditLogs", "newData"));
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                            $("[name='PreviousData']").val("");
+                            $("[name='NewData']").val("");
+                        }
+                    }
+                });
+            }
+
+            $(document).on('click', '.view', function () {
+                if ($("[name='Id']").val() != 0) {
+                    $("#modal_data").modal("show");
+                    $("#previous_textarea").val($("[name='PreviousData']").val());
+                    $("#new_textarea").val($("[name='NewData']").val());
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            });
+
+            $("#btnCancel").click(function (e) {
+                e.preventDefault();
+                $("#modal_data").modal("hide");
+            });
+        });
+
+        ActiveMenu("#audit_logs");
+
+    </script>
+}
+

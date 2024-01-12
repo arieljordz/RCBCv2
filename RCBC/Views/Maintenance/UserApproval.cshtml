@@ -69,7 +69,7 @@
                                 <div class="row pb-3 pt-3">
                                     <div class="col-md-12">
                                         <div class="dataTables_wrapper table-responsive dt-bootstrap4">
-                                            <table id="tbl_access" class="table table-bordered table-hover" style="width:100%"></table>
+                                            <table id="tbl_access" class="table table-sm table-bordered table-hover" style="width:100%"></table>
                                         </div>
                                     </div>
                                 </div>
@@ -127,6 +127,7 @@
         $(document).ready(function () {
 
             var checkedCheckboxIds = [];
+            var selectedChildModuleIds = [];
 
             LoadUsersForApproval();
             function LoadUsersForApproval() {
@@ -264,10 +265,16 @@
                     var checkedCheckboxes = $('input[type="checkbox"]:checked');
 
                     checkedCheckboxes.each(function () {
-                        var checkboxId = $(this).attr('id');
-                        checkedCheckboxIds.push(checkboxId);
+                        if ($(this).attr('id') !== 'checkAllHeader') {
+                            var checkboxId = $(this).attr('id');
+                            checkedCheckboxIds.push(checkboxId);
+
+                            var childModuleId = $(this).val();
+                            selectedChildModuleIds.push(childModuleId);
+                        }
                     });
                     console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+                    console.log('ChildModuleIDs of selected rows:', selectedChildModuleIds);
                     SaveUserAccess();
                 }
             });
@@ -279,7 +286,8 @@
                     url: '@Url.Action("SaveUserAccess", "Maintenance")',
                     data: {
                         userId: $("[name='Id']").val(),
-                        moduleIds: checkedCheckboxIds
+                        moduleIds: checkedCheckboxIds,
+                        childModuleIds: selectedChildModuleIds,
                     },
                     success: function (response) {
                         $('#loading-image').hide();
@@ -289,15 +297,14 @@
                             Swal.fire('Warning!', response.message, 'warning');
                         }
                         checkedCheckboxIds = [];
+                        selectedChildModuleIds = [];
                         LoadUsersForApproval();
                         LoadUserAccessById(0);
                     },
                     failure: function (response) {
-                        $('#loading-image').hide();
                         alert(response.responseText);
                     },
                     error: function (response) {
-                        $('#loading-image').hide();
                         alert(response.responseText);
                     }
                 });
@@ -330,12 +337,14 @@
                                 render: function (data, type, row) {
                                     var subModuleId = row.subModuleId;
                                     var checked = row.isActive == null ? '' : 'checked="checked"';
-                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + '><label for="' + subModuleId + '"></label></div>';
+                                    return '<div class="icheck-primary d-inline"><input type="checkbox" id="' + subModuleId + '" ' + checked + ' value="' + row.childModuleId + '"><label for="' + subModuleId + '"></label></div>';
                                 }
                             },
                             { "data": "subModuleId", visible: false, "orderable": false },
+                            { "data": "childModuleId", visible: false, "orderable": false },
                             { "data": "module", title: "Module", sClass: "text-left", orderable: false },
                             { "data": "subModule", title: "Sub Module", sClass: "text-left", orderable: false },
+                            { "data": "childModule", title: "Child Module", sClass: "text-left", orderable: false },
                             { "data": "isActive", title: "Is Approved", sClass: "text-center", orderable: false },
 
                         ],

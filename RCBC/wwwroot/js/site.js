@@ -85,6 +85,17 @@ function DateToText(jsonDate) {
     return null;
 }
 
+function DateDataTable(data) {
+    var date = new Date(data);
+
+    // Format the date as you want, for example: "MM/DD/YYYY HH:mm:ss"
+    //var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear() +
+    //    ' ' + date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() +
+    //    ':' + (date.getSeconds() < 10 ? '0' : '') + date.getSeconds();
+    var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+    return formattedDate;
+}
+
 let timeout;
 
 function GetTimeout(callback) {

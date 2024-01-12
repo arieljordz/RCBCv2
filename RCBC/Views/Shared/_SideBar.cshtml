@@ -21,9 +21,10 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
 
-                @foreach (ModuleModel item in ViewBag.Modules)
+                @foreach (AccessModuleModel item in ViewBag.Modules)
                 {
                     <li class="nav-item menu-open">
+
                         <a href="#" class="nav-link active">
                             <i class="@item.ModuleIcon"></i>
                             <p>
@@ -32,15 +33,15 @@
                             </p>
                         </a>
 
-                        @foreach (SubModuleModel sub in ViewBag.SubModules)
+                        @foreach (AccessModuleModel sub in ViewBag.SubModules)
                         {
                             @if (@item.ModuleId == sub.ModuleId)
                             {
-                                if (sub.Link != null)
+                                if (sub.SubModuleLink != null)
                                 {
                                     <ul class="nav nav-treeview">
                                         <li class="nav-item">
-                                            <a id="@sub.DivId" href="@Url.Content(sub.Link)" class="nav-link">
+                                            <a id="@sub.SubModuleDivId" href="@Url.Content(sub.SubModuleLink)" class="nav-link">
                                                 <i class="@sub.SubModuleIcon"></i>
                                                 <p>@sub.SubModule</p>
                                             </a>
@@ -51,39 +52,46 @@
                                 {
                                     <ul class="nav nav-treeview">
                                         <li class="nav-item">
-                                            <a id="@sub.DivId" href="#" class="nav-link">
+                                            <a id="@sub.SubModuleDivId" href="#" class="nav-link">
                                                 <i class="@sub.SubModuleIcon"></i>
                                                 <p>
                                                     @sub.SubModule
                                                     <i class="fas fa-angle-left right"></i>
                                                 </p>
                                             </a>
-                                            @foreach (ChildModuleModel child in ViewBag.ChildModules)
+                                            @foreach (AccessModuleModel child in ViewBag.ChildModules)
                                             {
-                                                if (@sub.SubModuleId == child.SubModuleId)
+
+                                                if (@child.ChildModule != null)
                                                 {
-                                                    <ul class="nav nav-treeview">
-                                                        <li class="nav-item">
-                                                            <a id="@child.DivId" href="@Url.Content(child.Link)" class="nav-link">
-                                                                <i class="@child.ChildModuleIcon"></i>
+                                                    if (@sub.SubModuleId == child.SubModuleId)
+                                                    {
+                                                   
+                                                        <ul class="nav nav-treeview">
+                                                            <li class="nav-item">
+                                                                <a id="@child.ChildModuleDivId" href="@Url.Content(child.ChildModuleLink)" class="nav-link">
+                                                                    <i class="@child.ChildModuleIcon"></i>
 
-                                                                @if (@child.ChildModule.Length > 20)
-                                                                {
-                                                                    int lastSpaceIndex = @child.ChildModule.LastIndexOf(' ');
-                                                                    string firstPart = @child.ChildModule.Substring(0, lastSpaceIndex);
-                                                                    string lastWord = @child.ChildModule.Substring(lastSpaceIndex + 1);
-                                                                    <p>@firstPart</p>
-                                                                    <p class="ml-5">@lastWord</p>
+                                                                    @if (@child.ChildModule.Length > 20)
+                                                                    {
+                                                                        int lastSpaceIndex = @child.ChildModule.LastIndexOf(' ');
+                                                                        string firstPart = @child.ChildModule.Substring(0, lastSpaceIndex);
+                                                                        string lastWord = @child.ChildModule.Substring(lastSpaceIndex + 1);
+                                                                        <p>@firstPart</p>
+                                                                        <p class="ml-5">@lastWord</p>
 
-                                                                }
-                                                                else
-                                                                {
-                                                                    <p>@child.ChildModule</p>
-                                                                }
-                                                            </a>
-                                                        </li>
-                                                    </ul>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <p>@child.ChildModule</p>
+                                                                    }
+                                                                </a>
+                                                            </li>
+                                                        </ul>
+                                                    }
+
                                                 }
+
                                             }
 
                                         </li>
