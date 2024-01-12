@@ -20,6 +20,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json;
 using System.Text;
 using System.Transactions;
+using System;
 
 namespace RCBC.Controllers
 {
@@ -28,6 +29,7 @@ namespace RCBC.Controllers
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
         private readonly string appSettingsPath;
+        public int GlobalUserId { get; set; }
 
         public HomeController(IConfiguration _configuration, IGlobalRepository _global, IWebHostEnvironment environment)
         {
@@ -50,20 +52,21 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
+                GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
 
-                if (UserId != 0)
+                if (GlobalUserId != 0)
                 {
-                    var chkStatus = global.CheckUserStatus(UserId);
+                    var chkStatus = global.CheckUserStatus(GlobalUserId);
 
                     if (chkStatus)
                     {
-                        ViewBag.Modules = global.GetModulesByUserId(UserId);
-                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                        ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
 
-                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
-                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+                        var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
+                        ViewBag.Department = user.GroupDept;
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept, user.UserRole);
 
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -138,6 +141,24 @@ namespace RCBC.Controllers
 
         public IActionResult Logout()
         {
+
+            var auditlogs = new AuditLogsModel
+            {
+                Module = "Maintenance",
+                SubModule = "Logout",
+                ChildModule = "Logout",
+                TableName = "UsersInformation",
+                TableId = 0,
+                Action = "Logout",
+                PreviousData = string.Empty,
+                NewData = string.Empty,
+                ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                DateModified = DateTime.Now,
+                IP = global.GetLocalIPAddress(),
+            };
+
+            var logs = global.SaveAuditLogs(auditlogs);
+
             var parameters = new ParametersModel
             {
                 UserId = Convert.ToInt32(Request.Cookies["UserId"]),
@@ -169,13 +190,30 @@ namespace RCBC.Controllers
                 var SubModules = global.GetSubModulesByUserId(UserId).FirstOrDefault();
                 var ChildModules = global.GetChildModulesByUserId(UserId).FirstOrDefault();
 
-                if (SubModules != null && ChildModules != null)
+                if (SubModules != null)
                 {
                     string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
                     string[] Link = input.Split('/');
 
                     var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
-                    ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+                    ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept, user.UserRole);
+
+                    var auditlogs = new AuditLogsModel
+                    {
+                        Module = "Maintenance",
+                        SubModule = "Login",
+                        ChildModule = "Login",
+                        TableName = "UsersInformation",
+                        TableId = 0,
+                        Action = "Login",
+                        PreviousData = string.Empty,
+                        NewData = string.Empty,
+                        ModifiedBy = user.Id,
+                        DateModified = DateTime.Now,
+                        IP = global.GetLocalIPAddress(),
+                    };
+
+                    var logs = global.SaveAuditLogs(auditlogs);
 
                     return RedirectToAction(Link[2], Link[1]);
                 }
@@ -320,16 +358,27 @@ namespace RCBC.Controllers
                             {
                                 if (SubModules != null)
                                 {
-                                    if (ChildModules != null)
+                                    string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
+                                    string[] Link = input.Split('/');
+
+                                    var auditlogs = new AuditLogsModel
                                     {
-                                        string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
-                                        string[] Link = input.Split('/');
-                                        return Json(new { success = true, action = Link[2], controller = Link[1] });
-                                    }
-                                    else
-                                    {
-                                        return Json(new { success = true, action = "Index", controller = "Home" });
-                                    }
+                                        Module = "Maintenance",
+                                        SubModule = "Login",
+                                        ChildModule = "Login",
+                                        TableName = "UsersInformation",
+                                        TableId = 0,
+                                        Action = "Login",
+                                        PreviousData = string.Empty,
+                                        NewData = string.Empty,
+                                        ModifiedBy = user.Id,
+                                        DateModified = DateTime.Now,
+                                        IP = global.GetLocalIPAddress(),
+                                    };
+
+                                    var logs = global.SaveAuditLogs(auditlogs);
+
+                                    return Json(new { success = true, action = Link[2], controller = Link[1] });
                                 }
                                 else
                                 {
@@ -398,8 +447,11 @@ namespace RCBC.Controllers
 
         public IActionResult UpdatePassword(UpdatePasswordModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
+
             try
             {
+                string? previousData = string.Empty;
                 string salt = Empty.ToString();
                 string OldPassword = Empty.ToString();
                 int LoginAttempt = 0;
@@ -457,38 +509,63 @@ namespace RCBC.Controllers
                         smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
                         smtpClient.EnableSsl = false;
                         smtpClient.Send(mailMessage);
-                        Trace.WriteLine("Email Sent Successfully.");
 
-                        try
+                        using (var con = new SqlConnection(GetConnectionString()))
                         {
-                            using (var con = new SqlConnection(GetConnectionString()))
+                            con.Open();
+                            using (var transaction = con.BeginTransaction())
                             {
-                                var parameters = new
+                                try
                                 {
-                                    Id = user.Id,
-                                    HashPassword = HashPassword,
-                                    Salt = Salt,
-                                    Username = user.Username,
-                                    EmployeeName = user.EmployeeName,
-                                    Email = user.Email,
-                                    MobileNumber = user.MobileNumber,
-                                    GroupDept = user.GroupDept,
-                                    UserRole = user.UserRole,
-                                    Active = user.Active,
-                                    LoginAttempt = LoginAttempt,
-                                    IsApproved = user.IsApproved,
-                                };
-                                con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
+                                    var parameters = new
+                                    {
+                                        Id = user.Id,
+                                        HashPassword = HashPassword,
+                                        Salt = Salt,
+                                        Username = user.Username,
+                                        EmployeeName = user.EmployeeName,
+                                        Email = user.Email,
+                                        MobileNumber = user.MobileNumber,
+                                        GroupDept = user.GroupDept,
+                                        UserRole = user.UserRole,
+                                        Active = user.Active,
+                                        LoginAttempt = LoginAttempt,
+                                        IsApproved = user.IsApproved,
+                                    };
 
-                                con.Close();
+                                    con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
+                                    previousData = JsonConvert.SerializeObject(user);
+
+                                    transaction.Commit();
+
+                                    con.Close();
+
+                                    var auditlogs = new AuditLogsModel
+                                    {
+                                        Module = "Maintenance",
+                                        SubModule = "Change Password",
+                                        ChildModule = "Change Password",
+                                        TableName = "UsersInformation",
+                                        TableId = user.Id,
+                                        Action = "Change Password",
+                                        PreviousData = previousData,
+                                        NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
+                                        ModifiedBy = GlobalUserId,
+                                        DateModified = DateTime.Now,
+                                        IP = global.GetLocalIPAddress(),
+                                    };
+
+                                    var logs = global.SaveAuditLogs(auditlogs);
+
+                                    return Json(new { success = true });
+                                }
+                                catch (Exception ex)
+                                {
+                                    transaction.Rollback();
+                                    return Json(new { success = false, message = "Error in changing password." });
+                                }
                             }
-                            return Json(new { success = true });
-                        }
-                        catch (Exception ex)
-                        {
-                            Trace.WriteLine("Error: " + ex.Message);
-                            return RedirectToAction("Index", "Home");
                         }
                     }
                     else

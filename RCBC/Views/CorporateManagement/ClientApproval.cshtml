@@ -69,6 +69,8 @@
                     <div class="p-3">
                         @Html.HiddenFor(x => x.Id)
                         @Html.HiddenFor(x => x.IsApproved)
+                        @Html.HiddenFor(x => x.IsApproved)
+                        @Html.HiddenFor(x => x.ForApproval)
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -293,6 +295,7 @@
                                 $("[name='Active']").val(res.data.active);
                                 $("[name='GlobalAccount']").val(res.data.active);
                                 $("[name='IsApproved']").val(true);
+                                $("[name='ForApproval']").val(true);
                             }
                         }
                     });

@@ -16,5 +16,6 @@
         public int ModifiedBy { get; set; }
         public DateTime DateModified { get; set; }
         public string? IP { get; set; }
+        public string? EmployeeName { get; set; }
     }
 }

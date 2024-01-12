@@ -26,6 +26,7 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
+        public int GlobalUserId { get; set; }
 
         public MaintenanceController(IConfiguration _configuration, IGlobalRepository _global)
         {
@@ -47,20 +48,21 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
+                GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
 
-                if (UserId != 0)
+                if (GlobalUserId != 0)
                 {
-                    var chkStatus = global.CheckUserStatus(UserId);
+                    var chkStatus = global.CheckUserStatus(GlobalUserId);
 
                     if (chkStatus)
                     {
-                        ViewBag.Modules = global.GetModulesByUserId(UserId);
-                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                        ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
 
-                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
-                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+                        var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
+                        ViewBag.Department = user.GroupDept;
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept, user.UserRole);
 
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -218,6 +220,8 @@ namespace RCBC.Controllers
 
         public IActionResult Register(UserModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
+
             try
             {
                 string salt = Crypto.GenerateSalt();
@@ -427,7 +431,7 @@ namespace RCBC.Controllers
                                     Action = action,
                                     PreviousData = previousData,
                                     NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id)),
-                                    ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                                    ModifiedBy = GlobalUserId,
                                     DateModified = DateTime.Now,
                                     IP = global.GetLocalIPAddress(),
                                 };
@@ -535,7 +539,7 @@ namespace RCBC.Controllers
                         Action = "Update",
                         PreviousData = JsonConvert.SerializeObject(user),
                         NewData = JsonConvert.SerializeObject(global.GetUserInformation().Where(x => x.Id == Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -555,7 +559,7 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUsers()
         {
-            var data = global.GetUserInformation().Where(x => x.Deactivated == false).ToList();
+            var data = global.GetUserInformation().Where(x => x.Deactivated == false).OrderBy(x => x.Id).ToList();
 
             return Json(new { data });
         }
@@ -595,6 +599,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveUserRole(UserRoleModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -610,6 +615,10 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             UserRole = model.UserRole,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_saveUserRole", parameters, commandType: CommandType.StoredProcedure);
@@ -643,7 +652,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetUserRole().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -696,7 +705,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetUserRole().ToList();
+                var data = global.GetUserRole().OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -709,13 +718,15 @@ namespace RCBC.Controllers
 
         public IActionResult LoadUsersForApproval()
         {
-            var data = global.GetUserInformation().ToList();
+            var data = global.GetUserInformation().OrderBy(x => x.Id).ToList();
 
             return Json(new { data });
         }
 
         public IActionResult SaveUserAccess(int userId, string[] moduleIds, string[] childModuleIds)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
+
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
                 con.Open();
@@ -724,6 +735,7 @@ namespace RCBC.Controllers
                     try
                     {
                         string msg = string.Empty;
+                        string? previousData = string.Empty;
 
                         var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
 
@@ -782,6 +794,8 @@ namespace RCBC.Controllers
                                 con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                 msg = "Successfully saved.";
+
+                                previousData = JsonConvert.SerializeObject(user);
                             }
 
                             var usersInfoParameters = new
@@ -804,6 +818,23 @@ namespace RCBC.Controllers
 
                             transaction.Commit();
 
+                            var auditlogs = new AuditLogsModel
+                            {
+                                Module = "Maintenance",
+                                SubModule = "User Maintenance",
+                                ChildModule = "User Approval",
+                                TableName = "UsersInformation",
+                                TableId = user.Id,
+                                Action = "Approved",
+                                PreviousData = previousData,
+                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
+                                ModifiedBy = GlobalUserId,
+                                DateModified = DateTime.Now,
+                                IP = global.GetLocalIPAddress(),
+                            };
+
+                            var logs = global.SaveAuditLogs(auditlogs);
+
                             return Json(new { success = true, message = msg, userId = userId });
                         }
                         else
@@ -822,6 +853,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveDepartment(DepartmentModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -838,6 +870,10 @@ namespace RCBC.Controllers
                         var parameters = new
                         {
                             GroupDept = model.GroupDept,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_saveDepartment", parameters, commandType: CommandType.StoredProcedure);
@@ -871,7 +907,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetDepartment().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -924,7 +960,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetDepartment().ToList();
+                var data = global.GetDepartment().OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -955,7 +991,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetPartnerVendor().ToList();
+                var data = global.GetPartnerVendor().OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -968,6 +1004,7 @@ namespace RCBC.Controllers
 
         public IActionResult SavePartnerVendor(PartnerVendorModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -989,6 +1026,8 @@ namespace RCBC.Controllers
                             Email = model.Email,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_savePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
@@ -1008,12 +1047,14 @@ namespace RCBC.Controllers
                             Email = model.Email,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
                         };
 
                         con.Execute("sp_updatePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
-                        action = "Update";
+                        action = model.ForApproval ? "Approved" : "Update";
                         previousData = JsonConvert.SerializeObject(qry);
                     }
 
@@ -1027,7 +1068,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -1080,7 +1121,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetPickupLocation().ToList();
+                var data = global.GetPickupLocation().OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -1093,6 +1134,7 @@ namespace RCBC.Controllers
 
         public IActionResult SavePickupLocation(PickupLocationModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -1124,6 +1166,8 @@ namespace RCBC.Controllers
                             AccountNumberId = model.AccountNumberId,
                             CorporateNameId = model.CorporateNameId,
                             PartnerCodeId = model.PartnerCodeId,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_savePickupLocation", parameters, commandType: CommandType.StoredProcedure);
@@ -1149,12 +1193,14 @@ namespace RCBC.Controllers
                             AccountNumberId = model.AccountNumberId,
                             CorporateNameId = model.CorporateNameId,
                             PartnerCodeId = model.PartnerCodeId,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
                         };
 
                         con.Execute("sp_updatePickupLocation", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
-                        action = "Update";
+                        action = model.ForApproval ? "Approved" : "Update";
                         previousData = JsonConvert.SerializeObject(qry);
                     }
 
@@ -1168,7 +1214,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -1260,6 +1306,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveAccountDetails(PickupLocationModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -1281,6 +1328,11 @@ namespace RCBC.Controllers
                             AccountName = model.AccountName,
                             CurrencyId = model.CurrencyId,
                             AccountTypeId = model.AccountTypeId,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
+                            IsActive = true
                         };
 
                         model.Id = con.QuerySingle<int>("sp_saveAccount", parameters, commandType: CommandType.StoredProcedure);
@@ -1319,7 +1371,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetAccounts().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -1372,7 +1424,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetContacts().Where(x => x.LocationId != 0).ToList();
+                var data = global.GetContacts().Where(x => x.LocationId != 0).OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -1385,6 +1437,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveContactDetails(PickupLocationModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -1466,7 +1519,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };

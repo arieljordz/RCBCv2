@@ -75,6 +75,7 @@
                         @Html.HiddenFor(x => x.Id)
                         @Html.HiddenFor(x => x.Active)
                         @Html.HiddenFor(x => x.IsApproved)
+                        @Html.HiddenFor(x => x.ForApproval)
                         <div class="row">
                             <div class="col-12">
                                 <div class="form-group">
@@ -278,6 +279,7 @@
                                 $("[name='Active']").prop('checked', res.data.active);
                                 $("[name='Active']").val(res.data.active);
                                 $("[name='IsApproved']").val(true);
+                                $("[name='ForApproval']").val(true);
                             }
                         }
                     });

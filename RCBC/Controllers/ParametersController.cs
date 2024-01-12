@@ -8,6 +8,7 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
+        public int GlobalUserId { get; set; }
 
         public ParametersController(IConfiguration _configuration, IGlobalRepository _global)
         {
@@ -27,20 +28,21 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
+                GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
 
-                if (UserId != 0)
+                if (GlobalUserId != 0)
                 {
-                    var chkStatus = global.CheckUserStatus(UserId);
+                    var chkStatus = global.CheckUserStatus(GlobalUserId);
 
                     if (chkStatus)
                     {
-                        ViewBag.Modules = global.GetModulesByUserId(UserId);
-                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                        ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
 
-                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
-                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+                        var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
+                        ViewBag.Department = user.GroupDept;
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept, user.UserRole);
 
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");

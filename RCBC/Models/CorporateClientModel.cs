@@ -25,5 +25,6 @@
         public int AccountTypeId { get; set; }
 
         public int ContactId { get; set; }
+        public bool ForApproval { get; set; }
     }
 }

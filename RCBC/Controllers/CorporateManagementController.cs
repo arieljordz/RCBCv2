@@ -15,6 +15,7 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
+        public int GlobalUserId { get; set; }
 
         public CorporateManagementController(IConfiguration _configuration, IGlobalRepository _global)
         {
@@ -36,20 +37,21 @@ namespace RCBC.Controllers
 
             if (Request.Cookies["Username"] != null)
             {
-                int UserId = Convert.ToInt32(Request.Cookies["UserId"].ToString());
+                GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
 
-                if (UserId != 0)
+                if (GlobalUserId != 0)
                 {
-                    var chkStatus = global.CheckUserStatus(UserId);
+                    var chkStatus = global.CheckUserStatus(GlobalUserId);
 
                     if (chkStatus)
                     {
-                        ViewBag.Modules = global.GetModulesByUserId(UserId);
-                        ViewBag.SubModules = global.GetSubModulesByUserId(UserId);
-                        ViewBag.ChildModules = global.GetChildModulesByUserId(UserId);
+                        ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
+                        ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
+                        ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
 
-                        var user = global.GetUserInformation().Where(x => x.Id == UserId).FirstOrDefault();
-                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept);
+                        var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
+                        ViewBag.Department = user.GroupDept;
+                        ViewBag.DashboardDetails = global.GetDashboardDetails(user.GroupDept, user.UserRole);
 
                         var UserRoles = global.GetUserRole();
                         ViewBag.cmbUserRoles = new SelectList(UserRoles, "UserRole", "UserRole");
@@ -106,7 +108,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetCorporateClient().ToList();
+                var data = global.GetCorporateClient().OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -119,6 +121,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveClientDetails(CorporateClientModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -143,6 +146,8 @@ namespace RCBC.Controllers
                             GlobalAccount = model.GlobalAccount,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
                         };
 
                         model.Id = con.QuerySingle<int>("sp_saveCorporateClient", parameters, commandType: CommandType.StoredProcedure);
@@ -165,12 +170,14 @@ namespace RCBC.Controllers
                             GlobalAccount = model.GlobalAccount,
                             Active = model.Active,
                             IsApproved = model.IsApproved,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
                         };
 
                         con.Execute("sp_updateCorporateClient", parameters, commandType: CommandType.StoredProcedure);
 
                         msg = "Successfully updated.";
-                        action = "Update";
+                        action = model.ForApproval ? "Approved" : "Update";
                         previousData = JsonConvert.SerializeObject(qry);
                     }
 
@@ -184,7 +191,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetCorporateClient().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -296,6 +303,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveAccountDetails(CorporateClientModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -317,6 +325,11 @@ namespace RCBC.Controllers
                             AccountName = model.AccountName,
                             CurrencyId = model.CurrencyId,
                             AccountTypeId = model.AccountTypeId,
+                            DateCreated = DateTime.Now,
+                            CreatedBy = GlobalUserId,
+                            DateApproved = DateTime.Now,
+                            ApprovedBy = GlobalUserId,
+                            IsActive = true
                         };
 
                         model.Id = con.QuerySingle<int>("sp_saveAccount", parameters, commandType: CommandType.StoredProcedure);
@@ -355,7 +368,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetAccounts().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };
@@ -408,7 +421,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var data = global.GetContacts().Where(x => x.CorporateClientId != 0).ToList();
+                var data = global.GetContacts().Where(x => x.CorporateClientId != 0).OrderBy(x => x.Id).ToList();
 
                 return Json(new { data = data });
             }
@@ -421,6 +434,7 @@ namespace RCBC.Controllers
 
         public IActionResult SaveContactDetails(CorporateClientModel model)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
             try
             {
                 string msg = string.Empty;
@@ -502,7 +516,7 @@ namespace RCBC.Controllers
                         Action = action,
                         PreviousData = previousData,
                         NewData = JsonConvert.SerializeObject(global.GetContacts().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = Convert.ToInt32(Request.Cookies["UserId"]),
+                        ModifiedBy = GlobalUserId,
                         DateModified = DateTime.Now,
                         IP = global.GetLocalIPAddress(),
                     };

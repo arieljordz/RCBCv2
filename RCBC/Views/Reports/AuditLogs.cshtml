@@ -125,17 +125,16 @@
                     },
                     columns:
                         [
-                            { "data": "systemName", title: "SystemName", sClass: "text-center", orderable: false },
                             { "data": "module", title: "Module", sClass: "text-center", orderable: false },
-                            // { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false, visible: false },
-                            // { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false },
+                            { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false },
                             { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false },
                             // { "data": "tableId", title: "TableId", sClass: "text-center", orderable: false, visible: false },
                             { "data": "action", title: "Action", sClass: "text-center", orderable: false },
                             { "data": "previousData", title: "PreviousData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "newData", title: "NewData", sClass: "text-center", orderable: false, visible: false },
-                            { "data": "modifiedBy", title: "ModifiedBy ID", sClass: "text-center", orderable: false },
-                            // { "data": "dateModified", title: "DateModified", sClass: "text-center", orderable: false },
+                            //{ "data": "modifiedBy", title: "ModifiedBy ID", sClass: "text-center", orderable: false },
+                            { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
                             {
                                 "data": "dateModified", title: "DateModified", sClass: "text-center", render: function (data, type, row) {
                                     return DateDataTable(data);

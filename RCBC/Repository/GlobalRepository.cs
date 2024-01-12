@@ -517,7 +517,7 @@ namespace RCBC.Repository
             return data;
         }
 
-        public DashboardModel GetDashboardDetails(string GroupDescription)
+        public DashboardModel GetDashboardDetails(string GroupDescription, string UserRole)
         {
             try
             {
@@ -525,20 +525,37 @@ namespace RCBC.Repository
                 int ForApproval = 0;
                 int Approved = 0;
                 int Rejected = 0;
+                int UsersForApproval = 0;
+                int ClientsForApproval = 0;
+                int PickupForApproval = 0;
+                int PartnerForApproval = 0;
+                int EmailsForApproval = 0;
+                int SystemForApproval = 0;
+                int ReconForApproval = 0;
 
-                if (GroupDescription.Contains("UAM/SISD"))
+                if (GroupDescription.Contains("UAM/SISD") && UserRole.Contains("Maker"))
                 {
                     NoOfUsers = GetUserInformation().Count();
                     ForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
                     Approved = GetUserInformation().Where(x => x.IsApproved == true).Count();
                     Rejected = GetUserInformation().Where(x => x.IsApproved == false).Count();
                 }
-                else if (GroupDescription.Contains("GTB"))
+                else if (GroupDescription.Contains("GTB") && UserRole.Contains("Maker"))
                 {
                     NoOfUsers = GetCorporateClient().Count();
                     ForApproval = GetCorporateClient().Where(x => x.IsApproved == null).Count();
                     Approved = GetCorporateClient().Where(x => x.IsApproved == true).Count();
                     Rejected = GetCorporateClient().Where(x => x.IsApproved == false).Count();
+                }
+                else if (UserRole.Contains("Approver"))
+                {
+                    UsersForApproval = GetUserInformation().Where(x => x.IsApproved == null).Count();
+                    ClientsForApproval = GetCorporateClient().Where(x => x.IsApproved == null).Count();
+                    PickupForApproval = GetPickupLocation().Where(x => x.IsApproved == null).Count();
+                    PartnerForApproval = GetPartnerVendor().Where(x => x.IsApproved == null).Count();
+                    EmailsForApproval = GetEmailType().Count();
+                    SystemForApproval = GetEmailType().Count();
+                    ReconForApproval = GetEmailType().Count();
                 }
                 else if (GroupDescription.Contains("RSC"))
                 {
@@ -557,10 +574,18 @@ namespace RCBC.Repository
 
                 DashboardModel dashboard = new DashboardModel();
                 dashboard.GroupDescription = GroupDescription;
+                dashboard.UserRole = UserRole;
                 dashboard.NoOfUsers = NoOfUsers;
                 dashboard.ForApproval = ForApproval;
                 dashboard.Approved = Approved;
                 dashboard.Rejected = Rejected;
+                dashboard.UsersForApproval = UsersForApproval;
+                dashboard.ClientsForApproval = ClientsForApproval;
+                dashboard.PickupForApproval = PickupForApproval;
+                dashboard.PartnerForApproval = PartnerForApproval;
+                dashboard.EmailsForApproval = EmailsForApproval;
+                dashboard.SystemForApproval = SystemForApproval;
+                dashboard.ReconForApproval = ReconForApproval;
 
                 return dashboard;
             }

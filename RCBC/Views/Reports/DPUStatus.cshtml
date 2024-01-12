@@ -1,4 +1,5 @@
-﻿@{
+﻿@model RCBC.Models.AuditLogsModel
+@{
     ViewData["Title"] = "Reports";
 }
 
@@ -32,15 +33,47 @@
 
             <div class="d-flex justify-content-center">
 
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="card card-light-blue">
                         <div class="card-header">
                             <h3 class="card-title"><i class="fa fa-user pr-2"></i>DPU Status Inquiry</h3>
                         </div>
 
+                        @Html.HiddenFor(x => x.Id)
+
+
+
                         <div class="card-body">
-                            <form id="frmRegister" class="p-2">
-                            </form>
+
+                            <div class="row">
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>DateFrom</label>
+                                        <input type="date" class="form-control" id="DateFrom">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>DateTo</label>
+                                        <input type="date" class="form-control" id="DateTo">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row pl-2">
+                                <button type="button" class="btn btn-success mr-2"><i class="fas fa-file-excel" style="font-size: x-large;"></i></button>
+                                <button type="button" class="btn btn-danger mr-2"><i class="fas fa-file-pdf" style="font-size: x-large;"></i></button>
+                                <button type="button" class="btn btn-info mr-2"><i class="fas fa-file-csv" style="font-size: x-large;"></i></button>
+                                <button type="button" class="btn btn-secondary mr-2"><i class="fas fa-print" style="font-size: x-large;"></i></button>
+                            </div>
+
+                            <div class="row pb-3 pt-3">
+                                <div class="col-md-12">
+                                    <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                        <table id="tbl_auditLogs" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="card-footer">
@@ -59,9 +92,77 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
+
+            LoadAuditLogs();
+            function LoadAuditLogs() {
+                $('#tbl_auditLogs').DataTable({
+                    destroy: true,
+                    responsive: true,
+                    processing: false,
+                    search: true,
+                    stateSave: true,
+                    info: true,
+                    searching: true,
+                    paging: true,
+                    order: [[1, "asc"], [2, "asc"]],
+                    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                    ajax: {
+                        "url": "../Reports/LoadAuditLogs",
+                        "type": "GET",
+                        "datatype": "JSON",
+                    },
+                    columns:
+                        [
+                            { "data": "id", title: "Machine ID", sClass: "text-center", orderable: false },
+                            { "data": "subModule", title: "Machine Name", sClass: "text-center", orderable: false },
+                            {
+                                "data": "dateModified", title: "Transaction Date", sClass: "text-center", render: function (data, type, row) {
+                                    return DateDataTable(data);
+                                }
+                            },
+                            { "data": "modifiedBy", title: "Account Number", sClass: "text-center", orderable: false },
+                            { "data": "employeeName", title: "Beneficiary Name", sClass: "text-center", orderable: false },
+                            { "data": "tableId", title: "Collected Amount", sClass: "text-center", orderable: false, render: $.fn.dataTable.render.number(',', '.', 2, '₱ ') },
+                            { "data": "tableId", title: "Cash on Hand", sClass: "text-center", orderable: false, render: $.fn.dataTable.render.number(',', '.', 2, '₱ ') },
+                            { "data": "tableId", title: "Descrepancy", sClass: "text-center", orderable: false, render: $.fn.dataTable.render.number(',', '.', 2, '₱ ') },
+                            { "data": "childModule", title: "Remarks", sClass: "text-center", orderable: false },
+                            { "data": "action", title: "Status", sClass: "text-center", orderable: false },
+                            {
+                                "data": "id", title: "View Data", render: function (data) {
+                                    return "<button type='button' class='btn btn-xs btn-info view'><i class='fa fa-exchange p-1 view'></i></button>";
+                                }
+                            }
+                        ]
+                });
+
+                $('#tbl_auditLogs tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                            Id = SelectedValue("tbl_auditLogs", "id");
+                            $("[name='Id']").val(Id);
+                        } else {
+                            $(this).removeClass("dtactive");
+                            $("[name='Id']").val(0);
+                        }
+                    }
+                });
+            }
+
+
+            $(document).on('click', '.view', function () {
+                if ($("[name='Id']").val() != 0) {
+                    Swal.fire('Information!', 'Modal will show.', 'info');
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
+            });
 
         });
 
