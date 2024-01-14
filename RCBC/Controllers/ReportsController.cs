@@ -1,7 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using iTextSharp.text.pdf;
+using iTextSharp.text;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.SqlServer.Server;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using RCBC.Interface;
 using System.Diagnostics;
+using System.Drawing.Printing;
+using CsvHelper;
+using System.Globalization;
+using System.Text;
+using System.IO;
+using System.Drawing;
 
 namespace RCBC.Controllers
 {
@@ -9,13 +21,16 @@ namespace RCBC.Controllers
     {
         private readonly IConfiguration Configuration;
         private readonly IGlobalRepository global;
+        private readonly IWebHostEnvironment hostingEnvironment;
         public int GlobalUserId { get; set; }
 
-        public ReportsController(IConfiguration _configuration, IGlobalRepository _global)
+        public ReportsController(IConfiguration _configuration, IGlobalRepository _global, IWebHostEnvironment _hostingEnvironment)
         {
             Configuration = _configuration;
             global = _global;
+            hostingEnvironment = _hostingEnvironment;
         }
+
         private string GetConnectionString()
         {
             return Configuration.GetConnectionString("DefaultConnection");
@@ -106,6 +121,183 @@ namespace RCBC.Controllers
             var data = global.GetAuditLogs().OrderBy(x => x.Id).ToList();
 
             return Json(new { data });
+        }
+
+        public IActionResult DownloadFile(string Type)
+        {
+            try
+            {
+                ////var contentRootPath = hostingEnvironment.ContentRootPath;
+
+                var timestamp = DateTime.Now.ToString("hhmmss");
+                var excelFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".xlsx";
+                var pdfFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".pdf";
+                var csvFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".csv";
+
+                string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string downloadsFolderPath = Path.Combine(userProfilePath, "Downloads");
+
+                var excelFullPath = Path.Combine(downloadsFolderPath, excelFileName);
+                var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
+                var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
+
+                if (Type == "EXCEL")
+                {
+                    var fullPathWithName = Path.Combine(downloadsFolderPath, excelFileName);
+
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                    using (var package = new ExcelPackage())
+                    {
+                        var worksheet = package.Workbook.Worksheets.Add("Sheet1");
+
+                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                        var headerCells = worksheet.Cells["A1:F1"];
+                        headerCells.Style.Font.Bold = true;
+                        headerCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        worksheet.Cells["A1"].Value = "Module";
+                        worksheet.Column(1).Width = 25;
+                        worksheet.Cells["B1"].Value = "SubModule";
+                        worksheet.Column(2).Width = 25;
+                        worksheet.Cells["C1"].Value = "ChildModule";
+                        worksheet.Column(3).Width = 25;
+                        worksheet.Cells["D1"].Value = "TableName";
+                        worksheet.Column(4).Width = 25;
+                        worksheet.Cells["E1"].Value = "TableId";
+                        worksheet.Column(5).Width = 10;
+                        worksheet.Cells["F1"].Value = "Action";
+                        worksheet.Column(6).Width = 20;
+
+
+                        for (int i = 0; i < data.Count; i++)
+                        {
+                            var rowIndex = i + 2; // Starting from the second row
+
+                            worksheet.Cells["A" + rowIndex].Value = data[i].Module;
+                            worksheet.Cells["B" + rowIndex].Value = data[i].SubModule;
+                            worksheet.Cells["C" + rowIndex].Value = data[i].ChildModule;
+                            worksheet.Cells["D" + rowIndex].Value = data[i].TableName;
+                            worksheet.Cells["E" + rowIndex].Value = data[i].TableId;
+                            worksheet.Cells["F" + rowIndex].Value = data[i].Action;
+
+                            // Center the content in all cells
+                            var dataCells = worksheet.Cells["A" + rowIndex + ":F" + rowIndex];
+                            dataCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        }
+
+                        package.SaveAs(fullPathWithName);
+                    }
+                }
+                else if (Type == "PDF")
+                {
+                    var pdfDocument = new Document();
+                    var pdfWriter = PdfWriter.GetInstance(pdfDocument, new FileStream(pdfFullPath, FileMode.Create));
+                    pdfDocument.Open();
+
+                    // Add a table to the PDF document
+                    var pdfTable = new PdfPTable(6); // 6 columns for Module, SubModule, ChildModule, TableName, TableId, Action
+
+                    // Add table headers
+                    var headers = new string[] { "Module", "SubModule", "ChildModule", "TableName", "TableId", "Action" };
+                    foreach (var header in headers)
+                    {
+                        pdfTable.AddCell(new PdfPCell(new Phrase(header))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER,
+                            BackgroundColor = BaseColor.LIGHT_GRAY
+                        });
+                    }
+
+                    // Fetch audit log data
+                    var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                    // Add data to the PDF table
+                    foreach (var logEntry in data)
+                    {
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Module))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.SubModule))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ChildModule))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableName))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableId.ToString()))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+                    }
+
+                    // Add the table to the PDF document
+                    pdfDocument.Add(pdfTable);
+
+                    // Close the PDF document
+                    pdfDocument.Close();
+                }
+                else if (Type == "CSV")
+                {
+                    using (var writer = new StreamWriter(csvFullPath))
+                    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                        // Write header with formatting
+                        csv.WriteField("Module");
+                        csv.WriteField("SubModule");
+                        csv.WriteField("ChildModule");
+                        csv.WriteField("TableName");
+                        csv.WriteField("TableId");
+                        csv.WriteField("Action");
+                        csv.NextRecord();
+
+                        // Write data with formatting
+                        for (int i = 0; i < data.Count; i++)
+                        {
+                            var rowIndex = i + 2; // Starting from the second row
+
+                            csv.WriteField(data[i].Module);
+                            csv.WriteField(data[i].SubModule);
+                            csv.WriteField(data[i].ChildModule);
+                            csv.WriteField(data[i].TableName);
+                            csv.WriteField(data[i].TableId);
+                            csv.WriteField(data[i].Action);
+                            csv.NextRecord();
+
+                        }
+                    }
+                }
+                return Json(new { success = true, message = "Downloading Completed." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        public IActionResult Print(string Type)
+        {
+            var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+            return Json(new { success = true, message = "Printing Completed." });
         }
 
     }

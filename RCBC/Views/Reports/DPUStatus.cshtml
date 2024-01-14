@@ -44,27 +44,58 @@
 
 
                         <div class="card-body">
-
                             <div class="row">
-                                <div class="col-lg-3">
+                                <div class="col-lg-2">
                                     <div class="form-group">
-                                        <label>DateFrom</label>
+                                        <label>Date From</label>
                                         <input type="date" class="form-control" id="DateFrom">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Date To</label>
+                                        <input type="date" class="form-control" id="DateTo">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Machine ID</label>
+                                        <input type="text" class="form-control" id="MachineID">
                                     </div>
                                 </div>
                                 <div class="col-lg-3">
                                     <div class="form-group">
-                                        <label>DateTo</label>
-                                        <input type="date" class="form-control" id="DateTo">
+                                        <label>Beneficiary Name</label>
+                                        <input type="text" class="form-control" id="BeneficiaryName">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Account Number</label>
+                                        <input type="text" class="form-control" id="AccountNumber">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <input type="text" class="form-control" id="Status">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 pt-4">
+                                    <div class="form-group pt-2">
+                                        <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
+                                        <button type="button" id="btnClear" class="btn btn-danger">Clear</button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row pl-2">
-                                <button type="button" class="btn btn-success mr-2"><i class="fas fa-file-excel" style="font-size: x-large;"></i></button>
-                                <button type="button" class="btn btn-danger mr-2"><i class="fas fa-file-pdf" style="font-size: x-large;"></i></button>
-                                <button type="button" class="btn btn-info mr-2"><i class="fas fa-file-csv" style="font-size: x-large;"></i></button>
-                                <button type="button" class="btn btn-secondary mr-2"><i class="fas fa-print" style="font-size: x-large;"></i></button>
+                                <button type="button" id="btnExcel" class="btn btn-success mr-2"><i class="fas fa-file-excel" style="font-size: x-large;"></i></button>
+                                <button type="button" id="btnPdf" class="btn btn-danger mr-2"><i class="fas fa-file-pdf" style="font-size: x-large;"></i></button>
+                                <button type="button" id="btnCsv" class="btn btn-info mr-2"><i class="fas fa-file-csv" style="font-size: x-large;"></i></button>
+                                <button type="button" id="btnPrint" class="btn btn-secondary mr-2"><i class="fas fa-print" style="font-size: x-large;"></i></button>
                             </div>
 
                             <div class="row pb-3 pt-3">
@@ -77,10 +108,10 @@
                         </div>
 
                         <div class="card-footer">
-                            <div class="d-flex justify-content-end">
+                         @*    <div class="d-flex justify-content-end">
                                 <button type="submit" id="btnSubmit" class="btn btn-primary">Submit</button>
                                 <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
-                            </div>
+                            </div> *@
                         </div>
                     </div>
                 </div>
@@ -164,6 +195,47 @@
                 }
             });
 
+            function DownloadFile(Type) {
+                $('#loading-image').show();
+                $.ajax({
+                    url: "../Reports/DownloadFile",
+                    data: { Type: Type },
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);
+                        if (res.success) {
+                            Swal.fire('Information!', res.message, 'info');
+                        } else {
+                            Swal.fire('Warming!', res.message, 'warning');
+                        }
+                        $('#loading-image').hide();
+                    },
+                    error: function () {
+                        console.log("Error in downloading data.");
+                    }
+                });
+            }
+
+            $("#btnExcel").click(function (e) {
+                e.preventDefault();
+                // DownloadFile("EXCEL");
+            });
+
+            $("#btnPdf").click(function (e) {
+                e.preventDefault();
+                // DownloadFile("PDF");
+            });
+
+            $("#btnCsv").click(function (e) {
+                e.preventDefault();
+                // DownloadFile("CSV");
+            });
+
+            $("#btnPrint").click(function (e) {
+                e.preventDefault();
+                // window.print();
+            });
         });
 
         ActiveMenu("#dpu_status");
