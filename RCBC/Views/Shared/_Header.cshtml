@@ -21,9 +21,10 @@
         </a>
         </li>*@
         <li class="nav-item dropdown show">
-            <a class="nav-link" data-toggle="dropdown" href="#" aria-expanded="true">
-                Name: @ViewBag.EmployeeName, Role: @ViewBag.UserRole, Department: @ViewBag.Department
-                <i class="fa fa-user-circle ml-2"></i>
+            <a class="nav-link pt-0" data-toggle="dropdown" href="#" aria-expanded="true">
+                <span>@ViewBag.EmployeeName</span><i class="fa fa-user-circle ml-2"></i>
+                <br /> 
+                <span>@ViewBag.UserRole</span>
             </a>
             <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right" style="left: inherit; right: 0px;">
 

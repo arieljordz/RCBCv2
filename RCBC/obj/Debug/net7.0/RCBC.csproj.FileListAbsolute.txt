@@ -81,15 +81,6 @@ D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\refint\RCBC.dll
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.genruntimeconfig.cache
 D:\MY PROJECTS\GIT-RCBCv2\RCBCv2\RCBC\obj\Debug\net7.0\ref\RCBC.dll
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.csproj.AssemblyReference.cache
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.GeneratedMSBuildEditorConfig.editorconfig
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.AssemblyInfoInputs.cache
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.AssemblyInfo.cs
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.csproj.CoreCompileInputs.cache
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.MvcApplicationPartsAssemblyInfo.cache
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.RazorAssemblyInfo.cache
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.RazorAssemblyInfo.cs
-D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.sourcelink.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\appsettings.Development.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\appsettings.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.staticwebassets.runtime.json
@@ -99,6 +90,7 @@ D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.runtimeconfig.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\BouncyCastle.Crypto.dll
+D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\CsvHelper.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\Dapper.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\EPPlus.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\EPPlus.Interfaces.dll
@@ -122,6 +114,15 @@ D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\runtimes\unix\lib\netcoreapp2.1\
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Drawing.Common.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Security.Cryptography.Pkcs.dll
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.csproj.AssemblyReference.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.GeneratedMSBuildEditorConfig.editorconfig
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.AssemblyInfoInputs.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.AssemblyInfo.cs
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.csproj.CoreCompileInputs.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.MvcApplicationPartsAssemblyInfo.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.RazorAssemblyInfo.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.RazorAssemblyInfo.cs
+D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.sourcelink.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\staticwebassets.build.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\staticwebassets.development.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\staticwebassets\msbuild.RCBC.Microsoft.AspNetCore.StaticWebAssets.props
@@ -136,4 +137,3 @@ D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\refint\RCBC.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.genruntimeconfig.cache
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\ref\RCBC.dll
-D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\CsvHelper.dll

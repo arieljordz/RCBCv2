@@ -42,6 +42,8 @@
                         @Html.HiddenFor(x => x.Id)
                         @Html.HiddenFor(x => x.PreviousData)
                         @Html.HiddenFor(x => x.NewData)
+                        @Html.HiddenFor(x => x.TableName)
+                        @Html.HiddenFor(x => x.TableId)
 
                         <div class="card-body">
 
@@ -117,6 +119,34 @@
         </div><!--/. container-fluid -->
     </section>
 
+    <div id="modal_client_changes" class="modal fade" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-md pt-5">
+
+            <div class="modal-content">
+                <div class="modal-header bg-light-blue">
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Changes Details</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+
+                <div class="p-3">
+
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="dataTables_wrapper table-responsive dt-bootstrap4">
+                                <table id="tbl_changes_details" class="table table-bordered table-hover text-center" style="width:100%"></table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" id="btnCancelChanges" class="btn btn-danger">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+@* 
     <div id="modal_data" class="modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-md pt-5">
 
@@ -152,7 +182,8 @@
             </div>
 
         </div>
-    </div>
+    </div> *@
+
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
@@ -183,8 +214,7 @@
                             // { "data": "module", title: "Module", sClass: "text-center", orderable: false },
                             // { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false },
                             // { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false },
-                            // { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false },
-                            // { "data": "tableId", title: "TableId", sClass: "text-center", orderable: false, visible: false },
+                          
                             { "data": "modifiedBy", title: "User ID", sClass: "text-center", orderable: false },
                             { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
                             { "data": "ip", title: "IP Address", sClass: "text-center", orderable: false },
@@ -198,6 +228,8 @@
                             { "data": "action", title: "Action", sClass: "text-center", orderable: false },
                             { "data": "previousData", title: "PreviousData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "newData", title: "NewData", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false, visible: false },
+                            { "data": "tableId", title: "TableId", sClass: "text-center", orderable: false, visible: false },
                             //{ "data": "modifiedBy", title: "ModifiedBy ID", sClass: "text-center", orderable: false },
                             {
                                 "data": "id", title: "View Data", render: function (data) {
@@ -215,11 +247,15 @@
                             $(this).addClass("dtactive");
                             Id = SelectedValue("tbl_auditLogs", "id");
                             $("[name='Id']").val(Id);
+                            $("[name='TableId']").val(SelectedValue("tbl_auditLogs", "tableId"));
+                            $("[name='TableName']").val(SelectedValue("tbl_auditLogs", "tableName"));
                             $("[name='PreviousData']").val(SelectedValue("tbl_auditLogs", "previousData"));
                             $("[name='NewData']").val(SelectedValue("tbl_auditLogs", "newData"));
                         } else {
                             $(this).removeClass("dtactive");
                             $("[name='Id']").val(0);
+                            $("[name='TableId']").val(0);
+                            $("[name='TableName']").val(0);
                             $("[name='PreviousData']").val("");
                             $("[name='NewData']").val("");
                         }
@@ -229,19 +265,75 @@
 
             $(document).on('click', '.view', function () {
                 if ($("[name='Id']").val() != 0) {
-                    $("#modal_data").modal("show");
-                    $("#previous_textarea").val($("[name='PreviousData']").val());
-                    $("#new_textarea").val($("[name='NewData']").val());
+                    // $("#modal_data").modal("show");
+                    // $("#previous_textarea").val($("[name='PreviousData']").val());
+                    // $("#new_textarea").val($("[name='NewData']").val());
+                    LoadChangesDetails();
                 }
                 else {
                     Swal.fire('Information!', 'Please select a record first.', 'info');
                 }
             });
 
+            function LoadChangesDetails() {
+                $.ajax({
+                    url: "../Maintenance/LoadChangesDetails",
+                    data: { Id: $("[name='TableId']").val(), TableName: $("[name='TableName']").val() },
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.data.length === 0) {
+                            Swal.fire('Information!', 'No Data changes for this record.', 'info');
+                        } else {
+                            $("#modal_client_changes").modal("show");
+                            $('#tbl_changes_details').DataTable({
+                                destroy: true,
+                                responsive: true,
+                                processing: false,
+                                search: true,
+                                stateSave: true,
+                                info: true,
+                                searching: false,
+                                paging: true,
+                                order: [[1, "asc"], [2, "asc"]],
+                                lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
+                                data: res.data,
+                                columns: [
+                                    { "data": "property", title: "Property", sClass: "dt-body-center", orderable: false },
+                                    { "data": "oldValue", title: "Old Value", sClass: "dt-body-center", orderable: false },
+                                    { "data": "newValue", title: "New Value", sClass: "dt-body-center", orderable: false },
+                                ]
+                            });
+                        }
+                    },
+                    error: function () {
+                        console.log("Error loading data.");
+                    }
+                });
+
+                $('#tbl_changes_details tbody').off().on('click', 'tr', function (e) {
+                    e.preventDefault();
+                    if (!$(e.target).is(".view")) {
+                        if (!$(this).hasClass("dtactive")) {
+                            $(this).parent().find("tr").removeClass("dtactive");
+                            $(this).addClass("dtactive");
+                        } else {
+                            $(this).removeClass("dtactive");
+                        }
+                    }
+                });
+            }
+
             $("#btnCancel").click(function (e) {
                 e.preventDefault();
                 $("#modal_data").modal("hide");
             });
+
+            $("#btnCancelChanges").click(function (e) {
+                e.preventDefault();
+                $("#modal_client_changes").modal("hide");
+            });
+
         });
 
         ActiveMenu("#audit_logs");

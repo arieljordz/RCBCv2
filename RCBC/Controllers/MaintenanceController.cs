@@ -1615,8 +1615,10 @@ namespace RCBC.Controllers
             try
             {
                 List<DataChangesModel> data = new List<DataChangesModel>();
-
-                data = global.GetChangesDetails(Id, TableName);
+                if (Id != 0)
+                {
+                    data = global.GetChangesDetails(Id, TableName);
+                }
 
                 return Json(new { data = data });
             }
