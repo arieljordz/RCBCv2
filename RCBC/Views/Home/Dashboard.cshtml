@@ -117,7 +117,7 @@
                             <div class="icon">
                                 <i class="fa fa-user-circle-o"></i>
                             </div>
-                            <a href="@Url.Content("/CorporateManagement/ClientApproval")" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                            <a href="@Url.Content("/CorporateManagement/ViewClientDetails")" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
 
@@ -176,7 +176,7 @@
                             <div class="icon">
                                 <i class="fa fa-user-circle-o"></i>
                             </div>
-                            <a href="@Url.Content("/CorporateManagement/ClientApproval")" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                            <a href="@Url.Content("/CorporateManagement/ViewClientDetails")" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
 
@@ -211,7 +211,8 @@
                     <div class="col-lg-3 col-6">
                         <div class="small-box bg-indigo">
                             <div class="inner">
-                                <h3> @ViewBag.DashboardDetails.EmailsForApproval </h3>
+                                @* <h3> @ViewBag.DashboardDetails.EmailsForApproval </h3> *@
+                                <h3> 0 </h3>
 
                                 <p>Pending Emails for Approval</p>
                             </div>
@@ -225,7 +226,8 @@
                     <div class="col-lg-3 col-6">
                         <div class="small-box bg-orange">
                             <div class="inner">
-                                <h3> @ViewBag.DashboardDetails.SystemForApproval </h3>
+                                @* <h3> @ViewBag.DashboardDetails.SystemForApproval </h3> *@
+                                <h3> 0 </h3>
 
                                 <p>Pending System Parameters for Approval</p>
                             </div>
@@ -239,7 +241,8 @@
                     <div class="col-lg-3 col-6">
                         <div class="small-box bg-lime">
                             <div class="inner">
-                                <h3> @ViewBag.DashboardDetails.ReconForApproval </h3>
+                                @* <h3> @ViewBag.DashboardDetails.ReconForApproval </h3> *@
+                                <h3> 0 </h3>
 
                                 <p>Pending Recon for Approval</p>
                             </div>

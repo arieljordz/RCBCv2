@@ -10,6 +10,8 @@
         public string? TableName { get; set; }
         public int TableId { get; set; }
         public string? Action { get; set; }
+        public string? GroupDept { get; set; }
+        public string? UserRole { get; set; }
         public string? PreviousData { get; set; }
 
         public string? NewData { get; set; }

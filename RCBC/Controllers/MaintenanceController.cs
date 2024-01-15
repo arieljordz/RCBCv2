@@ -462,6 +462,8 @@ namespace RCBC.Controllers
 
         public IActionResult RegeneratePassword(int Id)
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
+
             try
             {
                 using (var con = new SqlConnection(GetConnectionString()))
