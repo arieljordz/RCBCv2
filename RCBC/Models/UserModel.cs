@@ -19,6 +19,8 @@
         public bool Deactivated { get; set; }
         public bool? IsApproved { get; set; }
         public DateTime? DateCreated { get; set; }
+        public bool? IsFirstLogged { get; set; }
+        
         public string ModuleIds { get; set; }
         public string ChildModuleIds { get; set; }
     }

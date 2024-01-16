@@ -54,5 +54,9 @@ namespace RCBC.Interface
         public List<DataChangesModel> GetChangesDetails(int Id, string TableName);
 
         public DashboardModel GetDashboardDetails(string GroupDescription, string UserRole);
+
+        public bool SendEmail(string password, string username, string email);
+
+        public void UpdateLoginAttempt(LoginAttemptModel model);
     }
 }

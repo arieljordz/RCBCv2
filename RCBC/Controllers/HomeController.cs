@@ -159,13 +159,21 @@ namespace RCBC.Controllers
 
             var logs = global.SaveAuditLogs(auditlogs);
 
-            var parameters = new ParametersModel
+            var parameters = new UserStatusModel
             {
                 UserId = Convert.ToInt32(Request.Cookies["UserId"]),
                 Status = false,
             };
 
             UpdateUserStatus(parameters);
+
+            var param = new LoginAttemptModel
+            {
+                UserId = Convert.ToInt32(Request.Cookies["UserId"]),
+                Attempt = 0,
+            };
+
+            global.UpdateLoginAttempt(param);
 
             RemoveCookies();
 
@@ -257,7 +265,7 @@ namespace RCBC.Controllers
         {
             if (Convert.ToInt32(Request.Cookies["UserId"]) != 0)
             {
-                var parameters = new ParametersModel
+                var parameters = new UserStatusModel
                 {
                     UserId = Convert.ToInt32(Request.Cookies["UserId"]),
                     Status = false,
@@ -299,13 +307,13 @@ namespace RCBC.Controllers
             return Ok(new { timeOut });
         }
 
-        public void UpdateUserStatus(ParametersModel model)
+        public void UpdateUserStatus(UserStatusModel model)
         {
             try
             {
                 using (IDbConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var parameters = new ParametersModel
+                    var parameters = new UserStatusModel
                     {
                         UserId = model.UserId,
                         Status = model.Status,
@@ -321,71 +329,95 @@ namespace RCBC.Controllers
 
         public IActionResult Login(string Username, string Password)
         {
+            var user = global.GetUserInformation().Where(x => x.Username == Username).FirstOrDefault();
+
             try
             {
-                var user = global.GetUserInformation().Where(x => x.Username == Username).FirstOrDefault();
-
                 if (user != null)
                 {
                     var chkStatus = global.CheckUserStatus(user.Id);
 
                     if (!chkStatus)
                     {
-                        string PlainPass = Password + user.Salt;
-
-                        bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
-
-                        if (result)
+                        if (user.LoginAttempt >= 3)
                         {
-                            var parameters = new ParametersModel
+                            return Json(new { success = false, action = "Index", controller = "Home", message = "User account has been locked." });
+                        }
+                        else
+                        {
+                            string PlainPass = Password + user.Salt;
+
+                            bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
+
+                            if (result)
                             {
-                                UserId = user.Id,
-                                Status = true,
-                            };
-
-                            UpdateUserStatus(parameters);
-
-                            CreateCookies(user);
-
-                            var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
-                            var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
-
-                            if (user.LoginAttempt == 0)
-                            {
-                                return Json(new { success = true, action = "FirstLogin", controller = "Home" });
-                            }
-                            else
-                            {
-                                if (SubModules != null)
+                                var parameters = new UserStatusModel
                                 {
-                                    string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
-                                    string[] Link = input.Split('/');
+                                    UserId = user.Id,
+                                    Status = true,
+                                };
 
-                                    var auditlogs = new AuditLogsModel
-                                    {
-                                        Module = "Maintenance",
-                                        SubModule = "Login",
-                                        ChildModule = "Login",
-                                        TableName = "UsersInformation",
-                                        TableId = 0,
-                                        Action = "Login",
-                                        PreviousData = string.Empty,
-                                        NewData = string.Empty,
-                                        ModifiedBy = user.Id,
-                                        DateModified = DateTime.Now,
-                                        IP = global.GetLocalIPAddress(),
-                                    };
+                                UpdateUserStatus(parameters);
 
-                                    var logs = global.SaveAuditLogs(auditlogs);
+                                CreateCookies(user);
 
-                                    return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
+                                var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
+
+                                if (user.IsFirstLogged == true)
+                                {
+                                    return Json(new { success = true, action = "FirstLogin", controller = "Home" });
                                 }
                                 else
                                 {
-                                    return Json(new { success = true, action = "Index", controller = "Home" });
+                                    if (SubModules != null)
+                                    {
+                                        string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
+                                        string[] Link = input.Split('/');
+
+                                        var auditlogs = new AuditLogsModel
+                                        {
+                                            Module = "Maintenance",
+                                            SubModule = "Login",
+                                            ChildModule = "Login",
+                                            TableName = "UsersInformation",
+                                            TableId = 0,
+                                            Action = "Login",
+                                            PreviousData = string.Empty,
+                                            NewData = string.Empty,
+                                            ModifiedBy = user.Id,
+                                            DateModified = DateTime.Now,
+                                            IP = global.GetLocalIPAddress(),
+                                        };
+
+                                        var logs = global.SaveAuditLogs(auditlogs);
+
+                                        var paramSuccess = new LoginAttemptModel
+                                        {
+                                            UserId = user.Id,
+                                            Attempt = 0,
+                                        };
+
+                                        global.UpdateLoginAttempt(paramSuccess);
+
+                                        return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                    }
+                                    else
+                                    {
+                                        var paramSubmodules = new LoginAttemptModel
+                                        {
+                                            UserId = user.Id,
+                                            Attempt = user.LoginAttempt + 1,
+                                        };
+
+                                        global.UpdateLoginAttempt(paramSubmodules);
+
+                                        return Json(new { success = true, action = "Index", controller = "Home" });
+                                    }
                                 }
                             }
                         }
+
                     }
                     else
                     {
@@ -394,16 +426,32 @@ namespace RCBC.Controllers
                 }
                 else
                 {
-                    return Json(new { success = true, action = "Index", controller = "Home" });
+                    return Json(new { success = false, action = "Index", controller = "Home", message = "Username is not registered." });
                 }
 
             }
             catch (Exception ex)
             {
-                return Json(new { success = true, action = "Index", controller = "Home" });
+                var paramCatch = new LoginAttemptModel
+                {
+                    UserId = user.Id,
+                    Attempt = user.LoginAttempt + 1,
+                };
+
+                global.UpdateLoginAttempt(paramCatch);
+
+                return Json(new { success = true, action = "Index", controller = "Home", message = ex.Message });
             }
 
-            return Json(new { success = false, action = "Index", controller = "Home" });
+            var param = new LoginAttemptModel
+            {
+                UserId = user.Id,
+                Attempt = user.LoginAttempt + 1,
+            };
+
+            global.UpdateLoginAttempt(param);
+
+            return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
         }
 
         public IActionResult SendResetPasswordLink(string UserID)
@@ -478,37 +526,7 @@ namespace RCBC.Controllers
                         string password = finalString + Salt;
                         string HashPassword = Crypto.HashPassword(password);
 
-                        string bodyMsg = "<head>" +
-                                   "<style>" +
-                                   "body{" +
-                                       "font-family: calibri;" +
-                                       "}" +
-                                    "</style>" +
-                                   "</head>" +
-                                   "<body>" +
-                                       "<p>Good Day!<br>" +
-                                        "<br>" +
-                                        "User ID: " + model.Username + "<br>" +
-                                        "New Password: <font color=red>" + finalString + "</font> <br>" +
-                                        "<br>" +
-                                        "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
-                                        "</p>" +
-                                     "</body>";
-
-                        MailMessage mailMessage = new MailMessage();
-                        mailMessage.From = new MailAddress("arlene@yuna.somee.com");
-                        mailMessage.To.Add("arlene.lunar11@gmail.com");
-                        mailMessage.Subject = "Subject";
-                        mailMessage.Body = bodyMsg;
-                        mailMessage.IsBodyHtml = true;
-
-                        SmtpClient smtpClient = new SmtpClient();
-                        smtpClient.Host = "smtp.yuna.somee.com";
-                        smtpClient.Port = 26;
-                        smtpClient.UseDefaultCredentials = false;
-                        smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
-                        smtpClient.EnableSsl = false;
-                        smtpClient.Send(mailMessage);
+                        bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
 
                         using (var con = new SqlConnection(GetConnectionString()))
                         {
@@ -531,6 +549,7 @@ namespace RCBC.Controllers
                                         Active = user.Active,
                                         LoginAttempt = LoginAttempt,
                                         IsApproved = user.IsApproved,
+                                        IsFirstLogged = false,
                                     };
 
                                     con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -613,7 +632,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                var parameters = new ParametersModel
+                var parameters = new UserStatusModel
                 {
                     UserId = 0,
                     Status = false,

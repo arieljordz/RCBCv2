@@ -59,7 +59,7 @@
                             window.location.href = "/" + res.controller + "/" + res.action;
                         }
                         else {
-                            Swal.fire('Warning!', 'Invalid login attempt', 'warning');
+                            Swal.fire('Warning!', res.message, 'warning');
                         }
                         $('#loading-image').hide();
                     },

@@ -19,6 +19,7 @@ using static System.Collections.Specialized.BitVector32;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.VisualBasic;
+using iTextSharp.text.pdf.qrcode;
 
 namespace RCBC.Controllers
 {
@@ -258,7 +259,8 @@ namespace RCBC.Controllers
                                         DateCreated = DateTime.Now,
                                         LoginAttempt = 0,
                                         Deactivated = false,
-                                        Active = true
+                                        Active = true,
+                                        IsFirstLogged = true,
                                     };
 
                                     model.Id = con.QuerySingle<int>("sp_saveUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -421,6 +423,8 @@ namespace RCBC.Controllers
 
                                 transaction.Commit();
 
+                                //bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
+
                                 var auditlogs = new AuditLogsModel
                                 {
                                     Module = "Maintenance",
@@ -480,37 +484,7 @@ namespace RCBC.Controllers
                     string password = finalString + Salt;
                     string HashPassword = Crypto.HashPassword(password);
 
-                    string bodyMsg = "<head>" +
-                                    "<style>" +
-                                    "body{" +
-                                    "font-family: calibri;" +
-                                    "}" +
-                                    "</style>" +
-                                    "</head>" +
-                                    "<body>" +
-                                    "<p>Good Day!<br>" +
-                                    "<br>" +
-                                    "Username: " + user.Username + "<br>" +
-                                    "New Password: <font color=red>" + finalString + "</font> <br>" +
-                                    "<br>" +
-                                    "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
-                                    "</p>" +
-                                    "</body>";
-
-                    MailMessage mailMessage = new MailMessage();
-                    mailMessage.From = new MailAddress("arlene@yuna.somee.com");
-                    mailMessage.To.Add("arlene.lunar11@gmail.com");
-                    mailMessage.Subject = "Subject";
-                    mailMessage.Body = bodyMsg;
-                    mailMessage.IsBodyHtml = true;
-
-                    SmtpClient smtpClient = new SmtpClient();
-                    smtpClient.Host = "smtp.yuna.somee.com";
-                    smtpClient.Port = 26;
-                    smtpClient.UseDefaultCredentials = false;
-                    smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
-                    smtpClient.EnableSsl = false;
-                    smtpClient.Send(mailMessage);
+                    bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
 
                     var parameters = new
                     {
@@ -817,8 +791,9 @@ namespace RCBC.Controllers
                             };
 
                             con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
                             transaction.Commit();
+
+                            bool IsSuccess = global.SendEmail("Pass1234.", user.Username, user.Email);
 
                             var auditlogs = new AuditLogsModel
                             {

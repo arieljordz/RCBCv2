@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Net;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json;
+using System.Net.Mail;
 
 namespace RCBC.Repository
 {
@@ -594,6 +595,71 @@ namespace RCBC.Repository
                 return new DashboardModel();
             }
         }
+
+        public bool SendEmail(string password, string username, string email)
+        {
+            try
+            {
+                string bodyMsg = "<head>" +
+                                "<style>" +
+                                "body{" +
+                                "font-family: calibri;" +
+                                "}" +
+                                "</style>" +
+                                "</head>" +
+                                "<body>" +
+                                "<p>Good Day!<br>" +
+                                "<br>" +
+                                "Username: " + username + "<br>" +
+                                "New Password: <font color=red>" + password + "</font> <br>" +
+                                "<br>" +
+                                "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
+                                "</p>" +
+                                "</body>";
+
+                MailMessage mailMessage = new MailMessage();
+                mailMessage.From = new MailAddress("arlene@yuna.somee.com");
+                mailMessage.To.Add(email);
+                mailMessage.Subject = "Subject";
+                mailMessage.Body = bodyMsg;
+                mailMessage.IsBodyHtml = true;
+
+                SmtpClient smtpClient = new SmtpClient();
+                smtpClient.Host = "smtp.yuna.somee.com";
+                smtpClient.Port = 26;
+                smtpClient.UseDefaultCredentials = false;
+                smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
+                smtpClient.EnableSsl = false;
+                smtpClient.Send(mailMessage);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public void UpdateLoginAttempt(LoginAttemptModel model)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new LoginAttemptModel
+                    {
+                        UserId = model.UserId,
+                        Attempt = model.Attempt,
+                    };
+                    con.Execute("sp_updateLoginAttempt", parameters, commandType: CommandType.StoredProcedure);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
 
     }
 }
