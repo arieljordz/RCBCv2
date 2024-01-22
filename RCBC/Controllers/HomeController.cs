@@ -400,6 +400,7 @@ namespace RCBC.Controllers
 
                                         global.UpdateLoginAttempt(paramSuccess);
 
+                                        //return RedirectToAction(Link[2], Link[1]);
                                         return Json(new { success = true, action = Link[2], controller = Link[1] });
                                     }
                                     else
@@ -412,6 +413,7 @@ namespace RCBC.Controllers
 
                                         global.UpdateLoginAttempt(paramSubmodules);
 
+                                        //return RedirectToAction("Index", "Home");
                                         return Json(new { success = true, action = "Index", controller = "Home" });
                                     }
                                 }
@@ -421,11 +423,13 @@ namespace RCBC.Controllers
                     }
                     else
                     {
+                        //return RedirectToAction("LogoutAccount", "Home");
                         return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
                     }
                 }
                 else
                 {
+                    //return RedirectToAction("Index", "Home");
                     return Json(new { success = false, action = "Index", controller = "Home", message = "Username is not registered." });
                 }
 
@@ -440,6 +444,7 @@ namespace RCBC.Controllers
 
                 global.UpdateLoginAttempt(paramCatch);
 
+                //return RedirectToAction("Index", "Home");
                 return Json(new { success = true, action = "Index", controller = "Home", message = ex.Message });
             }
 
@@ -452,8 +457,10 @@ namespace RCBC.Controllers
             global.UpdateLoginAttempt(param);
 
             return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
+            //return RedirectToAction("Index", "Home");
         }
 
+    
         public IActionResult SendResetPasswordLink(string UserID)
         {
             string bodyMsg = "<head>" +
@@ -526,7 +533,7 @@ namespace RCBC.Controllers
                         string password = finalString + Salt;
                         string HashPassword = Crypto.HashPassword(password);
 
-                        bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
+                        bool IsSuccess = global.SendEmail(finalString, user.EmployeeName, user.Email);
 
                         using (var con = new SqlConnection(GetConnectionString()))
                         {

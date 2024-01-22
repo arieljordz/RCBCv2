@@ -174,7 +174,12 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult EmailTemplate()
+        public IActionResult EmailType()
+        {
+            return LoadViews();
+        }
+
+        public IActionResult SMSType()
         {
             return LoadViews();
         }
@@ -485,7 +490,7 @@ namespace RCBC.Controllers
                     string password = finalString + Salt;
                     string HashPassword = Crypto.HashPassword(password);
 
-                    bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
+                    bool IsSuccess = global.SendEmail(finalString, user.EmployeeName, user.Email);
 
                     var parameters = new
                     {
@@ -796,7 +801,7 @@ namespace RCBC.Controllers
                             con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                             transaction.Commit();
 
-                            bool IsSuccess = global.SendEmail("Pass1234.", user.Username, user.Email);
+                            bool IsSuccess = global.SendEmail("Pass1234.", user.EmployeeName, user.Email);
 
                             var auditlogs = new AuditLogsModel
                             {

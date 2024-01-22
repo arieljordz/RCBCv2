@@ -42,7 +42,7 @@
     </div>
 </div>
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
 
@@ -55,12 +55,21 @@
                     url: "../Home/Login",
                     data: { Username: Username, Password: Password },
                     success: function (res) {
+
+                        console.log(res);
+
                         if (res.success == true) {
-                            window.location.href = "/" + res.controller + "/" + res.action;
+
+                            setTimeout(function () {
+                                window.location.href = "./" + res.controller + "/" + res.action;
+                            }, 1000);
+
+                            // window.location.href = "/" + res.controller + "/" + res.action;
                         }
                         else {
                             Swal.fire('Warning!', res.message, 'warning');
                         }
+
                         $('#loading-image').hide();
                     },
                     failure: function (res) {
@@ -80,7 +89,7 @@
             });
 
             $('.form-control').keypress(function (e) {
-                if (e.which === 13) { 
+                if (e.which === 13) {
                     e.preventDefault();
                     Login();
                 }
