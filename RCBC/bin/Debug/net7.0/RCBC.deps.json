@@ -9,11 +9,11 @@
       "RCBC/1.0.0": {
         "dependencies": {
           "CsvHelper": "30.0.1",
-          "Dapper": "2.1.4",
-          "EPPlus": "7.0.6",
+          "Dapper": "2.1.28",
+          "EPPlus": "7.0.7",
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "7.0.11",
-          "Microsoft.TypeScript.MSBuild": "5.2.2",
-          "System.Data.SqlClient": "4.8.5",
+          "Microsoft.TypeScript.MSBuild": "5.3.3",
+          "System.Data.SqlClient": "4.8.6",
           "System.Web.Helpers.Crypto": "3.2.3",
           "iTextSharp": "5.5.13.3"
         },
@@ -37,15 +37,15 @@
           }
         }
       },
-      "Dapper/2.1.4": {
+      "Dapper/2.1.28": {
         "runtime": {
-          "lib/net5.0/Dapper.dll": {
+          "lib/net7.0/Dapper.dll": {
             "assemblyVersion": "2.0.0.0",
-            "fileVersion": "2.1.4.42149"
+            "fileVersion": "2.1.28.55233"
           }
         }
       },
-      "EPPlus/7.0.6": {
+      "EPPlus/7.0.7": {
         "dependencies": {
           "EPPlus.Interfaces": "6.1.1",
           "EPPlus.System.Drawing": "6.1.1",
@@ -57,8 +57,8 @@
         },
         "runtime": {
           "lib/net7.0/EPPlus.dll": {
-            "assemblyVersion": "7.0.6.0",
-            "fileVersion": "7.0.6.0"
+            "assemblyVersion": "7.0.7.0",
+            "fileVersion": "7.0.7.0"
           }
         }
       },
@@ -171,7 +171,7 @@
         }
       },
       "Microsoft.NETCore.Platforms/3.1.0": {},
-      "Microsoft.TypeScript.MSBuild/5.2.2": {},
+      "Microsoft.TypeScript.MSBuild/5.3.3": {},
       "Microsoft.Win32.Registry/4.7.0": {
         "dependencies": {
           "System.Security.AccessControl": "4.7.0",
@@ -248,7 +248,7 @@
         }
       },
       "System.ComponentModel.Annotations/5.0.0": {},
-      "System.Data.SqlClient/4.8.5": {
+      "System.Data.SqlClient/4.8.6": {
         "dependencies": {
           "Microsoft.Win32.Registry": "4.7.0",
           "System.Security.Principal.Windows": "4.7.0",
@@ -256,22 +256,22 @@
         },
         "runtime": {
           "lib/netcoreapp2.1/System.Data.SqlClient.dll": {
-            "assemblyVersion": "4.6.1.5",
-            "fileVersion": "4.700.22.51706"
+            "assemblyVersion": "4.6.1.6",
+            "fileVersion": "4.700.23.52603"
           }
         },
         "runtimeTargets": {
           "runtimes/unix/lib/netcoreapp2.1/System.Data.SqlClient.dll": {
             "rid": "unix",
             "assetType": "runtime",
-            "assemblyVersion": "4.6.1.5",
-            "fileVersion": "4.700.22.51706"
+            "assemblyVersion": "4.6.1.6",
+            "fileVersion": "4.700.23.52603"
           },
           "runtimes/win/lib/netcoreapp2.1/System.Data.SqlClient.dll": {
             "rid": "win",
             "assetType": "runtime",
-            "assemblyVersion": "4.6.1.5",
-            "fileVersion": "4.700.22.51706"
+            "assemblyVersion": "4.6.1.6",
+            "fileVersion": "4.700.23.52603"
           }
         }
       },
@@ -358,19 +358,19 @@
       "path": "csvhelper/30.0.1",
       "hashPath": "csvhelper.30.0.1.nupkg.sha512"
     },
-    "Dapper/2.1.4": {
+    "Dapper/2.1.28": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-TnTa28ktP/drRXnnXChHANq2WoF8af9DLu3VBtyPn3RYjxwDzuYhGrSvAN2CrmE+RyNaN1v81kf6rYbp0a4UaQ==",
-      "path": "dapper/2.1.4",
-      "hashPath": "dapper.2.1.4.nupkg.sha512"
+      "sha512": "sha512-ha49pzOEDmCPkMxwfPSR/wxa/6RD3r42TESIgpzpi7FXq/gNVUuJVEO+wtUzntNRhtmq3BKCl0s0aAlSZLkBUA==",
+      "path": "dapper/2.1.28",
+      "hashPath": "dapper.2.1.28.nupkg.sha512"
     },
-    "EPPlus/7.0.6": {
+    "EPPlus/7.0.7": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-3sc2sV4we6SrFn1aTLWVI9+v/RgEBtSN9Zum2DaolvsbJO05LbrUw8CFnJmu27VIktUDgk0GwQkn3y+Kizm+dA==",
-      "path": "epplus/7.0.6",
-      "hashPath": "epplus.7.0.6.nupkg.sha512"
+      "sha512": "sha512-0Jw0qpdXL9MuzZcMT+tnepSLH/U3ACgSl2yxdE64Fj0rgdTgiInDPoYx18lwzCkUP3Z2vDlqLXP9Tfj31i3nxQ==",
+      "path": "epplus/7.0.7",
+      "hashPath": "epplus.7.0.7.nupkg.sha512"
     },
     "EPPlus.Interfaces/6.1.1": {
       "type": "package",
@@ -484,12 +484,12 @@
       "path": "microsoft.netcore.platforms/3.1.0",
       "hashPath": "microsoft.netcore.platforms.3.1.0.nupkg.sha512"
     },
-    "Microsoft.TypeScript.MSBuild/5.2.2": {
+    "Microsoft.TypeScript.MSBuild/5.3.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-anuU+9I9xKlho/N71AUEt5vU0CNNVPkQr8ISkOYnrW0gqZbeJmkfjahV71ykipngsWrIe0QxXNNJvurpEiuM7Q==",
-      "path": "microsoft.typescript.msbuild/5.2.2",
-      "hashPath": "microsoft.typescript.msbuild.5.2.2.nupkg.sha512"
+      "sha512": "sha512-sFxHtBLDgNp+vhCS0usd7F/5NfWSGJ7KiYy8YLKeQit19szQZ6oqxRYyOmQsFlZt2GLHpTkXffFqjZIDvGCdaQ==",
+      "path": "microsoft.typescript.msbuild/5.3.3",
+      "hashPath": "microsoft.typescript.msbuild.5.3.3.nupkg.sha512"
     },
     "Microsoft.Win32.Registry/4.7.0": {
       "type": "package",
@@ -554,12 +554,12 @@
       "path": "system.componentmodel.annotations/5.0.0",
       "hashPath": "system.componentmodel.annotations.5.0.0.nupkg.sha512"
     },
-    "System.Data.SqlClient/4.8.5": {
+    "System.Data.SqlClient/4.8.6": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-fRqxut4lrndPHrXD+ht1XRmCL3obuKldm4XjCRYS9p5f7FSR7shBxAwTkDrpFMsHC9BhNgjjmUtiIjvehn5zkg==",
-      "path": "system.data.sqlclient/4.8.5",
-      "hashPath": "system.data.sqlclient.4.8.5.nupkg.sha512"
+      "sha512": "sha512-2Ij/LCaTQRyAi5lAv7UUTV9R2FobC8xN9mE0fXBZohum/xLl8IZVmE98Rq5ugQHjCgTBRKqpXRb4ORulRdA6Ig==",
+      "path": "system.data.sqlclient/4.8.6",
+      "hashPath": "system.data.sqlclient.4.8.6.nupkg.sha512"
     },
     "System.Drawing.Common/7.0.0": {
       "type": "package",

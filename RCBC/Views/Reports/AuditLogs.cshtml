@@ -334,6 +334,50 @@
                 $("#modal_client_changes").modal("hide");
             });
 
+
+            function DownloadAuditLogs(Type) {
+                $('#loading-image').show();
+                $.ajax({
+                    url: "../Reports/DownloadAuditLogs",
+                    data: { Type: Type },
+                    type: "GET",
+                    dataType: "JSON",
+                    success: function (res) {
+                        console.log(res);
+                        if (res.success) {
+                            Swal.fire('Information!', res.message, 'info');
+                        } else {
+                            Swal.fire('Warming!', res.message, 'warning');
+                        }
+                        $('#loading-image').hide();
+                    },
+                    error: function () {
+                        console.log("Error in downloading data.");
+                    }
+                });
+            }
+
+            $("#btnExcel").click(function (e) {
+                e.preventDefault();
+                DownloadAuditLogs("EXCEL");
+            });
+
+            $("#btnPdf").click(function (e) {
+                e.preventDefault();
+                DownloadAuditLogs("PDF");
+            });
+
+            $("#btnCsv").click(function (e) {
+                e.preventDefault();
+                DownloadAuditLogs("CSV");
+            });
+
+            $("#btnPrint").click(function (e) {
+                e.preventDefault();
+                window.print();
+            });
+
+
         });
 
         ActiveMenu("#audit_logs");

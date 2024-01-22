@@ -335,6 +335,7 @@ namespace RCBC.Controllers
                                         Active = model.Active,
                                         LoginAttempt = userInfo.LoginAttempt,
                                         IsApproved = userInfo.IsApproved,
+                                        IsFirstLogged = userInfo.IsFirstLogged,
                                     };
 
                                     con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
@@ -500,6 +501,7 @@ namespace RCBC.Controllers
                         Active = user.Active,
                         LoginAttempt = user.LoginAttempt,
                         IsApproved = user.IsApproved,
+                        IsFirstLogged = user.IsFirstLogged,
                     };
 
                     con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
@@ -788,6 +790,7 @@ namespace RCBC.Controllers
                                 Active = user.Active,
                                 LoginAttempt = user.LoginAttempt,
                                 IsApproved = true,
+                                IsFirstLogged = user.IsFirstLogged,
                             };
 
                             con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);

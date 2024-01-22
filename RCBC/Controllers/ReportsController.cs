@@ -14,6 +14,8 @@ using System.Globalization;
 using System.Text;
 using System.IO;
 using System.Drawing;
+using RCBC.Models;
+using System.Linq;
 
 namespace RCBC.Controllers
 {
@@ -123,7 +125,188 @@ namespace RCBC.Controllers
             return Json(new { data });
         }
 
-        public IActionResult DownloadFile(string Type)
+        public IActionResult DownloadAuditLogs(string Type)
+        {
+            try
+            {
+                ////var contentRootPath = hostingEnvironment.ContentRootPath;
+
+                var timestamp = DateTime.Now.ToString("hhmmss");
+                var excelFileName = "AUDIT_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".xlsx";
+                var pdfFileName = "AUDIT_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".pdf";
+                var csvFileName = "AUDIT_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".csv";
+
+                string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string downloadsFolderPath = Path.Combine(userProfilePath, "Downloads");
+
+                var excelFullPath = Path.Combine(downloadsFolderPath, excelFileName);
+                var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
+                var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
+
+                if (Type == "EXCEL")
+                {
+                    var fullPathWithName = Path.Combine(downloadsFolderPath, excelFileName);
+
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                    using (var package = new ExcelPackage())
+                    {
+                        var worksheet = package.Workbook.Worksheets.Add("Sheet1");
+
+                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                        var headerCells = worksheet.Cells["A1:G1"];
+                        headerCells.Style.Font.Bold = true;
+                        headerCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        worksheet.Cells["A1"].Value = "User ID";
+                        worksheet.Column(1).Width = 10;
+                        worksheet.Cells["B1"].Value = "Modified By";
+                        worksheet.Column(2).Width = 25;
+                        worksheet.Cells["C1"].Value = "IP Address";
+                        worksheet.Column(3).Width = 20;
+                        worksheet.Cells["D1"].Value = "Date Modified";
+                        worksheet.Column(4).Width = 25;
+                        worksheet.Cells["E1"].Value = "Group";
+                        worksheet.Column(5).Width = 15;
+                        worksheet.Cells["F1"].Value = "Role";
+                        worksheet.Column(6).Width = 15;
+                        worksheet.Cells["G1"].Value = "Action";
+                        worksheet.Column(7).Width = 25;
+
+
+                        for (int i = 0; i < data.Count; i++)
+                        {
+                            var rowIndex = i + 2; // Starting from the second row
+
+                            worksheet.Cells["A" + rowIndex].Value = data[i].ModifiedBy;
+                            worksheet.Cells["B" + rowIndex].Value = data[i].EmployeeName;
+                            worksheet.Cells["C" + rowIndex].Value = data[i].IP;
+                            worksheet.Cells["D" + rowIndex].Value = data[i].DateModified;
+                            worksheet.Cells["E" + rowIndex].Value = data[i].GroupDept;
+                            worksheet.Cells["F" + rowIndex].Value = data[i].UserRole;
+                            worksheet.Cells["G" + rowIndex].Value = data[i].Action;
+
+                            // Center the content in all cells
+                            var dataCells = worksheet.Cells["A" + rowIndex + ":G" + rowIndex];
+                            dataCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        }
+
+                        package.SaveAs(fullPathWithName);
+                    }
+                }
+                else if (Type == "PDF")
+                {
+                    var pdfDocument = new Document();
+                    var pdfWriter = PdfWriter.GetInstance(pdfDocument, new FileStream(pdfFullPath, FileMode.Create));
+                    pdfDocument.Open();
+
+                    // Add a table to the PDF document
+                    var pdfTable = new PdfPTable(7); 
+
+                    // Add table headers
+                    var headers = new string[] { "User ID", "Modified By", "IP Address", "Date Modified", "Group", "Role", "Action" };
+                    foreach (var header in headers)
+                    {
+                        pdfTable.AddCell(new PdfPCell(new Phrase(header))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER,
+                            BackgroundColor = BaseColor.LIGHT_GRAY
+                        });
+                    }
+
+                    // Fetch audit log data
+                    var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                    // Add data to the PDF table
+                    foreach (var logEntry in data)
+                    {
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString()))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.IP))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToShortDateString()))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.GroupDept))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.UserRole))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+                    }
+
+                    // Add the table to the PDF document
+                    pdfDocument.Add(pdfTable);
+
+                    // Close the PDF document
+                    pdfDocument.Close();
+                }
+                else if (Type == "CSV")
+                {
+                    using (var writer = new StreamWriter(csvFullPath))
+                    using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+
+                        // Write header with formatting
+                        csv.WriteField("User ID");
+                        csv.WriteField("Modified By");
+                        csv.WriteField("IP Address");
+                        csv.WriteField("Date Modified");
+                        csv.WriteField("Group");
+                        csv.WriteField("Role");
+                        csv.WriteField("Action");
+                        csv.NextRecord();
+
+                        // Write data with formatting
+                        for (int i = 0; i < data.Count; i++)
+                        {
+                            var rowIndex = i + 2; // Starting from the second row
+
+                            csv.WriteField(data[i].ModifiedBy);
+                            csv.WriteField(data[i].EmployeeName);
+                            csv.WriteField(data[i].IP);
+                            csv.WriteField(data[i].DateModified);
+                            csv.WriteField(data[i].GroupDept);
+                            csv.WriteField(data[i].UserRole);
+                            csv.WriteField(data[i].Action);
+                            csv.NextRecord();
+
+                        }
+                    }
+                }
+                return Json(new { success = true, message = "Downloading Completed." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult DownloadDPUStatus(string Type)
         {
             try
             {
@@ -293,12 +476,38 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+       
         public IActionResult Print(string Type)
         {
             var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
 
             return Json(new { success = true, message = "Printing Completed." });
         }
+
+
+        public IActionResult LoadDPUStatus(DateTime? DateFrom, DateTime? DateTo, string? MachineID, string? BeneficiaryName, string? AccountNumber, string? Status)
+        {
+            List<AuditLogsModel> data = new List<AuditLogsModel>();
+
+            if (DateFrom != null || DateTo != null)
+            {
+                data = global.GetAuditLogs()
+                    .Where(x => x.TableId != 0 &&
+                                (x.DateModified >= DateFrom || x.DateModified <= DateTo) &&
+                                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
+                                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
+                                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
+                                (Status == null || x.Action.ToLower().Contains(Status)))
+                    .ToList();
+            }
+            else
+            {
+                data = global.GetAuditLogs().Where(x => x.TableId != 0).ToList();
+            }
+
+            return Json(new { data });
+        }
+
 
     }
 }

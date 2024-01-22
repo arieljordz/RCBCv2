@@ -49,11 +49,11 @@
             },
             "Dapper": {
               "target": "Package",
-              "version": "[2.1.4, )"
+              "version": "[2.1.28, )"
             },
             "EPPlus": {
               "target": "Package",
-              "version": "[7.0.6, )"
+              "version": "[7.0.7, )"
             },
             "Microsoft.AspNetCore.Mvc.NewtonsoftJson": {
               "target": "Package",
@@ -63,11 +63,11 @@
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[5.2.2, )"
+              "version": "[5.3.3, )"
             },
             "System.Data.SqlClient": {
               "target": "Package",
-              "version": "[4.8.5, )"
+              "version": "[4.8.6, )"
             },
             "System.Web.Helpers.Crypto": {
               "target": "Package",
