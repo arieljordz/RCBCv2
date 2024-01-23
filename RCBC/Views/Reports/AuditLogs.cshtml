@@ -61,6 +61,33 @@
                                             @Html.TextBoxFor(x => x.DateTo, new { @class = "form-control", type = "date" })
                                         </div>
                                     </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-2">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Modified By", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.EmployeeName, new { @class = "form-control" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Group", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.GroupDept, new { @class = "form-control" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Role", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.UserRole, new { @class = "form-control" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Action", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Action, new { @class = "form-control" })
+                                        </div>
+                                    </div>
                                     <div class="col-lg-2 pt-4">
                                         <div class="form-group pt-2">
                                             <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
@@ -68,42 +95,9 @@
                                         </div>
                                     </div>
                                 </div>
+
                             </form>
 
-                            @*
-                            <div class="row">
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Machine ID</label>
-                            <input type="text" class="form-control" id="MachineID">
-                            </div>
-                            </div>
-                            <div class="col-lg-3">
-                            <div class="form-group">
-                            <label>Beneficiary Name</label>
-                            <input type="text" class="form-control" id="BeneficiaryName">
-                            </div>
-                            </div>
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Account Number</label>
-                            <input type="text" class="form-control" id="AccountNumber">
-                            </div>
-                            </div>
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Status</label>
-                            <input type="text" class="form-control" id="Status">
-                            </div>
-                            </div>
-                            <div class="col-lg-2 pt-4">
-                            <div class="form-group pt-2">
-                            <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
-                            <button type="button" id="btnClear" class="btn btn-danger">Clear</button>
-                            </div>
-                            </div>
-                            </div>
-                            *@
                             <div class="row pl-2">
                                 <button type="button" id="btnExcel" class="btn btn-success mr-2"><i class="fas fa-file-excel" style="font-size: x-large;"></i></button>
                                 <button type="button" id="btnPdf" class="btn btn-danger mr-2"><i class="fas fa-file-pdf" style="font-size: x-large;"></i></button>
@@ -232,6 +226,10 @@
 
                 var DateFrom = $("[name='DateFrom']").val();
                 var DateTo = $("[name='DateTo']").val();
+                var EmployeeName = $("[name='EmployeeName']").val();
+                var GroupDept = $("[name='GroupDept']").val();
+                var UserRole = $("[name='UserRole']").val();
+                var Action = $("[name='Action']").val();
 
                 $('#tbl_auditLogs').DataTable({
                     destroy: true,
@@ -246,8 +244,8 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Reports/LoadAuditLogs",
-                        "type": "GET",
-                        "data": { DateFrom: DateFrom, DateTo: DateTo },
+                        "type": "POST",
+                        "data": { DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Action: Action },
                         "datatype": "JSON",
                     },
                     columns:

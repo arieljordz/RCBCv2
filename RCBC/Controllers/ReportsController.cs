@@ -121,16 +121,19 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo)
+        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Action)
         {
             List<AuditLogsModel> data = new List<AuditLogsModel>();
 
             if (DateFrom != null || DateTo != null)
             {
                 data = global.GetAuditLogs()
-                    .Where(x => (DateFrom == null || x.DateModified.Date >= DateFrom.Value.Date) &&
-                                (DateTo == null || x.DateModified.Date <= DateTo.Value.Date))
-                    .ToList();
+               .Where(x => x.DateModified.Date >= DateFrom.Value.Date && x.DateModified.Date <= DateTo.Value.Date &&
+                           (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName)) &&
+                           (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept)) &&
+                           (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
+                           (Action == null || x.Action.ToLower().Contains(Action)))
+               .ToList();
             }
             else
             {
