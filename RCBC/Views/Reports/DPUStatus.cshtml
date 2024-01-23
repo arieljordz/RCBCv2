@@ -39,11 +39,13 @@
                             <h3 class="card-title"><i class="fa fa-user pr-2"></i>DPU Status Inquiry</h3>
                         </div>
 
-                        @Html.HiddenFor(x => x.Id)
+
 
                         <div class="card-body">
 
-                            <form id="frmSearchDPU" novalidate="novalidate">
+                            <form id="frmSearchDPU" class="p-2" novalidate="novalidate">
+
+                                @Html.HiddenFor(x => x.Id)
 
                                 <div class="row">
                                     <div class="col-lg-2">
@@ -154,7 +156,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Reports/LoadDPUStatus",
-                        "type": "GET",
+                        "type": "POST",
                         "data": { DateFrom: DateFrom, DateTo: DateTo, MachineID: MachineID, BeneficiaryName: BeneficiaryName, AccountNumber: AccountNumber, Status: Status },
                         "datatype": "JSON",
                     },

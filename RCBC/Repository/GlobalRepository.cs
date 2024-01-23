@@ -608,14 +608,12 @@ namespace RCBC.Repository
                                 "</style>" +
                                 "</head>" +
                                 "<body>" +
-                                "<p>Hi "+ username + "<br>" +
+                                "<p>Good Day!<br>" +
                                 "<br>" +
-                                "Please refer below for your temporary password to access the DPU Tellerless Portal<br>" +
-                                "<font color=red>" + password + "</font><br>" +
-                                "Ypu will be asked to change your password upon initial login.<br>" +
+                                "Username: " + username + "<br>" +
+                                "New Password: <font color=red>" + password + "</font> <br>" +
                                 "<br>" +
-                                "Regards,<br>" +
-                                "DPU System Administrator"+
+                                "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
                                 "</p>" +
                                 "</body>";
 

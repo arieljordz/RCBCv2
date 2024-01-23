@@ -46,64 +46,54 @@
                         @Html.HiddenFor(x => x.TableId)
 
                         <div class="card-body">
-
-                            <form id="frmSearchAudit" novalidate="novalidate">
-                                <div class="row">
-                                    <div class="col-lg-2">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Date From", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.DateFrom, new { @class = "form-control", type = "date" })
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-2">
-                                        <div class="form-group">
-                                            @Html.LabelForModel("Date To", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.DateTo, new { @class = "form-control", type = "date" })
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-2 pt-4">
-                                        <div class="form-group pt-2">
-                                            <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
-                                            <button type="button" id="btnClear" class="btn btn-danger">Clear</button>
-                                        </div>
+@* 
+                            <div class="row">
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Date From</label>
+                                        <input type="date" class="form-control" id="DateFrom">
                                     </div>
                                 </div>
-                            </form>
-
-                            @*
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Date To</label>
+                                        <input type="date" class="form-control" id="DateTo">
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row">
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Machine ID</label>
-                            <input type="text" class="form-control" id="MachineID">
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Machine ID</label>
+                                        <input type="text" class="form-control" id="MachineID">
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="form-group">
+                                        <label>Beneficiary Name</label>
+                                        <input type="text" class="form-control" id="BeneficiaryName">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Account Number</label>
+                                        <input type="text" class="form-control" id="AccountNumber">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <input type="text" class="form-control" id="Status">
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 pt-4">
+                                    <div class="form-group pt-2">
+                                        <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
+                                        <button type="button" id="btnClear" class="btn btn-danger">Clear</button>
+                                    </div>
+                                </div>
                             </div>
-                            </div>
-                            <div class="col-lg-3">
-                            <div class="form-group">
-                            <label>Beneficiary Name</label>
-                            <input type="text" class="form-control" id="BeneficiaryName">
-                            </div>
-                            </div>
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Account Number</label>
-                            <input type="text" class="form-control" id="AccountNumber">
-                            </div>
-                            </div>
-                            <div class="col-lg-2">
-                            <div class="form-group">
-                            <label>Status</label>
-                            <input type="text" class="form-control" id="Status">
-                            </div>
-                            </div>
-                            <div class="col-lg-2 pt-4">
-                            <div class="form-group pt-2">
-                            <button type="button" id="btnSearch" class="btn btn-primary mr-2"><i class="fa fa-search"></i>Search</button>
-                            <button type="button" id="btnClear" class="btn btn-danger">Clear</button>
-                            </div>
-                            </div>
-                            </div>
-                            *@
+ *@
                             <div class="row pl-2">
                                 <button type="button" id="btnExcel" class="btn btn-success mr-2"><i class="fas fa-file-excel" style="font-size: x-large;"></i></button>
                                 <button type="button" id="btnPdf" class="btn btn-danger mr-2"><i class="fas fa-file-pdf" style="font-size: x-large;"></i></button>
@@ -156,69 +146,43 @@
 
         </div>
     </div>
-    @*
+@* 
     <div id="modal_data" class="modal fade" role="dialog" data-backdrop="static">
-    <div class="modal-dialog modal-md pt-5">
-
-    <div class="modal-content">
-    <div class="modal-header bg-light-blue">
-    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Information</h4>
-    <button type="button" class="close" data-dismiss="modal">×</button>
-    </div>
-
-    <div class="p-3">
-
-    <div class="row pb-3 pt-3">
-    <div class="col-md-12">
-    <div class="form-group">
-    @Html.LabelForModel("Previous Data", new { @class = "label-control" })
-    <textarea class="form-control" id="previous_textarea" readonly="readonly" style="height: 100px"></textarea>
-    </div>
-    </div>
-    </div>
-    <div class="row pb-3 pt-3">
-    <div class="col-md-12">
-    <div class="form-group">
-    @Html.LabelForModel("New Data", new { @class = "label-control" })
-    <textarea class="form-control" id="new_textarea" readonly="readonly" style="height: 100px"></textarea>
-    </div>
-    </div>
-    </div>
-
-    <div class="d-flex justify-content-end">
-    <button type="button" id="btnCancel" class="btn btn-danger">Cancel</button>
-    </div>
-    </div>
-    </div>
-
-    </div>
-    </div> *@
-
-    <div id="modal_print" class="modal fade" role="dialog" data-backdrop="static">
         <div class="modal-dialog modal-md pt-5">
 
             <div class="modal-content">
                 <div class="modal-header bg-light-blue">
-                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Preview Data</h4>
+                    <h4 class="modal-title" id="modal_name"><i class="fa fa-address-book-o pr-2"></i>Information</h4>
                     <button type="button" class="close" data-dismiss="modal">×</button>
                 </div>
 
                 <div class="p-3">
 
                     <div class="row pb-3 pt-3">
-                        <div id="previewContainer">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @Html.LabelForModel("Previous Data", new { @class = "label-control" })
+                                <textarea class="form-control" id="previous_textarea" readonly="readonly" style="height: 100px"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row pb-3 pt-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                @Html.LabelForModel("New Data", new { @class = "label-control" })
+                                <textarea class="form-control" id="new_textarea" readonly="readonly" style="height: 100px"></textarea>
+                            </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end">
-                        <button type="button" id="btnPrintNow" class="btn btn-primary">Print</button>
-                        <button type="button" id="btnCancelP" class="btn btn-danger ml-2">Cancel</button>
+                        <button type="button" id="btnCancel" class="btn btn-danger">Cancel</button>
                     </div>
                 </div>
             </div>
 
         </div>
-    </div>
+    </div> *@
 
 </div>
 <!-- /.content-wrapper -->
@@ -229,10 +193,6 @@
 
             LoadAuditLogs();
             function LoadAuditLogs() {
-
-                var DateFrom = $("[name='DateFrom']").val();
-                var DateTo = $("[name='DateTo']").val();
-
                 $('#tbl_auditLogs').DataTable({
                     destroy: true,
                     responsive: true,
@@ -240,14 +200,13 @@
                     search: true,
                     stateSave: true,
                     info: true,
-                    searching: false,
+                    searching: true,
                     paging: true,
                     order: [[1, "asc"], [2, "asc"]],
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Reports/LoadAuditLogs",
                         "type": "GET",
-                        "data": { DateFrom: DateFrom, DateTo: DateTo },
                         "datatype": "JSON",
                     },
                     columns:
@@ -255,7 +214,7 @@
                             // { "data": "module", title: "Module", sClass: "text-center", orderable: false },
                             // { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false },
                             // { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false },
-
+                          
                             { "data": "modifiedBy", title: "User ID", sClass: "text-center", orderable: false },
                             { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
                             { "data": "ip", title: "IP Address", sClass: "text-center", orderable: false },
@@ -375,6 +334,7 @@
                 $("#modal_client_changes").modal("hide");
             });
 
+
             function DownloadAuditLogs(Type) {
                 $('#loading-image').show();
                 $.ajax({
@@ -417,63 +377,6 @@
                 window.print();
             });
 
-            // $("#btnPrint").click(function (e) {
-            //     e.preventDefault();
-            //     $('#loading-image').show();
-
-            //     $.ajax({
-            //         url: "../Reports/PrintAuditLogs",
-            //         data: { Type: "Print" },
-            //         type: "GET",
-            //         dataType: "html",
-            //         success: function (res) {
-            //             $('#previewContainer').html(res);
-
-            //             $("#modal_print").modal("show");
-
-            //             $("#modal_print").on("hidden.bs.modal", function () {
-            //             });
-
-            //             $('#loading-image').hide();
-            //         },
-            //         error: function (jqXHR, textStatus, errorThrown) {
-            //             console.log("Error in downloading data. Status: " + textStatus + ", Error: " + errorThrown);
-
-            //             $('#loading-image').hide();
-            //         }
-            //     });
-            // });
-
-            // $("#btnPrintNow").click(function (e) {
-            //     e.preventDefault();
-            //     window.print();
-            // });
-
-            // $("#btnCancelP").click(function () {
-            //     $("#modal_print").modal("hide");
-            // });
-
-            $("#btnSearch").click(function (e) {
-                e.preventDefault();
-
-                var DateFrom = $("[name='DateFrom']").val();
-                var DateTo = $("[name='DateTo']").val();
-
-                if (DateFrom != "" && DateTo != "") {
-                    $('#loading-image').show();
-
-                    LoadAuditLogs();
-
-                    $('#loading-image').hide();
-                } else {
-                    Swal.fire('Warming!', 'Select Date Range first.', 'warning');
-                }
-            });
-
-            $("#btnClear").click(function (e) {
-                e.preventDefault();
-                $("#frmSearchAudit").trigger("reset");
-            });
 
         });
 
