@@ -78,8 +78,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcQ3JlYXRlTmV3VXNlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/EmailTemplate.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcRW1haWxUZW1wbGF0ZS5jc2h0bWw=
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/EmailType.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcRW1haWxUeXBlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/ForgotPassword.cshtml]
@@ -96,6 +96,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/ResetPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcUmVzZXRQYXNzd29yZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/SMSType.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTWFpbnRlbmFuY2VcU01TVHlwZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/MY PROJECTS NEW/RCBCv2/RCBC/Views/Maintenance/UserAccess.cshtml]

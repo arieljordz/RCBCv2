@@ -19,5 +19,8 @@
         public DateTime DateModified { get; set; }
         public string? IP { get; set; }
         public string? EmployeeName { get; set; }
+
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
     }
 }
