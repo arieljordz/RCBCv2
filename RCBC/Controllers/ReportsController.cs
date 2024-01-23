@@ -16,6 +16,9 @@ using System.IO;
 using System.Drawing;
 using RCBC.Models;
 using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Net.NetworkInformation;
+using System.Reflection.PortableExecutable;
 
 namespace RCBC.Controllers
 {
@@ -118,12 +121,25 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult LoadAuditLogs()
+        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo)
         {
-            var data = global.GetAuditLogs().OrderBy(x => x.Id).ToList();
+            List<AuditLogsModel> data = new List<AuditLogsModel>();
+
+            if (DateFrom != null || DateTo != null)
+            {
+                data = global.GetAuditLogs()
+                    .Where(x => (DateFrom == null || x.DateModified.Date >= DateFrom.Value.Date) &&
+                                (DateTo == null || x.DateModified.Date <= DateTo.Value.Date))
+                    .ToList();
+            }
+            else
+            {
+                data = global.GetAuditLogs().OrderBy(x => x.Id).ToList();
+            }
 
             return Json(new { data });
         }
+
 
         public IActionResult DownloadAuditLogs(string Type)
         {
@@ -153,7 +169,7 @@ namespace RCBC.Controllers
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Sheet1");
 
-                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+                        var data = global.GetAuditLogs().ToList();
 
                         var headerCells = worksheet.Cells["A1:G1"];
                         headerCells.Style.Font.Bold = true;
@@ -203,7 +219,7 @@ namespace RCBC.Controllers
                     pdfDocument.Open();
 
                     // Add a table to the PDF document
-                    var pdfTable = new PdfPTable(7); 
+                    var pdfTable = new PdfPTable(7);
 
                     // Add table headers
                     var headers = new string[] { "User ID", "Modified By", "IP Address", "Date Modified", "Group", "Role", "Action" };
@@ -217,7 +233,7 @@ namespace RCBC.Controllers
                     }
 
                     // Fetch audit log data
-                    var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+                    var data = global.GetAuditLogs().ToList();
 
                     // Add data to the PDF table
                     foreach (var logEntry in data)
@@ -269,7 +285,7 @@ namespace RCBC.Controllers
                     using (var writer = new StreamWriter(csvFullPath))
                     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
+                        var data = global.GetAuditLogs().ToList();
 
                         // Write header with formatting
                         csv.WriteField("User ID");
@@ -476,12 +492,13 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-       
-        public IActionResult Print(string Type)
-        {
-            var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
 
-            return Json(new { success = true, message = "Printing Completed." });
+        public IActionResult PrintAuditLogs(string Type)
+        {
+            var data = global.GetAuditLogs().ToList();
+
+            return PartialView("~/Views/Shared/_PreviewAuditLogs.cshtml", data);
+
         }
 
 
@@ -492,13 +509,14 @@ namespace RCBC.Controllers
             if (DateFrom != null || DateTo != null)
             {
                 data = global.GetAuditLogs()
-                    .Where(x => x.TableId != 0 &&
-                                (x.DateModified >= DateFrom || x.DateModified <= DateTo) &&
-                                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
-                                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
-                                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
-                                (Status == null || x.Action.ToLower().Contains(Status)))
-                    .ToList();
+                .Where(x => x.TableId != 0 &&
+                            x.DateModified.Date >= DateFrom.Value.Date && x.DateModified.Date <= DateTo.Value.Date &&
+                            (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
+                            (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
+                            (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
+                            (Status == null || x.Action.ToLower().Contains(Status)))
+                .ToList();
+
             }
             else
             {
