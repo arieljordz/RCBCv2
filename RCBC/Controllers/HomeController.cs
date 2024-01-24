@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using System.Text;
 using System.Transactions;
 using System;
+using iTextSharp.text.pdf.qrcode;
 
 namespace RCBC.Controllers
 {
@@ -135,6 +136,11 @@ namespace RCBC.Controllers
         }
 
         public IActionResult LogoutAccount()
+        {
+            return View();
+        }
+
+        public IActionResult ForgotPassword()
         {
             return View();
         }
@@ -456,39 +462,11 @@ namespace RCBC.Controllers
 
         public IActionResult SendResetPasswordLink(string UserID)
         {
-            string bodyMsg = "<head>" +
-                             "<style>" +
-                             "body{" +
-                                 "font-family: calibri;" +
-                                 "}" +
-                              "</style>" +
-                             "</head>" +
-                             "<body>" +
-                                 "<p>Good Day!<br>" +
-                                  "<br>" +
-                                  "User ID: " + UserID + "<br>" +
-                                  "Link: <a href='http://www.example.com'>Reset Password here</a> <br>" +
-                                  "<br>" +
-                                  "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font>" +
-                                  "</p>" +
-                               "</body>";
-
-            MailMessage mailMessage = new MailMessage();
-            mailMessage.From = new MailAddress("arlene@yuna.somee.com");
-            mailMessage.To.Add("arlene.lunar11@gmail.com");
-            mailMessage.Subject = "Subject";
-            mailMessage.Body = bodyMsg;
-            mailMessage.IsBodyHtml = true;
-
-            SmtpClient smtpClient = new SmtpClient();
-            smtpClient.Host = "smtp.yuna.somee.com";
-            smtpClient.Port = 26;
-            smtpClient.UseDefaultCredentials = false;
-            smtpClient.Credentials = new NetworkCredential("arlene@yuna.somee.com", "12345678");
-            smtpClient.EnableSsl = false;
-            smtpClient.Send(mailMessage);
-
-            Trace.WriteLine("Email Sent Successfully.");
+            var user = global.GetUserInformation().Where(x => x.Username == UserID).FirstOrDefault();
+            if (user != null)
+            {
+                bool IsSuccess = global.SendEmail("", user.EmployeeName, user.Email, "reset");
+            }
 
             return RedirectToAction("Logout", "Home");
         }
@@ -526,7 +504,7 @@ namespace RCBC.Controllers
                         string password = finalString + Salt;
                         string HashPassword = Crypto.HashPassword(password);
 
-                        bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email);
+                        bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email, "create");
 
                         using (var con = new SqlConnection(GetConnectionString()))
                         {

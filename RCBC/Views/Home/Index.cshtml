@@ -19,7 +19,7 @@
                     <button type="button" class="btn btn-primary btn-md col-md-12" id="btnLogin">Login</button>
                 </div>
                 <div class="d-flex justify-content-center">
-                    <a class="text-danger" href="@Url.Action("ForgotPassword", "Maintenance")">Forgot password?</a>
+                    <label class="text-danger lbl-forgot" id="btnForgotPassword">Forgot password?</label>
                 </div>
 
                 <div class="row pt-3" id="div_reseter" style="display: none;">
@@ -84,6 +84,11 @@
                     e.preventDefault();
                     Login();
                 }
+            });
+
+            $("#btnForgotPassword").click(function (e) {
+                e.preventDefault();
+                window.location.href = "/Home/ForgotPassword";
             });
 
             $("#btnSaveTimeout").click(function (e) {

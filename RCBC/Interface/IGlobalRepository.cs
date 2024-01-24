@@ -55,7 +55,7 @@ namespace RCBC.Interface
 
         public DashboardModel GetDashboardDetails(string GroupDescription, string UserRole);
 
-        public bool SendEmail(string password, string username, string email);
+        public bool SendEmail(string password, string username, string email, string type);
 
         public void UpdateLoginAttempt(LoginAttemptModel model);
     }

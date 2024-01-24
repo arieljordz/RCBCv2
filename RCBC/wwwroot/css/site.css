@@ -85,3 +85,9 @@ body {
 .modal-lg {
     max-width: 1140px;
 }
+
+
+.lbl-forgot:hover {
+    cursor: pointer !important;
+    color: #085db9 !important;
+}

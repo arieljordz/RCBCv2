@@ -596,28 +596,53 @@ namespace RCBC.Repository
             }
         }
 
-        public bool SendEmail(string password, string username, string email)
+        public bool SendEmail(string password, string username, string email, string type)
         {
             try
             {
-                string bodyMsg = "<head>" +
-                                "<style>" +
-                                "body{" +
-                                "font-family: calibri;" +
-                                "}" +
-                                "</style>" +
-                                "</head>" +
-                                "<body>" +
-                                "<p>Hi " + username + "<br>" +
-                                "<br>" +
-                                "Please refer below for your temporary password to access the DPU Tellerless Portal<br>" +
-                                "<font color=red>" + password + "</font><br>" +
-                                "Ypu will be asked to change your password upon initial login.<br>" +
-                                "<br>" +
-                                "Regards,<br>" +
-                                "DPU System Administrator" +
-                                "</p>" +
-                                "</body>";
+                string bodyMsg = "";
+
+                if (type == "create")
+                {
+                    bodyMsg = "<head>" +
+                              "<style>" +
+                              "body{" +
+                              "font-family: calibri;" +
+                              "}" +
+                              "</style>" +
+                              "</head>" +
+                              "<body>" +
+                              "<p>Hi " + username + "<br>" +
+                              "<br>" +
+                              "Please refer below for your temporary password to access the DPU Tellerless Portal<br>" +
+                              "<font color=red>" + password + "</font><br>" +
+                              "Ypu will be asked to change your password upon initial login.<br>" +
+                              "<br>" +
+                              "Regards,<br>" +
+                              "DPU System Administrator" +
+                              "</p>" +
+                              "</body>";
+                }
+                else if (type == "reset")
+                {
+                    bodyMsg = "<head>" +
+                              "<style>" +
+                              "body{" +
+                              "font-family: calibri;" +
+                              "}" +
+                              "</style>" +
+                              "</head>" +
+                              "<body>" +
+                              "<p>Hi " + username + "<br>" +
+                              "<br>" +
+                              "Please reset your password here: <a href='http://www.example.com'>Reset Password here</a><br>" +
+                              "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font><br>" +
+                              "<br>" +
+                              "Regards,<br>" +
+                              "DPU System Administrator" +
+                              "</p>" +
+                              "</body>";
+                }
 
                 MailMessage mailMessage = new MailMessage();
                 mailMessage.From = new MailAddress("arlene@yuna.somee.com");
