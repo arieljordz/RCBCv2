@@ -269,6 +269,8 @@ namespace RCBC.Controllers
         [HttpGet("/ResetCookies")]
         public IActionResult ResetCookies()
         {
+            bool Islogged = false;
+
             if (Convert.ToInt32(Request.Cookies["UserId"]) != 0)
             {
                 var parameters = new UserStatusModel
@@ -287,9 +289,9 @@ namespace RCBC.Controllers
                     Secure = true,
                     HttpOnly = true
                 };
+                Islogged = true;
             }
-
-            return Ok();
+            return Ok(Islogged);
         }
 
         [HttpGet("/GetTimeout")]

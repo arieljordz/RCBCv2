@@ -616,7 +616,7 @@ namespace RCBC.Repository
                               "<br>" +
                               "Please refer below for your temporary password to access the DPU Tellerless Portal<br>" +
                               "<font color=red>" + password + "</font><br>" +
-                              "Ypu will be asked to change your password upon initial login.<br>" +
+                              "You will be asked to change your password upon initial login.<br>" +
                               "<br>" +
                               "Regards,<br>" +
                               "DPU System Administrator" +
