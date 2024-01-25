@@ -125,20 +125,15 @@ namespace RCBC.Controllers
         {
             List<AuditLogsModel> data = new List<AuditLogsModel>();
 
-            if (DateFrom != null || DateTo != null)
-            {
-                data = global.GetAuditLogs()
-               .Where(x => x.DateModified.Date >= DateFrom.Value.Date && x.DateModified.Date <= DateTo.Value.Date &&
-                           (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName)) &&
-                           (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept)) &&
-                           (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
-                           (Action == null || x.Action.ToLower().Contains(Action)))
-               .ToList();
-            }
-            else
-            {
-                data = global.GetAuditLogs().OrderBy(x => x.Id).ToList();
-            }
+            data = global.GetAuditLogs()
+            .Where(x =>
+                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
+                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
+                (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName)) &&
+                (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept)) &&
+                (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
+                (Action == null || x.Action.ToLower().Contains(Action)))
+            .ToList();
 
             return Json(new { data });
         }
@@ -509,22 +504,15 @@ namespace RCBC.Controllers
         {
             List<AuditLogsModel> data = new List<AuditLogsModel>();
 
-            if (DateFrom != null || DateTo != null)
-            {
-                data = global.GetAuditLogs()
-                .Where(x => x.TableId != 0 &&
-                            x.DateModified.Date >= DateFrom.Value.Date && x.DateModified.Date <= DateTo.Value.Date &&
-                            (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
-                            (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
-                            (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
-                            (Status == null || x.Action.ToLower().Contains(Status)))
-                .ToList();
-
-            }
-            else
-            {
-                data = global.GetAuditLogs().Where(x => x.TableId != 0).ToList();
-            }
+            data = global.GetAuditLogs()
+            .Where(x =>
+                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
+                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
+                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
+                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
+                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
+                (Status == null || x.Action.ToLower().Contains(Status)))
+            .ToList();
 
             return Json(new { data });
         }

@@ -454,18 +454,23 @@
             $("#btnSearch").click(function (e) {
                 e.preventDefault();
 
-                var DateFrom = $("[name='DateFrom']").val();
-                var DateTo = $("[name='DateTo']").val();
+                // var DateFrom = $("[name='DateFrom']").val();
+                // var DateTo = $("[name='DateTo']").val();
 
-                if (DateFrom != "" && DateTo != "") {
-                    $('#loading-image').show();
+                // if (DateFrom != "" && DateTo != "") {
+                //     $('#loading-image').show();
 
-                    LoadAuditLogs();
+                //     LoadAuditLogs();
 
-                    $('#loading-image').hide();
-                } else {
-                    Swal.fire('Warming!', 'Select Date Range first.', 'warning');
-                }
+                //     $('#loading-image').hide();
+                // } else {
+                //     Swal.fire('Warming!', 'Select Date Range first.', 'warning');
+                // }
+                $('#loading-image').show();
+
+                LoadAuditLogs();
+
+                $('#loading-image').hide();
             });
 
             $("#btnClear").click(function (e) {

@@ -114,8 +114,11 @@ function resetIdleTimeout() {
 }
 
 function sessionTimeout() {
-    $.get('/ResetCookies', function (response) { });
-    $("#modal_signout").modal("show");
+    $.get('/ResetCookies', function (res) {
+        if (res) {
+            $("#modal_signout").modal("show");
+        }
+    });
 }
 
 $(document).on('click keypress', resetIdleTimeout);
