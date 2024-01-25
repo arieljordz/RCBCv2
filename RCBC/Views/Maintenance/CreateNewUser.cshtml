@@ -45,7 +45,7 @@
                                     <div class="col-md-4">
                                         <div class="form-group">
                                             @Html.LabelForModel("Username", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username" })
+                                            @Html.TextBoxFor(x => x.Username, new { @class = "form-control", placeholder = "Username", maxlength = "50" })
                                             @Html.ValidationMessageFor(x => x.Username)
                                             <span id="string_validation" style="font-size: small;"></span>
                                         </div>
