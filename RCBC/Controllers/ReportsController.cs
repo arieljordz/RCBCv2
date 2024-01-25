@@ -156,6 +156,7 @@ namespace RCBC.Controllers
                 var excelFullPath = Path.Combine(downloadsFolderPath, excelFileName);
                 var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
+                var DLFullPath = string.Empty;
 
                 if (Type == "EXCEL")
                 {
@@ -208,6 +209,8 @@ namespace RCBC.Controllers
                         }
 
                         package.SaveAs(fullPathWithName);
+
+                        DLFullPath = excelFullPath;
                     }
                 }
                 else if (Type == "PDF")
@@ -277,6 +280,9 @@ namespace RCBC.Controllers
 
                     // Close the PDF document
                     pdfDocument.Close();
+
+                    DLFullPath = pdfFullPath;
+
                 }
                 else if (Type == "CSV")
                 {
@@ -311,8 +317,11 @@ namespace RCBC.Controllers
 
                         }
                     }
+
+                    DLFullPath = csvFullPath;
+
                 }
-                return Json(new { success = true, message = "Downloading Completed." });
+                return Json(new { success = true, message = $"Downloading Completed.\n File Path: {DLFullPath}" });
             }
             catch (Exception ex)
             {
@@ -337,6 +346,7 @@ namespace RCBC.Controllers
                 var excelFullPath = Path.Combine(downloadsFolderPath, excelFileName);
                 var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
+                var DLFullPath = string.Empty;
 
                 if (Type == "EXCEL")
                 {
@@ -387,6 +397,9 @@ namespace RCBC.Controllers
 
                         package.SaveAs(fullPathWithName);
                     }
+
+                    DLFullPath = excelFullPath;
+
                 }
                 else if (Type == "PDF")
                 {
@@ -450,6 +463,9 @@ namespace RCBC.Controllers
 
                     // Close the PDF document
                     pdfDocument.Close();
+
+                    DLFullPath = pdfFullPath;
+
                 }
                 else if (Type == "CSV")
                 {
@@ -482,8 +498,11 @@ namespace RCBC.Controllers
 
                         }
                     }
+
+                    DLFullPath = csvFullPath;
+
                 }
-                return Json(new { success = true, message = "Downloading Completed." });
+                return Json(new { success = true, message = $"Downloading Completed.\n File Path: {DLFullPath}" });
             }
             catch (Exception ex)
             {
