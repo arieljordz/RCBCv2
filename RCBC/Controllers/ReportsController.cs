@@ -129,10 +129,10 @@ namespace RCBC.Controllers
             .Where(x =>
                 (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
                 (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
-                (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName)) &&
-                (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept)) &&
+                (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName.ToLower())) &&
+                (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept.ToLower())) &&
                 (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
-                (Action == null || x.Action.ToLower().Contains(Action)))
+                (Action == null || x.Action.ToLower().Contains(Action.ToLower())))
             .ToList();
 
             return Json(new { data });
@@ -527,10 +527,10 @@ namespace RCBC.Controllers
             .Where(x =>
                 (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
                 (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
-                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID)) &&
-                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName)) &&
-                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber)) &&
-                (Status == null || x.Action.ToLower().Contains(Status)))
+                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID.ToLower())) &&
+                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName.ToLower())) &&
+                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber.ToLower())) &&
+                (Status == null || x.Action.ToLower().Contains(Status.ToLower())))
             .ToList();
 
             return Json(new { data });
