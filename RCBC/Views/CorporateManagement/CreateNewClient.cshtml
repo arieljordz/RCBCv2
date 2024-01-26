@@ -98,14 +98,14 @@
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             @Html.LabelForModel("Email", new { @class = "label-control" })
-                                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                                            @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email", type = "email" })
                                                             @Html.ValidationMessageFor(x => x.Email)
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
                                                             @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
-                                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                                            @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control mask-mobile", placeholder = "MobileNumber" })
                                                             @Html.ValidationMessageFor(x => x.MobileNumber)
                                                         </div>
                                                     </div>
@@ -340,7 +340,7 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
 

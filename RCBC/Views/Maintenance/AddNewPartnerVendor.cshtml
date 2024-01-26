@@ -77,7 +77,7 @@
                                         <div class="col-12">
                                             <div class="form-group">
                                                 @Html.LabelForModel("Email", new { @class = "label-control" })
-                                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email" })
+                                                @Html.TextBoxFor(x => x.Email, new { @class = "form-control", placeholder = "Email", type = "email" })
                                                 @Html.ValidationMessageFor(x => x.Email)
                                             </div>
                                         </div>

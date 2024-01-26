@@ -129,7 +129,6 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-
         public IActionResult CreateNewRole()
         {
             return LoadViews();
@@ -174,8 +173,17 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+        public IActionResult EmailApproval()
+        {
+            return LoadViews();
+        }
 
         public IActionResult SMSType()
+        {
+            return LoadViews();
+        }
+
+        public IActionResult SMSApproval()
         {
             return LoadViews();
         }
@@ -402,6 +410,21 @@ namespace RCBC.Controllers
                                                         isActive = false;
                                                     }
                                                 }
+                                            }
+                                            else
+                                            {
+
+                                                var insertParameters = new
+                                                {
+                                                    UserId = model.Id,
+                                                    RoleId = Roles?.Id ?? 0,
+                                                    ModuleId = Modules?.ModuleId ?? 0,
+                                                    SubModuleId = SubModuleId,
+                                                    ChildModuleId = item.ChildModuleId,
+                                                    Active = isExistsChild == true ? false : (bool?)null
+                                                };
+
+                                                con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                             }
                                         }
 

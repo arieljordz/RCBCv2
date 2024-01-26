@@ -84,5 +84,10 @@ namespace RCBC.Controllers
         {
             return LoadViews();
         }
+
+        public IActionResult ParametersApproval()
+        {
+            return LoadViews();
+        }
     }
 }

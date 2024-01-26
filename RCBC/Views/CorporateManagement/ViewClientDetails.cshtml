@@ -115,7 +115,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @Html.LabelForModel("Mobile Number", new { @class = "label-control" })
-                                    @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control", placeholder = "MobileNumber" })
+                                    @Html.TextBoxFor(x => x.MobileNumber, new { @class = "form-control mask-mobile", placeholder = "MobileNumber" })
                                     @Html.ValidationMessageFor(x => x.MobileNumber)
                                 </div>
                             </div>
