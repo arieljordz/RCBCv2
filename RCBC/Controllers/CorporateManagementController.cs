@@ -220,7 +220,6 @@ namespace RCBC.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
         public IActionResult RemoveCorporateClient(int Id)
         {
             try
@@ -233,14 +232,11 @@ namespace RCBC.Controllers
                     {
                         try
                         {
-                            string corp = "DELETE FROM [RCBC].[dbo].[CorporateClient] WHERE Id = @Id";
-                            con.Execute(corp, new { Id }, transaction);
+                            con.Execute("sp_deleteCorporateClient", new { Id }, transaction, commandType: CommandType.StoredProcedure);
 
-                            string acc = "DELETE FROM [RCBC].[dbo].[Accounts] WHERE CorporateClientId = @Id";
-                            con.Execute(acc, new { Id }, transaction);
+                            con.Execute("sp_deleteAccountCorporateClient", new { Id }, transaction, commandType: CommandType.StoredProcedure);
 
-                            string cont = "DELETE FROM [RCBC].[dbo].[Contacts] WHERE CorporateClientId = @Id";
-                            con.Execute(cont, new { Id }, transaction);
+                            con.Execute("sp_deleteContactCorporateClient", new { Id }, transaction, commandType: CommandType.StoredProcedure);
 
                             transaction.Commit();
 
