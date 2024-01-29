@@ -125,6 +125,7 @@
 
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary float-right">Approved</button>
+                            <button type="button" class="btn btn-secondary ml-3 float-right" id="btnReject">Reject</button>
                             <button type="button" class="btn btn-danger ml-3 float-right" id="btnCancel">Cancel</button>
                         </div>
 
@@ -211,6 +212,9 @@
                                 "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
                                     if (data == true) {
                                         return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else if (data == false) {
+                                        return '<span class="badge bg-secondary">Rejected</span>'
                                     }
                                     else {
                                         return '<span class="badge bg-danger">For Approval</span>'
@@ -407,8 +411,8 @@
                     url: '@Url.Action("SavePartnerVendor", "Maintenance")',
                     data: formData,
                     success: function (response) {
+                        $('#loading-image').hide();
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("[name='Id']").val(0);
                             $("#form_partner").trigger("reset");
@@ -439,6 +443,45 @@
             $("#btnCancelChanges").click(function (e) {
                 e.preventDefault();
                 $("#modal_client_changes").modal("hide");
+            });
+
+            $("#btnReject").click(function (e) {
+                e.preventDefault();
+
+                if ($("[name='Id']").val() != 0) {
+                    Swal.fire({
+                        text: "Are you sure you want to reject this record?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#28a745',
+                        cancelButtonColor: '#dc3545',
+                        confirmButtonText: 'Yes, reject it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('#loading-image').show();
+                            $.ajax({
+                                url: '../Maintenance/UpdateApproval',
+                                data: { Id: $("[name='Id']").val(), tableName: 'partner', status: false },
+                                type: 'POST',
+                                success: function (res) {
+                                    $('#loading-image').hide();
+                                    if (res.success == true) {
+                                        Swal.fire('Success!', 'Record has been rejected.', 'success');
+                                        $("#form_partner").trigger("reset");
+                                        $("[name='Id']").val(0);
+                                        $("#modal_view_vendor").modal("hide")
+                                        LoadPartnerVendors();
+                                    } else {
+                                        Swal.fire('Error!', res.msg, 'error');
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    Swal.fire('Information!', 'Please select a record first.', 'info');
+                }
             });
 
         });

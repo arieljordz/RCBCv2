@@ -153,10 +153,10 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
-        
+
             LoadClientDetails();
             function LoadClientDetails() {
                 $('#tbl_client_details').DataTable({
@@ -198,6 +198,9 @@
                                 "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
                                     if (data == true) {
                                         return '<span class="badge bg-success">Approved</span>'
+                                    }
+                                    else if (data == false) {
+                                        return '<span class="badge bg-secondary">Rejected</span>'
                                     }
                                     else {
                                         return '<span class="badge bg-danger">For Approval</span>'

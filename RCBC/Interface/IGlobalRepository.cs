@@ -58,5 +58,6 @@ namespace RCBC.Interface
         public bool SendEmail(string password, string username, string email, string type);
 
         public void UpdateLoginAttempt(LoginAttemptModel model);
+
     }
 }

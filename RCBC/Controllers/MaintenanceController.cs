@@ -1628,6 +1628,28 @@ namespace RCBC.Controllers
             }
         }
 
+        public IActionResult UpdateApproval(int Id, string tableName, bool? status)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        Id = Id,
+                        tableName = tableName,
+                        status = status,
+                    };
+                    con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure);
+                }
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
     } //end
 
 }
