@@ -169,7 +169,7 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
 
@@ -450,32 +450,41 @@
 
                 if ($("[name='Id']").val() != 0) {
                     Swal.fire({
-                        text: "Are you sure you want to reject this record?",
+                        title: 'Reject Record',
+                        text: 'Are you sure you want to reject this record?',
                         icon: 'warning',
+                        input: 'text',
+                        inputPlaceholder: 'Enter reason for rejection',
                         showCancelButton: true,
                         confirmButtonColor: '#28a745',
                         cancelButtonColor: '#dc3545',
                         confirmButtonText: 'Yes, reject it!'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $('#loading-image').show();
-                            $.ajax({
-                                url: '../Maintenance/UpdateApproval',
-                                data: { Id: $("[name='Id']").val(), tableName: 'partner', status: false },
-                                type: 'POST',
-                                success: function (res) {
-                                    $('#loading-image').hide();
-                                    if (res.success == true) {
-                                        Swal.fire('Success!', 'Record has been rejected.', 'success');
-                                        $("#form_partner").trigger("reset");
-                                        $("[name='Id']").val(0);
-                                        $("#modal_view_vendor").modal("hide")
-                                        LoadPartnerVendors();
-                                    } else {
-                                        Swal.fire('Error!', res.msg, 'error');
+                            var rejectionReason = result.value;
+                            if (rejectionReason != null && rejectionReason != "") {
+                                $('#loading-image').show();
+                                $.ajax({
+                                    url: '../Maintenance/UpdateApproval',
+                                    data: { Id: $("[name='Id']").val(), tableName: 'partner', status: false, reason: rejectionReason },
+                                    type: 'POST',
+                                    success: function (res) {
+                                        $('#loading-image').hide();
+                                        if (res.success == true) {
+                                            Swal.fire('Success!', 'Record has been rejected.', 'success');
+                                            $("#form_partner").trigger("reset");
+                                            $("[name='Id']").val(0);
+                                            $("#modal_view_vendor").modal("hide")
+                                            LoadPartnerVendors();
+                                        } else {
+                                            Swal.fire('Error!', res.msg, 'error');
+                                        }
                                     }
-                                }
-                            });
+                                });
+                            }
+                            else {
+                                Swal.fire('Information!', 'Please provide reason for rejection.', 'info');
+                            }
                         }
                     });
                 }

@@ -1628,7 +1628,7 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult UpdateApproval(int Id, string tableName, bool? status)
+        public IActionResult UpdateApproval(int Id, string tableName, bool? status, string reason)
         {
             try
             {
@@ -1639,6 +1639,7 @@ namespace RCBC.Controllers
                         Id = Id,
                         tableName = tableName,
                         status = status,
+                        reason = reason,
                     };
                     con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure);
                 }
