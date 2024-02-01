@@ -168,36 +168,57 @@ namespace RCBC.Controllers
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Sheet1");
 
-                        var data = global.GetAuditLogs().ToList();
-
                         var headerCells = worksheet.Cells["A1:G1"];
                         headerCells.Style.Font.Bold = true;
-                        headerCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                        worksheet.Cells["A1"].Value = "User ID";
+                        // Merge and center cells A2:G2
+                        worksheet.Cells["A2:G2"].Merge = true;
+                        worksheet.Cells["A2:G2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A2:G2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A2:G2"].Style.Font.Bold = true;
+
+                        // Set the value for the merged and centered cell
+                        worksheet.Cells["A2:G2"].Value = "DPU TELLERLESS USER AUDIT LOG REPORT";
+                        worksheet.Cells["A4"].Value = "REPORT DATE: " + DateTime.Now.ToString("MM-dd-yyyy");
+                        worksheet.Cells["A4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["G4"].Value = "RUN DATE: " + DateTime.Now.ToString("MM-dd-yyyy");
+                        worksheet.Cells["G4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                        worksheet.Cells["G5"].Value = "RUN TIME: " + DateTime.Now.ToString("HH:mm:ss");
+                        worksheet.Cells["G5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        worksheet.Cells["A7:G7"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A7:G7"].Style.Font.Bold = true;
+
+                        worksheet.Cells["A7"].Value = "User ID";
                         worksheet.Column(1).Width = 10;
-                        worksheet.Cells["B1"].Value = "Modified By";
+                        worksheet.Cells["B7"].Value = "Modified By";
                         worksheet.Column(2).Width = 25;
-                        worksheet.Cells["C1"].Value = "IP Address";
+                        worksheet.Cells["C7"].Value = "IP Address";
                         worksheet.Column(3).Width = 20;
-                        worksheet.Cells["D1"].Value = "Date Modified";
+                        worksheet.Cells["D7"].Value = "Date Modified";
                         worksheet.Column(4).Width = 25;
-                        worksheet.Cells["E1"].Value = "Group";
+                        worksheet.Cells["E7"].Value = "Group";
                         worksheet.Column(5).Width = 15;
-                        worksheet.Cells["F1"].Value = "Role";
+                        worksheet.Cells["F7"].Value = "Role";
                         worksheet.Column(6).Width = 15;
-                        worksheet.Cells["G1"].Value = "Action";
+                        worksheet.Cells["G7"].Value = "Action";
                         worksheet.Column(7).Width = 25;
 
+                        var data = global.GetAuditLogs().ToList();
 
+                        // Add data to the Excel worksheet
                         for (int i = 0; i < data.Count; i++)
                         {
-                            var rowIndex = i + 2; // Starting from the second row
+                            var rowIndex = i + 8; // Starting from the eighth row (after the header)
 
                             worksheet.Cells["A" + rowIndex].Value = data[i].ModifiedBy;
                             worksheet.Cells["B" + rowIndex].Value = data[i].EmployeeName;
                             worksheet.Cells["C" + rowIndex].Value = data[i].IP;
-                            worksheet.Cells["D" + rowIndex].Value = data[i].DateModified;
+
+                            // Format date using DateTime.ToString with a specific format
+                            worksheet.Cells["D" + rowIndex].Value = data[i].DateModified.ToString("MM-dd-yyyy");
+                            worksheet.Cells["D" + rowIndex].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
                             worksheet.Cells["E" + rowIndex].Value = data[i].GroupDept;
                             worksheet.Cells["F" + rowIndex].Value = data[i].UserRole;
                             worksheet.Cells["G" + rowIndex].Value = data[i].Action;
@@ -205,7 +226,6 @@ namespace RCBC.Controllers
                             // Center the content in all cells
                             var dataCells = worksheet.Cells["A" + rowIndex + ":G" + rowIndex];
                             dataCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
                         }
 
                         package.SaveAs(fullPathWithName);
@@ -219,14 +239,60 @@ namespace RCBC.Controllers
                     var pdfWriter = PdfWriter.GetInstance(pdfDocument, new FileStream(pdfFullPath, FileMode.Create));
                     pdfDocument.Open();
 
-                    // Add a table to the PDF document
+                    // Define font style and size
+                    var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
+                    var contentFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+
+                    // Header title
+                    var hdrTitle = new PdfPTable(1);
+                    hdrTitle.SetWidthPercentage(new float[] { 610f }, PageSize.A4);
+                    var title = new PdfPCell(new Phrase("DPU TELLERLESS USER AUDIT LOG REPORT", titleFont));
+                    title.HorizontalAlignment = Element.ALIGN_CENTER;
+                    title.Border = PdfPCell.NO_BORDER;
+                    hdrTitle.AddCell(title);
+                    pdfDocument.Add(hdrTitle);
+
+                    pdfDocument.Add(new Paragraph("\n"));
+
+                    // Header table
+                    var hdrTable = new PdfPTable(2);
+                    hdrTable.SetWidthPercentage(new float[] { 305f, 305f }, PageSize.A4);
+                    var reportDate = new PdfPCell(new Phrase("REPORT DATE: " + DateTime.Now.ToString("MM-dd-yyyy"), contentFont));
+                    reportDate.HorizontalAlignment = Element.ALIGN_LEFT;
+                    reportDate.Border = PdfPCell.NO_BORDER;
+                    hdrTable.AddCell(reportDate);
+
+                    var runDate = new PdfPCell(new Phrase("RUN DATE: " + DateTime.Now.ToString("MM-dd-yyyy"), contentFont));
+                    runDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    runDate.Border = PdfPCell.NO_BORDER;
+                    hdrTable.AddCell(runDate);
+                    pdfDocument.Add(hdrTable);
+
+                    // Header run time
+                    var hdrRunTime = new PdfPTable(1);
+                    hdrRunTime.SetWidthPercentage(new float[] { 610f }, PageSize.A4);
+                    var runTime = new PdfPCell(new Phrase("RUN TIME: " + DateTime.Now.ToString("HH:mm:ss"), contentFont));
+                    runTime.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    runTime.Border = PdfPCell.NO_BORDER;
+                    hdrRunTime.AddCell(runTime);
+                    pdfDocument.Add(hdrRunTime);
+
+                    pdfDocument.Add(new Paragraph("\n"));
+
+                    // Add a table to the PDF document with calculated width
                     var pdfTable = new PdfPTable(7);
+
+                    // Set the width percentage of the table (relative to the page width)
+                    pdfTable.SetWidthPercentage(new float[] { 60f, 110f, 100f, 100f, 80f, 80f, 80f }, PageSize.A4);
+
+                    // Define font style and size for headers
+                    var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.BLACK);
 
                     // Add table headers
                     var headers = new string[] { "User ID", "Modified By", "IP Address", "Date Modified", "Group", "Role", "Action" };
                     foreach (var header in headers)
                     {
-                        pdfTable.AddCell(new PdfPCell(new Phrase(header))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(header, headerFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER,
                             BackgroundColor = BaseColor.LIGHT_GRAY
@@ -236,40 +302,43 @@ namespace RCBC.Controllers
                     // Fetch audit log data
                     var data = global.GetAuditLogs().ToList();
 
+                    // Define font style and size for data cells
+                    var dataFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+
                     // Add data to the PDF table
                     foreach (var logEntry in data)
                     {
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString()))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString(), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.IP))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.IP, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToShortDateString()))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToString("MM-dd-yyyy"), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.GroupDept))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.GroupDept, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.UserRole))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.UserRole, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
@@ -329,6 +398,23 @@ namespace RCBC.Controllers
             }
         }
 
+        public IActionResult LoadDPUStatus(DateTime? DateFrom, DateTime? DateTo, string? MachineID, string? BeneficiaryName, string? AccountNumber, string? Status)
+        {
+            List<AuditLogsModel> data = new List<AuditLogsModel>();
+
+            data = global.GetAuditLogs()
+            .Where(x =>
+                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
+                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
+                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID.ToLower())) &&
+                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName.ToLower())) &&
+                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber.ToLower())) &&
+                (Status == null || x.Action.ToLower().Contains(Status.ToLower())))
+            .ToList();
+
+            return Json(new { data });
+        }
+
         public IActionResult DownloadDPUStatus(string Type)
         {
             try
@@ -358,29 +444,45 @@ namespace RCBC.Controllers
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Sheet1");
 
-                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
-
-                        var headerCells = worksheet.Cells["A1:F1"];
+                        var headerCells = worksheet.Cells["A1:G1"];
                         headerCells.Style.Font.Bold = true;
-                        headerCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                        worksheet.Cells["A1"].Value = "Module";
+                        // Merge and center cells A2:G2
+                        worksheet.Cells["A2:F2"].Merge = true;
+                        worksheet.Cells["A2:F2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A2:F2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A2:F2"].Style.Font.Bold = true;
+
+                        // Set the value for the merged and centered cell
+                        worksheet.Cells["A2:F2"].Value = "DPU TELLERLESS DPU STATUS REPORT";
+                        worksheet.Cells["A4"].Value = "REPORT DATE: " + DateTime.Now.ToString("MM-dd-yyyy");
+                        worksheet.Cells["A4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["F4"].Value = "RUN DATE: " + DateTime.Now.ToString("MM-dd-yyyy");
+                        worksheet.Cells["F4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+                        worksheet.Cells["F5"].Value = "RUN TIME: " + DateTime.Now.ToString("HH:mm:ss");
+                        worksheet.Cells["F5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
+
+                        worksheet.Cells["A7:F7"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A7:F7"].Style.Font.Bold = true;
+
+                        worksheet.Cells["A7"].Value = "Module";
                         worksheet.Column(1).Width = 25;
-                        worksheet.Cells["B1"].Value = "SubModule";
+                        worksheet.Cells["B7"].Value = "SubModule";
                         worksheet.Column(2).Width = 25;
-                        worksheet.Cells["C1"].Value = "ChildModule";
+                        worksheet.Cells["C7"].Value = "ChildModule";
                         worksheet.Column(3).Width = 25;
-                        worksheet.Cells["D1"].Value = "TableName";
+                        worksheet.Cells["D7"].Value = "TableName";
                         worksheet.Column(4).Width = 25;
-                        worksheet.Cells["E1"].Value = "TableId";
+                        worksheet.Cells["E7"].Value = "TableId";
                         worksheet.Column(5).Width = 10;
-                        worksheet.Cells["F1"].Value = "Action";
+                        worksheet.Cells["F7"].Value = "Action";
                         worksheet.Column(6).Width = 20;
 
+                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
 
                         for (int i = 0; i < data.Count; i++)
                         {
-                            var rowIndex = i + 2; // Starting from the second row
+                            var rowIndex = i + 8; // Starting from the 8th row
 
                             worksheet.Cells["A" + rowIndex].Value = data[i].Module;
                             worksheet.Cells["B" + rowIndex].Value = data[i].SubModule;
@@ -407,14 +509,61 @@ namespace RCBC.Controllers
                     var pdfWriter = PdfWriter.GetInstance(pdfDocument, new FileStream(pdfFullPath, FileMode.Create));
                     pdfDocument.Open();
 
+                    // Define font style and size
+                    var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 12, BaseColor.BLACK);
+                    var contentFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+
+                    // Header title
+                    var hdrTitle = new PdfPTable(1);
+                    hdrTitle.SetWidthPercentage(new float[] { 570f }, PageSize.A4);
+                    var title = new PdfPCell(new Phrase("DPU TELLERLESS DPU STATUS REPORT", titleFont));
+                    title.HorizontalAlignment = Element.ALIGN_CENTER;
+                    title.Border = PdfPCell.NO_BORDER;
+                    hdrTitle.AddCell(title);
+                    pdfDocument.Add(hdrTitle);
+
+                    pdfDocument.Add(new Paragraph("\n"));
+
+                    // Header table
+                    var hdrTable = new PdfPTable(2);
+                    hdrTable.SetWidthPercentage(new float[] { 285f, 285f }, PageSize.A4);
+                    var reportDate = new PdfPCell(new Phrase("REPORT DATE: " + DateTime.Now.ToString("MM-dd-yyyy"), contentFont));
+                    reportDate.HorizontalAlignment = Element.ALIGN_LEFT;
+                    reportDate.Border = PdfPCell.NO_BORDER;
+                    hdrTable.AddCell(reportDate);
+
+                    var runDate = new PdfPCell(new Phrase("RUN DATE: " + DateTime.Now.ToString("MM-dd-yyyy"), contentFont));
+                    runDate.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    runDate.Border = PdfPCell.NO_BORDER;
+                    hdrTable.AddCell(runDate);
+                    pdfDocument.Add(hdrTable);
+
+                    // Header run time
+                    var hdrRunTime = new PdfPTable(1);
+                    hdrRunTime.SetWidthPercentage(new float[] { 570f }, PageSize.A4);
+                    var runTime = new PdfPCell(new Phrase("RUN TIME: " + DateTime.Now.ToString("HH:mm:ss"), contentFont));
+                    runTime.HorizontalAlignment = Element.ALIGN_RIGHT;
+                    runTime.Border = PdfPCell.NO_BORDER;
+                    hdrRunTime.AddCell(runTime);
+                    pdfDocument.Add(hdrRunTime);
+
+                    pdfDocument.Add(new Paragraph("\n"));
+
                     // Add a table to the PDF document
                     var pdfTable = new PdfPTable(6); // 6 columns for Module, SubModule, ChildModule, TableName, TableId, Action
+
+
+                    // Set the width percentage of the table (relative to the page width)
+                    pdfTable.SetWidthPercentage(new float[] { 110f, 110f, 110f, 100f, 60f, 80f }, PageSize.A4);
+
+                    // Define font style and size for headers
+                    var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.BLACK);
 
                     // Add table headers
                     var headers = new string[] { "Module", "SubModule", "ChildModule", "TableName", "TableId", "Action" };
                     foreach (var header in headers)
                     {
-                        pdfTable.AddCell(new PdfPCell(new Phrase(header))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(header, headerFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER,
                             BackgroundColor = BaseColor.LIGHT_GRAY
@@ -424,35 +573,38 @@ namespace RCBC.Controllers
                     // Fetch audit log data
                     var data = global.GetAuditLogs().Where(x => x.TableId != 0).Take(40).ToList();
 
+                    // Define font style and size for data cells
+                    var dataFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
+
                     // Add data to the PDF table
                     foreach (var logEntry in data)
                     {
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Module))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Module, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.SubModule))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.SubModule, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ChildModule))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ChildModule, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableName))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableId.ToString()))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableId.ToString(), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
@@ -508,32 +660,6 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
-        }
-
-        public IActionResult PrintAuditLogs(string Type)
-        {
-            var data = global.GetAuditLogs().ToList();
-
-            return PartialView("~/Views/Shared/_PreviewAuditLogs.cshtml", data);
-
-        }
-
-
-        public IActionResult LoadDPUStatus(DateTime? DateFrom, DateTime? DateTo, string? MachineID, string? BeneficiaryName, string? AccountNumber, string? Status)
-        {
-            List<AuditLogsModel> data = new List<AuditLogsModel>();
-
-            data = global.GetAuditLogs()
-            .Where(x =>
-                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
-                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
-                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID.ToLower())) &&
-                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName.ToLower())) &&
-                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber.ToLower())) &&
-                (Status == null || x.Action.ToLower().Contains(Status.ToLower())))
-            .ToList();
-
-            return Json(new { data });
         }
 
 
