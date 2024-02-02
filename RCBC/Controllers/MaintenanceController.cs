@@ -20,6 +20,8 @@ using System.Data.Common;
 using System.Linq;
 using Microsoft.VisualBasic;
 using iTextSharp.text.pdf.qrcode;
+using System.Drawing;
+using System.Net.NetworkInformation;
 
 namespace RCBC.Controllers
 {
@@ -235,7 +237,8 @@ namespace RCBC.Controllers
             try
             {
                 string salt = Crypto.GenerateSalt();
-                string password = "Pass1234." + salt;
+                string finalString = global.GeneratePassword();
+                string password = finalString + salt;
                 string hashedPassword = Crypto.HashPassword(password);
                 string msg = string.Empty;
                 string action = string.Empty;
@@ -347,7 +350,24 @@ namespace RCBC.Controllers
                                         IsFirstLogged = userInfo.IsFirstLogged,
                                     };
 
-                                    con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                    var approvalParameters = new
+                                    {
+                                        JsonData = JsonConvert.SerializeObject(usersInfoParameters),
+                                        TableId = model.Id,
+                                        TableName = "UsersInformation",
+                                        ModifiedBy = GlobalUserId,
+                                        DateModified = DateTime.Now,
+                                    };
+                                    con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    var parameters = new
+                                    {
+                                        Id = model.Id,
+                                        tableName = "users",
+                                        status = (bool?)null,
+                                        reason = string.Empty,
+                                    };
+                                    con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                     var allAccess = global.GetModulesAndSubModules();
 
@@ -441,7 +461,7 @@ namespace RCBC.Controllers
                                         con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                     }
 
-                                    msg = "Successfully Updated.";
+                                    msg = "Successfully saved. \n Subject for approval.";
                                     action = "Update";
                                     previousData = JsonConvert.SerializeObject(userInfo);
                                 }
@@ -499,9 +519,7 @@ namespace RCBC.Controllers
 
                     var user = global.GetUserInformation().Where(x => x.Id == Id).FirstOrDefault();
 
-                    var random = new Random();
-                    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
-                    var finalString = new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
+                    var finalString = global.GeneratePassword();
 
                     string Salt = Crypto.GenerateSalt();
                     string password = finalString + Salt;
@@ -729,6 +747,50 @@ namespace RCBC.Controllers
 
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
+                var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == userId).FirstOrDefault();
+
+                if (forUpdate != null)
+                {
+                    con.Open();
+                    using (var transaction = con.BeginTransaction())
+                    {
+                        try
+                        {
+                            var obj = JsonConvert.DeserializeObject<UserModel>(forUpdate.JsonData);
+
+                            var usersInfoParam = new
+                            {
+                                Id = obj.Id,
+                                HashPassword = obj.HashPassword,
+                                Salt = obj.Salt,
+                                Username = obj.Username,
+                                EmployeeName = obj.EmployeeName,
+                                Email = obj.Email,
+                                MobileNumber = obj.MobileNumber,
+                                GroupDept = obj.GroupDept,
+                                UserRole = obj.UserRole,
+                                Active = obj.Active,
+                                LoginAttempt = obj.LoginAttempt,
+                                IsApproved = obj.IsApproved,
+                                IsFirstLogged = obj.IsFirstLogged
+                            };
+
+                            con.Execute("sp_updateUsersInformation", usersInfoParam, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            con.Execute("sp_deleteApprovalUpdates", new { Id = userId }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Json(new { success = false, message = ex.Message, userId = userId });
+                        }
+
+                    }
+                    con.Close();
+                }
+
                 con.Open();
                 using (var transaction = con.BeginTransaction())
                 {
@@ -797,28 +859,11 @@ namespace RCBC.Controllers
 
                                 previousData = JsonConvert.SerializeObject(user);
                             }
-
-                            var usersInfoParameters = new
-                            {
-                                Id = user.Id,
-                                HashPassword = user.HashPassword,
-                                Salt = user.Salt,
-                                Username = user.Username,
-                                EmployeeName = user.EmployeeName,
-                                Email = user.Email,
-                                MobileNumber = user.MobileNumber,
-                                GroupDept = user.GroupDept,
-                                UserRole = user.UserRole,
-                                Active = user.Active,
-                                LoginAttempt = user.LoginAttempt,
-                                IsApproved = true,
-                                IsFirstLogged = user.IsFirstLogged,
-                            };
-
-                            con.Execute("sp_updateUsersInformation", usersInfoParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                             transaction.Commit();
 
-                            bool IsSuccess = global.SendEmail("Pass1234.", user.EmployeeName, user.Email, "create");
+                            string password = global.GeneratePassword();
+
+                            bool IsSuccess = global.SendEmail(password, user.EmployeeName, user.Email, "create");
 
                             var auditlogs = new AuditLogsModel
                             {
@@ -1040,20 +1085,74 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        var parameters = new
+                        if (model.ForApproval)
                         {
-                            Id = model.Id,
-                            VendorName = model.VendorName,
-                            VendorCode = model.VendorCode,
-                            AssignedGL = model.AssignedGL,
-                            Email = model.Email,
-                            Active = model.Active,
-                            IsApproved = model.IsApproved,
-                            DateApproved = DateTime.Now,
-                            ApprovedBy = GlobalUserId,
-                        };
+                            var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
 
-                        con.Execute("sp_updatePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
+                            if (forUpdate != null)
+                            {
+                                con.Open();
+                                using (var transaction = con.BeginTransaction())
+                                {
+                                    try
+                                    {
+                                        var obj = JsonConvert.DeserializeObject<PartnerVendorModel>(forUpdate.JsonData);
+
+                                        var partnerParameters = new
+                                        {
+                                            Id = obj.Id,
+                                            VendorName = obj.VendorName,
+                                            VendorCode = obj.VendorCode,
+                                            AssignedGL = obj.AssignedGL,
+                                            Email = obj.Email,
+                                            Active = obj.Active,
+                                            IsApproved = obj.IsApproved,
+                                            DateApproved = DateTime.Now,
+                                            ApprovedBy = GlobalUserId,
+                                        };
+
+                                        con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                        con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                        transaction.Commit();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        transaction.Rollback();
+                                        return Json(new { success = false, message = ex.Message });
+                                    }
+                                }
+                                con.Close();
+                            }
+                        }
+                        else
+                        {
+                            var parameters = new
+                            {
+                                Id = model.Id,
+                                VendorName = model.VendorName,
+                                VendorCode = model.VendorCode,
+                                AssignedGL = model.AssignedGL,
+                                Email = model.Email,
+                                Active = model.Active,
+                                IsApproved = model.IsApproved,
+                                DateApproved = DateTime.Now,
+                                ApprovedBy = GlobalUserId,
+                            };
+
+                            var approvalParameters = new
+                            {
+                                JsonData = JsonConvert.SerializeObject(parameters),
+                                TableId = model.Id,
+                                TableName = "PartnerVendor",
+                                ModifiedBy = GlobalUserId,
+                                DateModified = DateTime.Now,
+                            };
+                            con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+
+                            var _status = global.UpdateApprovalStatus(model.Id, "partner", null, null);
+                        }
 
                         msg = "Successfully updated.";
                         action = model.ForApproval ? "Approved" : "Update";
@@ -1180,26 +1279,86 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        var parameters = new
+                        if (model.ForApproval)
                         {
-                            Id = model.Id,
-                            CorporateName = CorporateName,
-                            Site = model.Site,
-                            SiteAddress = model.SiteAddress,
-                            PartnerCode = PartnerCode,
-                            Location = model.Location,
-                            SOLID = model.SOLID,
-                            Active = model.Active,
-                            IsApproved = model.IsApproved,
-                            AccountNumber = AccountNumber,
-                            AccountNumberId = model.AccountNumberId,
-                            CorporateNameId = model.CorporateNameId,
-                            PartnerCodeId = model.PartnerCodeId,
-                            DateApproved = DateTime.Now,
-                            ApprovedBy = GlobalUserId,
-                        };
+                            var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
 
-                        con.Execute("sp_updatePickupLocation", parameters, commandType: CommandType.StoredProcedure);
+                            if (forUpdate != null)
+                            {
+                                con.Open();
+                                using (var transaction = con.BeginTransaction())
+                                {
+                                    try
+                                    {
+                                        var obj = JsonConvert.DeserializeObject<PickupLocationModel>(forUpdate.JsonData);
+
+                                        var pickupParameters = new
+                                        {
+                                            Id = obj.Id,
+                                            CorporateName = obj.CorporateName,
+                                            Site = obj.Site,
+                                            SiteAddress = obj.SiteAddress,
+                                            PartnerCode = obj.PartnerCode,
+                                            Location = obj.Location,
+                                            SOLID = obj.SOLID,
+                                            Active = obj.Active,
+                                            IsApproved = obj.IsApproved,
+                                            AccountNumber = obj.AccountNumber,
+                                            AccountNumberId = obj.AccountNumberId,
+                                            CorporateNameId = obj.CorporateNameId,
+                                            PartnerCodeId = obj.PartnerCodeId,
+                                            DateApproved = DateTime.Now,
+                                            ApprovedBy = GlobalUserId,
+                                        };
+
+                                        con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                        con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                        transaction.Commit();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        transaction.Rollback();
+                                        return Json(new { success = false, message = ex.Message });
+                                    }
+                                }
+                                con.Close();
+                            }
+                        }
+                        else
+                        {
+                            var parameters = new
+                            {
+                                Id = model.Id,
+                                CorporateName = CorporateName,
+                                Site = model.Site,
+                                SiteAddress = model.SiteAddress,
+                                PartnerCode = PartnerCode,
+                                Location = model.Location,
+                                SOLID = model.SOLID,
+                                Active = model.Active,
+                                IsApproved = model.IsApproved,
+                                AccountNumber = AccountNumber,
+                                AccountNumberId = model.AccountNumberId,
+                                CorporateNameId = model.CorporateNameId,
+                                PartnerCodeId = model.PartnerCodeId,
+                                DateApproved = DateTime.Now,
+                                ApprovedBy = GlobalUserId,
+                            };
+
+                            var approvalParameters = new
+                            {
+                                JsonData = JsonConvert.SerializeObject(parameters),
+                                TableId = model.Id,
+                                TableName = "PickupLocation",
+                                ModifiedBy = GlobalUserId,
+                                DateModified = DateTime.Now,
+                            };
+                            con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+
+                            var _status = global.UpdateApprovalStatus(model.Id, "pickup", null, null);
+                        }
 
                         msg = "Successfully updated.";
                         action = model.ForApproval ? "Approved" : "Update";
@@ -1632,17 +1791,7 @@ namespace RCBC.Controllers
         {
             try
             {
-                using (IDbConnection con = new SqlConnection(GetConnectionString()))
-                {
-                    var parameters = new
-                    {
-                        Id = Id,
-                        tableName = tableName,
-                        status = status,
-                        reason = reason,
-                    };
-                    con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure);
-                }
+                var obj = global.UpdateApprovalStatus(Id, tableName, status, reason);
                 return Json(new { success = true });
             }
             catch (Exception ex)

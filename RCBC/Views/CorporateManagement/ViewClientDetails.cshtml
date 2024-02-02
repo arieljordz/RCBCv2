@@ -156,6 +156,7 @@
 {
     <script>
         $(document).ready(function () {
+            var isApproved = null;
 
             LoadClientDetails();
             function LoadClientDetails() {
@@ -196,6 +197,7 @@
                             },
                             {
                                 "data": "isApproved", title: "Is Approved", sClass: "text-center", render: function (data, type, row) {
+                                    isApproved = data;
                                     if (data == true) {
                                         return '<span class="badge bg-success">Approved</span>'
                                     }
@@ -209,18 +211,27 @@
                             },
                             {
                                 "data": "id", title: "Action", render: function (data) {
-                                    return "<div class='row justify-content-center'>" +
-                                        "<div class='dropdown dropleft'>" +
-                                        "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
-                                        "<i class='fa fa-bars'></i>" +
-                                        "</button> <div class='dropdown-menu'>" +
-                                        "<div class='container fluid'> " +
-                                        "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
-                                        "&nbspUpdate</a>" +
-                                        "<br />" +
-                                        "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-trash col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
-                                        "&nbspDelete</a>" +
-                                        "</div></div></div ></div>";
+                                    if (isApproved == true) {
+                                        return "<div class='row justify-content-center'>" +
+                                            "<div class='dropdown dropleft'>" +
+                                            "<button id='btnbars' type='button' class='btn btn-sm btn-primary btnbars' data-toggle='dropdown'>" +
+                                            "<i class='fa fa-bars'></i>" +
+                                            "</button> <div class='dropdown-menu'>" +
+                                            "<div class='container fluid'> " +
+                                            "<a id='btnUpdate' class='btn btn-warning btn-sm fa fa-edit col-sm-12' style='margin-bottom: 3px; margin-top: 3px;'>" +
+                                            "&nbspUpdate</a>" +
+                                            "<br />" +
+                                            "<a id='btnDelete' class='btn btn-danger btn-sm fa fa-trash col-sm-12' style='margin-bottom: 3px; margin-top: 3px; color: white;'>" +
+                                            "&nbspDelete</a>" +
+                                            "</div></div></div ></div>";
+                                    }
+                                    else {
+                                        return "<div class='row justify-content-center'>" +
+                                            "<button id='btnPending' type='button' class='btn btn-sm btn-primary pending'>" +
+                                            "<i class='fa fa-bars'></i>" +
+                                            "</button>" +
+                                            "</div>";
+                                    }
                                 }
                             }
                         ]
@@ -248,6 +259,10 @@
                     }
                 });
             }
+
+            $(document).on('click', '.pending', function () {
+                Swal.fire('Information!', 'Update/Delete is not allowed, previous updates are still pending for approval.', 'info');
+            });
 
             ValidateFormClient();
             function ValidateFormClient() {

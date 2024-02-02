@@ -43,6 +43,8 @@ namespace RCBC.Interface
         
         public List<AccountModel> GetAccounts();
 
+        public List<ApprovalUpdatesModel> GetApprovalUpdates();
+
         bool IsStrongPassword(string password);
         
         public bool CheckUserStatus(int UserId);
@@ -58,6 +60,10 @@ namespace RCBC.Interface
         public bool SendEmail(string password, string username, string email, string type);
 
         public void UpdateLoginAttempt(LoginAttemptModel model);
+
+        public bool UpdateApprovalStatus(int Id, string tableName, bool? status, string? reason);
+
+        public string GeneratePassword();
 
     }
 }

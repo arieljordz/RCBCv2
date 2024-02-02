@@ -11,6 +11,8 @@ using System.Net;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Newtonsoft.Json;
 using System.Net.Mail;
+using System.Drawing;
+using System.Net.NetworkInformation;
 
 namespace RCBC.Repository
 {
@@ -378,6 +380,22 @@ namespace RCBC.Repository
             }
         }
 
+        public List<ApprovalUpdatesModel> GetApprovalUpdates()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<ApprovalUpdatesModel> data = con.Query<ApprovalUpdatesModel>("sp_getApprovalUpdates", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<ApprovalUpdatesModel>();
+            }
+        }
+
         public bool IsStrongPassword(string password)
         {
             // Define criteria for a strong password
@@ -687,6 +705,44 @@ namespace RCBC.Repository
             }
         }
 
+        public bool UpdateApprovalStatus(int Id, string tableName, bool? status, string? reason)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        Id = Id,
+                        tableName = tableName,
+                        status = status,
+                        reason = reason,
+                    };
+                    con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public string GeneratePassword()
+        {
+            string password = string.Empty;
+            try
+            {
+                var random = new Random();
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789./<>";
+                password = new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return password;
+        }
 
     }
 }
