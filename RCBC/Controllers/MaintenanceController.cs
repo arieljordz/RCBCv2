@@ -745,6 +745,9 @@ namespace RCBC.Controllers
         {
             GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
 
+            string msg = string.Empty;
+            string? previousData = string.Empty;
+
             using (SqlConnection con = new SqlConnection(GetConnectionString()))
             {
                 var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == userId).FirstOrDefault();
@@ -756,6 +759,8 @@ namespace RCBC.Controllers
                     {
                         try
                         {
+                            var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
+
                             var obj = JsonConvert.DeserializeObject<UserModel>(forUpdate.JsonData);
 
                             var usersInfoParam = new
@@ -779,14 +784,34 @@ namespace RCBC.Controllers
 
                             con.Execute("sp_deleteApprovalUpdates", new { Id = userId }, commandType: CommandType.StoredProcedure, transaction: transaction);
 
+                            msg = "Successfully saved.";
+
+                            previousData = JsonConvert.SerializeObject(user);
+
                             transaction.Commit();
+
+                            var auditlogs = new AuditLogsModel
+                            {
+                                Module = "Maintenance",
+                                SubModule = "User Maintenance",
+                                ChildModule = "User Approval",
+                                TableName = "UsersInformation",
+                                TableId = user.Id,
+                                Action = "Approved",
+                                PreviousData = previousData,
+                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
+                                ModifiedBy = GlobalUserId,
+                                DateModified = DateTime.Now,
+                                IP = global.GetLocalIPAddress(),
+                            };
+
+                            var logs = global.SaveAuditLogs(auditlogs);
                         }
                         catch (Exception ex)
                         {
                             transaction.Rollback();
                             return Json(new { success = false, message = ex.Message, userId = userId });
                         }
-
                     }
                     con.Close();
                 }
@@ -796,9 +821,6 @@ namespace RCBC.Controllers
                 {
                     try
                     {
-                        string msg = string.Empty;
-                        string? previousData = string.Empty;
-
                         var user = global.GetUserInformation().Where(x => x.Id == userId).FirstOrDefault();
 
                         if (moduleIds.Length > 0 && childModuleIds.Length > 0)
@@ -855,33 +877,19 @@ namespace RCBC.Controllers
 
                                 con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                msg = "Successfully saved.";
-
-                                previousData = JsonConvert.SerializeObject(user);
                             }
                             transaction.Commit();
 
-                            string password = global.GeneratePassword();
+                            var audit = global.GetAuditLogs().Where(x => x.TableId == userId && x.Action == "Approved").Any();
 
-                            bool IsSuccess = global.SendEmail(password, user.EmployeeName, user.Email, "create");
-
-                            var auditlogs = new AuditLogsModel
+                            if (!audit)
                             {
-                                Module = "Maintenance",
-                                SubModule = "User Maintenance",
-                                ChildModule = "User Approval",
-                                TableName = "UsersInformation",
-                                TableId = user.Id,
-                                Action = "Approved",
-                                PreviousData = previousData,
-                                NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
-                                ModifiedBy = GlobalUserId,
-                                DateModified = DateTime.Now,
-                                IP = global.GetLocalIPAddress(),
-                            };
+                                var _status = global.UpdateApprovalStatus(userId, "users", true, null);
 
-                            var logs = global.SaveAuditLogs(auditlogs);
+                                string password = global.GeneratePassword();
 
+                                bool IsSuccess = global.SendEmail(password, user.EmployeeName, user.Email, "create");
+                            }
                             return Json(new { success = true, message = msg, userId = userId });
                         }
                         else
@@ -1125,6 +1133,10 @@ namespace RCBC.Controllers
                                 }
                                 con.Close();
                             }
+                            else
+                            {
+                                var _status = global.UpdateApprovalStatus(model.Id, "partner", true, null);
+                            }
                         }
                         else
                         {
@@ -1324,6 +1336,10 @@ namespace RCBC.Controllers
                                     }
                                 }
                                 con.Close();
+                            }
+                            else
+                            {
+                                var _status = global.UpdateApprovalStatus(model.Id, "pickup", true, null);
                             }
                         }
                         else
