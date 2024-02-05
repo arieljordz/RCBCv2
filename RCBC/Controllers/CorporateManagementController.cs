@@ -182,7 +182,7 @@ namespace RCBC.Controllers
                                             MobileNumber = obj.MobileNumber,
                                             GlobalAccount = obj.GlobalAccount,
                                             Active = obj.Active,
-                                            IsApproved = obj.IsApproved,
+                                            IsApproved = true,
                                             DateApproved = DateTime.Now,
                                             ApprovedBy = GlobalUserId,
                                         };

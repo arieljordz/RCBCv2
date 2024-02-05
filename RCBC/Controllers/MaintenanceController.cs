@@ -776,7 +776,7 @@ namespace RCBC.Controllers
                                 UserRole = obj.UserRole,
                                 Active = obj.Active,
                                 LoginAttempt = obj.LoginAttempt,
-                                IsApproved = obj.IsApproved,
+                                IsApproved = true,
                                 IsFirstLogged = obj.IsFirstLogged
                             };
 
@@ -1114,7 +1114,7 @@ namespace RCBC.Controllers
                                             AssignedGL = obj.AssignedGL,
                                             Email = obj.Email,
                                             Active = obj.Active,
-                                            IsApproved = obj.IsApproved,
+                                            IsApproved = true,
                                             DateApproved = DateTime.Now,
                                             ApprovedBy = GlobalUserId,
                                         };
@@ -1314,7 +1314,7 @@ namespace RCBC.Controllers
                                             Location = obj.Location,
                                             SOLID = obj.SOLID,
                                             Active = obj.Active,
-                                            IsApproved = obj.IsApproved,
+                                            IsApproved = true,
                                             AccountNumber = obj.AccountNumber,
                                             AccountNumberId = obj.AccountNumberId,
                                             CorporateNameId = obj.CorporateNameId,
