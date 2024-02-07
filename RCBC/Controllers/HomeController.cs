@@ -109,6 +109,67 @@ namespace RCBC.Controllers
         {
             return View();
         }
+        public IActionResult PasswordReset()
+        {
+            return View();
+        }
+
+        public IActionResult ConfirmedReset(string Username)
+        {
+            using (var con = new SqlConnection(GetConnectionString()))
+            {
+                con.Open();
+
+                var user = global.GetUserInformation().Where(x => x.Username == Username).FirstOrDefault();
+
+                var finalString = global.GeneratePassword();
+
+                string Salt = Crypto.GenerateSalt();
+                string password = finalString + Salt;
+                string HashPassword = Crypto.HashPassword(password);
+
+                bool IsSuccess = global.SendEmail(finalString, user.EmployeeName, user.Email, "forgot");
+
+                var parameters = new
+                {
+                    Id = user.Id,
+                    HashPassword = HashPassword,
+                    Salt = Salt,
+                    Username = user.Username,
+                    EmployeeName = user.EmployeeName,
+                    Email = user.Email,
+                    MobileNumber = user.MobileNumber,
+                    GroupDept = user.GroupDept,
+                    UserRole = user.UserRole,
+                    Active = user.Active,
+                    LoginAttempt = user.LoginAttempt,
+                    IsApproved = user.IsApproved,
+                    IsFirstLogged = user.IsFirstLogged,
+                };
+
+                con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure);
+
+                con.Close();
+
+                var auditlogs = new AuditLogsModel
+                {
+                    Module = "Maintenance",
+                    SubModule = "User Maintenance",
+                    ChildModule = "User Password Reset",
+                    TableName = "UsersInformation",
+                    Action = "Update",
+                    PreviousData = JsonConvert.SerializeObject(user),
+                    NewData = JsonConvert.SerializeObject(global.GetUserInformation().Where(x => x.Id == user.Id).FirstOrDefault()),
+                    ModifiedBy = user.Id,
+                    DateModified = DateTime.Now,
+                    IP = global.GetLocalIPAddress(),
+                };
+
+                var logs = global.SaveAuditLogs(auditlogs);
+
+            }
+            return View("Index");
+        }
 
         public IActionResult Dashboard()
         {
@@ -464,10 +525,22 @@ namespace RCBC.Controllers
 
         public IActionResult SendResetPasswordLink(string UserID)
         {
-            var user = global.GetUserInformation().Where(x => x.Username == UserID).FirstOrDefault();
-            if (user != null)
+            string? resetLink = null;
+
+            if (Configuration != null)
             {
-                bool IsSuccess = global.SendEmail("", user.EmployeeName, user.Email, "reset");
+                resetLink = Configuration["ResetLink"];
+            }
+            else
+            {
+                resetLink = "default_reset_link";
+            }
+
+            var user = global.GetUserInformation().Where(x => x.Username == UserID).FirstOrDefault();
+
+            if (user != null && !string.IsNullOrEmpty(resetLink))
+            {
+                bool IsSuccess = global.SendEmail(resetLink, user.EmployeeName, user.Email, "reset");
             }
 
             return RedirectToAction("Logout", "Home");

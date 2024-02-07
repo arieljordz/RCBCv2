@@ -653,7 +653,28 @@ namespace RCBC.Repository
                               "<body>" +
                               "<p>Hi " + username + "<br>" +
                               "<br>" +
-                              "Please reset your password here: <a href='http://www.example.com'>Reset Password here</a><br>" +
+                              "Please reset your password here: <a href='" + password + "'>Reset Password here</a><br>" +
+                              "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font><br>" +
+                              "<br>" +
+                              "Regards,<br>" +
+                              "DPU System Administrator" +
+                              "</p>" +
+                              "</body>";
+                }
+                else if (type == "forgot")
+                {
+                    bodyMsg = "<head>" +
+                              "<style>" +
+                              "body{" +
+                              "font-family: calibri;" +
+                              "}" +
+                              "</style>" +
+                              "</head>" +
+                              "<body>" +
+                              "<p>Hi " + username + "<br>" +
+                              "<br>" +
+                              "Please refer below for your newly generated password to access the DPU Tellerless Portal<br>" +
+                              "<font color=red>" + password + "</font><br>" +
                               "<font color=red>*Note: This is a system generated e-mail.Please do not reply.</font><br>" +
                               "<br>" +
                               "Regards,<br>" +

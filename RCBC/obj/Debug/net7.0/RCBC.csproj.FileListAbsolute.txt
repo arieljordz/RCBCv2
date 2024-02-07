@@ -1,11 +1,10 @@
+D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\appsettings.Development.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\appsettings.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.staticwebassets.runtime.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.exe
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.deps.json
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.runtimeconfig.json
-D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.dll
-D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\BouncyCastle.Crypto.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\CsvHelper.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\Dapper.dll
@@ -53,4 +52,5 @@ D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\refint\RCBC.dll
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\RCBC.genruntimeconfig.cache
+D:\MY PROJECTS NEW\RCBCv2\RCBC\bin\Debug\net7.0\RCBC.pdb
 D:\MY PROJECTS NEW\RCBCv2\RCBC\obj\Debug\net7.0\ref\RCBC.dll
