@@ -884,13 +884,15 @@ namespace RCBC.Controllers
 
                             if (!audit)
                             {
-                                var _status = global.UpdateApprovalStatus(userId, "users", true, null);
+                                //var _status = global.UpdateApprovalStatus(userId, "users", true, null);
+
+                                bool IsSaved = global.SaveUserInformation(user);
 
                                 string password = global.GeneratePassword();
 
                                 bool IsSuccess = global.SendEmail(password, user.EmployeeName, user.Email, "create");
                             }
-                            return Json(new { success = true, message = msg, userId = userId });
+                            return Json(new { success = true, message = "Successfully saved.", userId = userId });
                         }
                         else
                         {

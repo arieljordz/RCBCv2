@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using System.Net.Mail;
 using System.Drawing;
 using System.Net.NetworkInformation;
+using System.Transactions;
 
 namespace RCBC.Repository
 {
@@ -763,6 +764,39 @@ namespace RCBC.Repository
                 throw;
             }
             return password;
+        }
+
+        public bool SaveUserInformation(UserModel model)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var usersInfoParam = new
+                    {
+                        Id = model.Id,
+                        HashPassword = model.HashPassword,
+                        Salt = model.Salt,
+                        Username = model.Username,
+                        EmployeeName = model.EmployeeName,
+                        Email = model.Email,
+                        MobileNumber = model.MobileNumber,
+                        GroupDept = model.GroupDept,
+                        UserRole = model.UserRole,
+                        Active = true,
+                        LoginAttempt = model.LoginAttempt,
+                        IsApproved = true,
+                        IsFirstLogged = model.IsFirstLogged
+                    };
+
+                    con.Execute("sp_updateUsersInformation", usersInfoParam, commandType: CommandType.StoredProcedure);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
     }

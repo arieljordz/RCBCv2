@@ -65,5 +65,7 @@ namespace RCBC.Interface
 
         public string GeneratePassword();
 
+        public bool SaveUserInformation(UserModel model);
+
     }
 }

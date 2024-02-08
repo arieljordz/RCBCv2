@@ -22,6 +22,7 @@ using System.Text;
 using System.Transactions;
 using System;
 using iTextSharp.text.pdf.qrcode;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace RCBC.Controllers
 {
@@ -525,22 +526,21 @@ namespace RCBC.Controllers
 
         public IActionResult SendResetPasswordLink(string UserID)
         {
-            string? resetLink = null;
+            string originalUrl = HttpContext.Request.GetDisplayUrl();
 
-            if (Configuration != null)
+            Uri originalUri = new Uri(originalUrl);
+            UriBuilder newUriBuilder = new UriBuilder(originalUri)
             {
-                resetLink = Configuration["ResetLink"];
-            }
-            else
-            {
-                resetLink = "default_reset_link";
-            }
+                Path = "/Home/PasswordReset"
+            };
+
+            string newUrl = newUriBuilder.Uri.ToString();
 
             var user = global.GetUserInformation().Where(x => x.Username == UserID).FirstOrDefault();
 
-            if (user != null && !string.IsNullOrEmpty(resetLink))
+            if (user != null && !string.IsNullOrEmpty(newUrl))
             {
-                bool IsSuccess = global.SendEmail(resetLink, user.EmployeeName, user.Email, "reset");
+                bool IsSuccess = global.SendEmail(newUrl, user.EmployeeName, user.Email, "reset");
             }
 
             return RedirectToAction("Logout", "Home");
