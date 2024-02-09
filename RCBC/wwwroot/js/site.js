@@ -69,6 +69,14 @@ function TextMoneyFormat(value) {
     return parseFloat(value).toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function TotalAmountFormat(tableID, Value, ColStart) {
+    $('#' + tableID + ' tbody').append($('<tr/>')
+        .append($('<td colspan="' + ColStart + '"/>').addClass('text-right').append('Grand Total'))
+        .append($('<td />').addClass('text-right').append('₱ ' + Value))
+        .append($('<td />').addClass('text-center').append(""))
+        .append($('<td />').addClass('text-center').append("")));
+}
+
 function DateToText(jsonDate) {
     if (jsonDate != null) {
 
@@ -85,7 +93,7 @@ function DateToText(jsonDate) {
     return null;
 }
 
-function DateDataTable(data) {
+function DateTimeDataTable(data) {
     var date = new Date(data);
 
     //Format the date as you want, for example: "MM/DD/YYYY HH:mm:ss"
@@ -94,6 +102,24 @@ function DateDataTable(data) {
         ':' + (date.getSeconds() < 10 ? '0' : '') + date.getSeconds();
 
     //var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+    return formattedDate;
+}
+function DateDataTable(data) {
+    var date = new Date(data);
+
+    //Format the date as you want, for example: "MM/DD/YYYY"
+    var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
+        
+    return formattedDate;
+}
+
+function TimeDataTable(data) {
+    var date = new Date(data);
+
+    //Format the date as you want, for example: "HH:mm:ss"
+    var formattedDate = date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() +
+        ':' + (date.getSeconds() < 10 ? '0' : '') + date.getSeconds();
+        
     return formattedDate;
 }
 

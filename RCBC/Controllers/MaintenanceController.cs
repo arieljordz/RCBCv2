@@ -271,7 +271,7 @@ namespace RCBC.Controllers
                                         DateCreated = DateTime.Now,
                                         LoginAttempt = 0,
                                         Deactivated = false,
-                                        Active = true,
+                                        Active = model.Active,
                                         IsFirstLogged = true,
                                     };
 
