@@ -1,21 +1,18 @@
 {
   "format": 1,
   "restore": {
-    "D:\\MY PROJECTS NEW\\RCBCv2\\RCBC\\RCBC.csproj": {}
+    "D:\\MY GITHUB\\RCBC\\RCBCv2\\RCBC\\RCBC.csproj": {}
   },
   "projects": {
-    "D:\\MY PROJECTS NEW\\RCBCv2\\RCBC\\RCBC.csproj": {
+    "D:\\MY GITHUB\\RCBC\\RCBCv2\\RCBC\\RCBC.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\MY PROJECTS NEW\\RCBCv2\\RCBC\\RCBC.csproj",
+        "projectUniqueName": "D:\\MY GITHUB\\RCBC\\RCBCv2\\RCBC\\RCBC.csproj",
         "projectName": "RCBC",
-        "projectPath": "D:\\MY PROJECTS NEW\\RCBCv2\\RCBC\\RCBC.csproj",
+        "projectPath": "D:\\MY GITHUB\\RCBC\\RCBCv2\\RCBC\\RCBC.csproj",
         "packagesPath": "C:\\Users\\ariel\\.nuget\\packages\\",
-        "outputPath": "D:\\MY PROJECTS NEW\\RCBCv2\\RCBC\\obj\\",
+        "outputPath": "D:\\MY GITHUB\\RCBC\\RCBCv2\\RCBC\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
-        ],
         "configFilePaths": [
           "C:\\Users\\ariel\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
