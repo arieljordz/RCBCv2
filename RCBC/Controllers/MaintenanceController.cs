@@ -1137,7 +1137,22 @@ namespace RCBC.Controllers
                             }
                             else
                             {
-                                var _status = global.UpdateApprovalStatus(model.Id, "partner", true, null);
+                                var partnerParameters = new
+                                {
+                                    Id = model.Id,
+                                    VendorName = model.VendorName,
+                                    VendorCode = model.VendorCode,
+                                    AssignedGL = model.AssignedGL,
+                                    Email = model.Email,
+                                    Active = true,
+                                    IsApproved = true,
+                                    DateCreated = DateTime.Now,
+                                    CreatedBy = GlobalUserId,
+                                };
+
+                                con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure);
+
+                                //var _status = global.UpdateApprovalStatus(model.Id, "partner", true, null);
                             }
                         }
                         else
@@ -1341,7 +1356,28 @@ namespace RCBC.Controllers
                             }
                             else
                             {
-                                var _status = global.UpdateApprovalStatus(model.Id, "pickup", true, null);
+                                var pickupParameters = new
+                                {
+                                    Id = model.Id,
+                                    CorporateName = model.CorporateName,
+                                    Site = model.Site,
+                                    SiteAddress = model.SiteAddress,
+                                    PartnerCode = model.PartnerCode,
+                                    Location = model.Location,
+                                    SOLID = model.SOLID,
+                                    Active = true,
+                                    IsApproved = true,
+                                    AccountNumber = model.AccountNumber,
+                                    AccountNumberId = model.AccountNumberId,
+                                    CorporateNameId = model.CorporateNameId,
+                                    PartnerCodeId = model.PartnerCodeId,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
+                                };
+
+                                con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure);
+
+                                //var _status = global.UpdateApprovalStatus(model.Id, "pickup", true, null);
                             }
                         }
                         else

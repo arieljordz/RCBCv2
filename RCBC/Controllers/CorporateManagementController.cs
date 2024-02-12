@@ -7,6 +7,7 @@ using RCBC.Models;
 using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
+using System.Transactions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RCBC.Controllers
@@ -200,6 +201,26 @@ namespace RCBC.Controllers
                                     }
                                 }
                                 con.Close();
+                            }
+                            else
+                            {
+                                var clientParameters = new
+                                {
+                                    Id = model.Id,
+                                    CorporateGroup = model.CorporateGroup,
+                                    PartnerCode = model.PartnerCode,
+                                    CorporateName = model.CorporateName,
+                                    ContactPerson = model.ContactPerson,
+                                    Email = model.Email,
+                                    MobileNumber = model.MobileNumber,
+                                    GlobalAccount = model.GlobalAccount,
+                                    Active = true,
+                                    IsApproved = true,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
+                                };
+
+                                con.Execute("sp_updateCorporateClient", clientParameters, commandType: CommandType.StoredProcedure);
                             }
                         }
                         else
