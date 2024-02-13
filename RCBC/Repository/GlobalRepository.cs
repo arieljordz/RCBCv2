@@ -14,6 +14,8 @@ using System.Net.Mail;
 using System.Drawing;
 using System.Net.NetworkInformation;
 using System.Transactions;
+using Newtonsoft.Json.Linq;
+using static iTextSharp.text.pdf.PdfSigLockDictionary;
 
 namespace RCBC.Repository
 {
@@ -378,6 +380,124 @@ namespace RCBC.Repository
             catch (Exception ex)
             {
                 return new List<AccountModel>();
+            }
+        }
+        public List<TransmittalDetailModel> GetTransmittalDetails()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<TransmittalDetailModel> data = con.Query<TransmittalDetailModel>("sp_getTransmittalDetails", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<TransmittalDetailModel>();
+            }
+        }
+
+        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
+        {
+            try
+            {
+                List<AuditLogsModel> qry = new List<AuditLogsModel>();
+
+                qry = GetAuditLogs()
+                .Where(x =>
+                    (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
+                    (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
+                    (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName.ToLower())) &&
+                    (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept.ToLower())) &&
+                    (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
+                    (Status == null || x.Action.ToLower().Contains(Status.ToLower()))).OrderBy(x => x.Id)
+                .ToList();
+
+                List<AuditLogsModel> data = new List<AuditLogsModel>();
+
+                int count = 1;
+                foreach (var item in qry)
+                {
+                    AuditLogsModel obj = new AuditLogsModel();
+
+                    obj.No = count;
+                    obj.Id = item.Id;
+                    obj.Module = item.Module;
+                    obj.SubModule = item.SubModule;
+                    obj.ChildModule = item.ChildModule;
+                    obj.TableName = item.TableName;
+                    obj.TableId = item.TableId;
+                    obj.Action = item.Action;
+                    obj.GroupDept = item.GroupDept;
+                    obj.UserRole = item.UserRole;
+                    obj.PreviousData = item.PreviousData;
+                    obj.NewData = item.NewData;
+                    obj.ModifiedBy = item.ModifiedBy;
+                    obj.DateModified = item.DateModified;
+                    obj.IP = item.IP;
+                    obj.EmployeeName = item.EmployeeName;
+                    obj.Details = GetColumnDetails(obj);
+                    data.Add(obj);
+                    count++;
+                }
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return new List<AuditLogsModel>();
+            }
+        }
+
+        public List<DPUStatusModel> GetDPUStatusReport(DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status)
+        {
+            try
+            {
+                List<DPUStatusModel> qry = new List<DPUStatusModel>();
+
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        DateFrom = DateFrom,
+                        DateTo = DateTo,
+                        LocationCode = LocationCode,
+                        BeneficiaryName = BeneficiaryName,
+                        AccountNumber = AccountNumber,
+                        Status = Status
+                    };
+                    qry = con.Query<DPUStatusModel>("sp_getDPUStatus", parameters, commandType: CommandType.StoredProcedure).ToList();
+                }
+
+                List<DPUStatusModel> data = new List<DPUStatusModel>();
+
+                int count = 1;
+                foreach (var item in qry)
+                {
+                    DPUStatusModel obj = new DPUStatusModel();
+
+                    obj.No = count;
+                    obj.Id = item.Id;
+                    obj.LocationCode = item.LocationCode?.ToUpper();
+                    obj.LocationName = item.LocationName?.ToUpper();
+                    obj.TransactionDate = item.TransactionDate;
+                    obj.TransactionTime = item.TransactionTime;
+                    obj.CardNumber = item.CardNumber?.ToUpper();
+                    obj.AccountNumber = item.AccountNumber?.ToUpper();
+                    obj.BeneficiaryName = item.BeneficiaryName?.ToUpper();
+                    obj.Amount = item.Amount;
+                    obj.CreditDescription = item.CreditDescription?.ToUpper();
+                    obj.ExternalReference = item.ExternalReference?.ToUpper();
+                    obj.Status = item.Status;
+                    data.Add(obj);
+                    count++;
+                }
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return new List<DPUStatusModel>();
             }
         }
 
@@ -797,6 +917,58 @@ namespace RCBC.Repository
             {
                 return false;
             }
+        }
+
+        public string GetColumnDetails(AuditLogsModel model)
+        {
+            string details = string.Empty;
+            try
+            {
+                if (model.TableName != null)
+                {
+                    if (model.TableName.Contains("UsersInformation"))
+                    {
+                        details = "User ID = " + model.ModifiedBy.ToString();
+                    }
+                    else if (model.TableName.Contains("PartnerVendor"))
+                    {
+                        if (model.NewData is string newDataString)
+                        {
+                            string vendorCode = JObject.Parse(newDataString)["VendorCode"]?.ToString();
+                            details = "Partner Code = " + vendorCode;
+                        }
+                    }
+                    else if (model.TableName.Contains("CorporateClient"))
+                    {
+                        if (model.NewData is string newDataString)
+                        {
+                            string corporateName = JObject.Parse(newDataString)["CorporateName"]?.ToString();
+                            details = "Corp. Name = " + corporateName;
+                        }
+                    }
+                    else if (model.TableName.Contains("PickupLocation"))
+                    {
+                        if (model.NewData is string newDataString)
+                        {
+                            string location = JObject.Parse(newDataString)["Location"]?.ToString();
+                            details = "Location ID = " + location;
+                        }
+                    }
+                    else if (model.TableName.Contains("Accounts"))
+                    {
+                        details = "UserID = " + model.ModifiedBy.ToString();
+                    }
+                    else if (model.TableName.Contains("Contacts"))
+                    {
+                        details = "UserID = " + model.ModifiedBy.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+            return details;
         }
 
     }

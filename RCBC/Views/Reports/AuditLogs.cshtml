@@ -229,8 +229,9 @@
                 var EmployeeName = $("[name='EmployeeName']").val();
                 var GroupDept = $("[name='GroupDept']").val();
                 var UserRole = $("[name='UserRole']").val();
-                var Action = $("[name='Action']").val();
+                var Status = $("[name='Action']").val();
 
+                console.log(Status);
                 $('#tbl_auditLogs').DataTable({
                     destroy: true,
                     responsive: true,
@@ -245,7 +246,7 @@
                     ajax: {
                         "url": "../Reports/LoadAuditLogs",
                         "type": "POST",
-                        "data": { DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Action: Action },
+                        "data": { DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
                         "datatype": "JSON",
                     },
                     columns:
@@ -253,23 +254,25 @@
                             // { "data": "module", title: "Module", sClass: "text-center", orderable: false },
                             // { "data": "subModule", title: "SubModule", sClass: "text-center", orderable: false },
                             // { "data": "childModule", title: "ChildModule", sClass: "text-center", orderable: false },
-
-                            { "data": "modifiedBy", title: "User ID", sClass: "text-center", orderable: false },
-                            { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
-                            { "data": "ip", title: "IP Address", sClass: "text-center", orderable: false },
                             {
-                                "data": "dateModified", title: "DateModified", sClass: "text-center", render: function (data, type, row) {
+                                "data": "dateModified", title: "Date Time", sClass: "text-center", render: function (data, type, row) {
                                     return DateTimeDataTable(data);
                                 }
                             },
-                            { "data": "groupDept", title: "Group", sClass: "text-center", orderable: false },
+                            { "data": "ip", title: "IP Address", sClass: "text-center", orderable: false },
+                            { "data": "modifiedBy", title: "User ID", sClass: "text-center", orderable: false },
+                            { "data": "module", title: "Module", sClass: "text-center", orderable: false },
+                            { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
+                            { "data": "groupDept", title: "Group", sClass: "text-center", orderable: false},
                             { "data": "userRole", title: "Role", sClass: "text-center", orderable: false },
-                            { "data": "action", title: "Action", sClass: "text-center", orderable: false },
+                            { "data": "action", title: "Activity", sClass: "text-center", orderable: false },
+                            { "data": "details", title: "Details", sClass: "text-center", orderable: false },
+
+                         
                             { "data": "previousData", title: "PreviousData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "newData", title: "NewData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false, visible: false },
                             { "data": "tableId", title: "TableId", sClass: "text-center", orderable: false, visible: false },
-                            //{ "data": "modifiedBy", title: "ModifiedBy ID", sClass: "text-center", orderable: false },
                             {
                                 "data": "id", title: "View Data", render: function (data) {
                                     return "<button type='button' class='btn btn-xs btn-info view'><i class='fa fa-exchange p-1 view'></i></button>";
@@ -374,10 +377,18 @@
             });
 
             function DownloadAuditLogs(Type) {
+
+                var DateFrom = $("[name='DateFrom']").val();
+                var DateTo = $("[name='DateTo']").val();
+                var EmployeeName = $("[name='EmployeeName']").val();
+                var GroupDept = $("[name='GroupDept']").val();
+                var UserRole = $("[name='UserRole']").val();
+                var Status = $("[name='Action']").val();
+
                 $('#loading-image').show();
                 $.ajax({
                     url: "../Reports/DownloadAuditLogs",
-                    data: { Type: Type },
+                    data: { Type: Type, DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
                     type: "GET",
                     dataType: "JSON",
                     success: function (res) {
@@ -415,57 +426,10 @@
                 window.print();
             });
 
-            // $("#btnPrint").click(function (e) {
-            //     e.preventDefault();
-            //     $('#loading-image').show();
-
-            //     $.ajax({
-            //         url: "../Reports/PrintAuditLogs",
-            //         data: { Type: "Print" },
-            //         type: "GET",
-            //         dataType: "html",
-            //         success: function (res) {
-            //             $('#previewContainer').html(res);
-
-            //             $("#modal_print").modal("show");
-
-            //             $("#modal_print").on("hidden.bs.modal", function () {
-            //             });
-
-            //             $('#loading-image').hide();
-            //         },
-            //         error: function (jqXHR, textStatus, errorThrown) {
-            //             console.log("Error in downloading data. Status: " + textStatus + ", Error: " + errorThrown);
-
-            //             $('#loading-image').hide();
-            //         }
-            //     });
-            // });
-
-            // $("#btnPrintNow").click(function (e) {
-            //     e.preventDefault();
-            //     window.print();
-            // });
-
-            // $("#btnCancelP").click(function () {
-            //     $("#modal_print").modal("hide");
-            // });
 
             $("#btnSearch").click(function (e) {
                 e.preventDefault();
 
-                // var DateFrom = $("[name='DateFrom']").val();
-                // var DateTo = $("[name='DateTo']").val();
-
-                // if (DateFrom != "" && DateTo != "") {
-                //     $('#loading-image').show();
-
-                //     LoadAuditLogs();
-
-                //     $('#loading-image').hide();
-                // } else {
-                //     Swal.fire('Warming!', 'Select Date Range first.', 'warning');
-                // }
                 $('#loading-image').show();
 
                 LoadAuditLogs();

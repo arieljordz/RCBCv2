@@ -65,8 +65,8 @@
                                 <div class="row">
                                     <div class="col-lg-2">
                                         <div class="form-group">
-                                            @Html.LabelForModel("Machine ID", new { @class = "label-control" })
-                                            @Html.TextBoxFor(x => x.MachineID, new { @class = "form-control" })
+                                            @Html.LabelForModel("LocationCode", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.LocationCode, new { @class = "form-control" })
                                         </div>
                                     </div>
                                     <div class="col-lg-3">
@@ -138,7 +138,7 @@
 
                 var DateFrom = $("[name='DateFrom']").val();
                 var DateTo = $("[name='DateTo']").val();
-                var MachineID = $("[name='MachineID']").val();
+                var LocationCode = $("[name='LocationCode']").val();
                 var BeneficiaryName = $("[name='BeneficiaryName']").val();
                 var AccountNumber = $("[name='AccountNumber']").val();
                 var Status = $("[name='Status']").val();
@@ -157,7 +157,7 @@
                     ajax: {
                         "url": "../Reports/LoadDPUStatus",
                         "type": "POST",
-                        "data": { DateFrom: DateFrom, DateTo: DateTo, MachineID: MachineID, BeneficiaryName: BeneficiaryName, AccountNumber: AccountNumber, Status: Status },
+                        "data": { DateFrom: DateFrom, DateTo: DateTo, LocationCode: LocationCode, BeneficiaryName: BeneficiaryName, AccountNumber: AccountNumber, Status: Status },
                         "datatype": "JSON",
                     },
                     drawCallback: function (settings) {
@@ -166,36 +166,37 @@
                             var Total = 0.00;
 
                             for (var i = 0; i < json.data.length; i++) {
-                                // Total = Total + parseFloat(json.data[i].tableId.replace(",", ""));
-                                Total = Total + parseFloat(json.data[i].tableId);
+                                // Total = Total + parseFloat(json.data[i].amount.replace(",", ""));
+                                Total = Total + parseFloat(json.data[i].amount);
                             }
                             var TotalAmount = "";
                             if (Total != undefined) {
                                 TotalAmount = (Total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                TotalAmountFormat('tbl_DPU_Status', TotalAmount, 7);
+                                TotalAmountFormat('tbl_DPU_Status', TotalAmount, 8);
                             }
                         }
                     },
                     columns:
                         [
                             { "data": "no", title: "No.", sClass: "text-center", orderable: false },
-                            { "data": "subModule", title: "Machine Name", sClass: "text-center", orderable: false },
+                            { "data": "locationCode", title: "Location Code", sClass: "text-center", orderable: false },
+                            { "data": "locationName", title: "Location Name", sClass: "text-center", orderable: false },
                             {
-                                "data": "dateModified", title: "Transaction Date", sClass: "text-center", render: function (data, type, row) {
+                                "data": "transactionDate", title: "Transaction Date", sClass: "text-center", render: function (data, type, row) {
                                     return DateDataTable(data);
                                 }
                             },
                             {
-                                "data": "dateModified", title: "Transaction Time", sClass: "text-center", render: function (data, type, row) {
+                                "data": "transactionTime", title: "Transaction Time", sClass: "text-center", render: function (data, type, row) {
                                     return TimeDataTable(data);
                                 }
                             },
-                            { "data": "modifiedBy", title: "Card Number", sClass: "text-center", orderable: false },
-                            { "data": "modifiedBy", title: "Account Number", sClass: "text-center", orderable: false },
-                            { "data": "employeeName", title: "Beneficiary Name", sClass: "text-center", orderable: false },
-                            { "data": "tableId", title: "Amount", sClass: "text-center", orderable: false, render: $.fn.dataTable.render.number(',', '.', 2, '₱ ') },
-                            { "data": "childModule", title: "Credit Description", sClass: "text-center", orderable: false },
-                            { "data": "childModule", title: "External Reference", sClass: "text-center", orderable: false },
+                            { "data": "cardNumber", title: "Card Number", sClass: "text-center", orderable: false },
+                            { "data": "accountNumber", title: "Account Number", sClass: "text-center", orderable: false },
+                            { "data": "beneficiaryName", title: "Beneficiary Name", sClass: "text-center", orderable: false },
+                            { "data": "amount", title: "Amount", sClass: "text-center", orderable: false, render: $.fn.dataTable.render.number(',', '.', 2, '₱ ') },
+                            { "data": "creditDescription", title: "Credit Description", sClass: "text-center", orderable: false },
+                            { "data": "externalReference", title: "External Reference", sClass: "text-center", orderable: false },
 
                         ]
                 });
@@ -215,10 +216,18 @@
             }
 
             function DownloadDPUStatus(Type) {
+
+                var DateFrom = $("[name='DateFrom']").val();
+                var DateTo = $("[name='DateTo']").val();
+                var LocationCode = $("[name='LocationCode']").val();
+                var BeneficiaryName = $("[name='BeneficiaryName']").val();
+                var AccountNumber = $("[name='AccountNumber']").val();
+                var Status = $("[name='Status']").val();
+
                 $('#loading-image').show();
                 $.ajax({
                     url: "../Reports/DownloadDPUStatus",
-                    data: { Type: Type },
+                    data: { Type: Type, DateFrom: DateFrom, DateTo: DateTo, LocationCode: LocationCode, BeneficiaryName: BeneficiaryName, AccountNumber: AccountNumber, Status: Status },
                     type: "GET",
                     dataType: "JSON",
                     success: function (res) {
@@ -258,19 +267,6 @@
 
             $("#btnSearch").click(function (e) {
                 e.preventDefault();
-
-                // var DateFrom = $("[name='DateFrom']").val();
-                // var DateTo = $("[name='DateTo']").val();
-
-                // if (DateFrom != "" && DateTo != "") {
-                //     $('#loading-image').show();
-
-                //     LoadDPUStatus();
-
-                //     $('#loading-image').hide();
-                // } else {
-                //     Swal.fire('Warming!', 'Select Date Range first.', 'warning');
-                // }
 
                 $('#loading-image').show();
 

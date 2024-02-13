@@ -19,6 +19,9 @@ using System.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Net.NetworkInformation;
 using System.Reflection.PortableExecutable;
+using System.Data.SqlClient;
+using System.Data;
+using Dapper;
 
 namespace RCBC.Controllers
 {
@@ -123,23 +126,12 @@ namespace RCBC.Controllers
 
         public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Action)
         {
-            List<AuditLogsModel> data = new List<AuditLogsModel>();
-
-            data = global.GetAuditLogs()
-            .Where(x =>
-                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
-                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
-                (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName.ToLower())) &&
-                (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept.ToLower())) &&
-                (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
-                (Action == null || x.Action.ToLower().Contains(Action.ToLower()))).OrderBy(x => x.Id)
-            .ToList();
+            var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Action);
 
             return Json(new { data });
         }
 
-
-        public IActionResult DownloadAuditLogs(string Type)
+        public IActionResult DownloadAuditLogs(string Type, DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
         {
             try
             {
@@ -157,6 +149,8 @@ namespace RCBC.Controllers
                 var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
                 var DLFullPath = string.Empty;
+
+                var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Status);
 
                 if (Type == "EXCEL")
                 {
@@ -189,39 +183,36 @@ namespace RCBC.Controllers
                         worksheet.Cells["A7:G7"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                         worksheet.Cells["A7:G7"].Style.Font.Bold = true;
 
-                        worksheet.Cells["A7"].Value = "User ID";
-                        worksheet.Column(1).Width = 10;
-                        worksheet.Cells["B7"].Value = "Modified By";
+                        worksheet.Cells["A7"].Value = "Date Time";
+                        worksheet.Column(1).Width = 25;
+                        worksheet.Cells["B7"].Value = "IP Address";
                         worksheet.Column(2).Width = 25;
-                        worksheet.Cells["C7"].Value = "IP Address";
-                        worksheet.Column(3).Width = 20;
-                        worksheet.Cells["D7"].Value = "Date Modified";
+                        worksheet.Cells["C7"].Value = "User ID";
+                        worksheet.Column(3).Width = 10;
+                        worksheet.Cells["D7"].Value = "Module";
                         worksheet.Column(4).Width = 25;
-                        worksheet.Cells["E7"].Value = "Group";
-                        worksheet.Column(5).Width = 15;
-                        worksheet.Cells["F7"].Value = "Role";
-                        worksheet.Column(6).Width = 15;
-                        worksheet.Cells["G7"].Value = "Action";
+                        worksheet.Cells["E7"].Value = "Modified By";
+                        worksheet.Column(5).Width = 25;
+                        worksheet.Cells["F7"].Value = "Activity";
+                        worksheet.Column(6).Width = 20;
+                        worksheet.Cells["G7"].Value = "Details";
                         worksheet.Column(7).Width = 25;
-
-                        var data = global.GetAuditLogs().ToList();
 
                         // Add data to the Excel worksheet
                         for (int i = 0; i < data.Count; i++)
                         {
                             var rowIndex = i + 8; // Starting from the eighth row (after the header)
 
-                            worksheet.Cells["A" + rowIndex].Value = data[i].ModifiedBy;
-                            worksheet.Cells["B" + rowIndex].Value = data[i].EmployeeName;
-                            worksheet.Cells["C" + rowIndex].Value = data[i].IP;
-
                             // Format date using DateTime.ToString with a specific format
-                            worksheet.Cells["D" + rowIndex].Value = data[i].DateModified.ToString("MM-dd-yyyy");
-                            worksheet.Cells["D" + rowIndex].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                            worksheet.Cells["A" + rowIndex].Value = data[i].DateModified.ToString("MM-dd-yyyy HH:mm:ss");
+                            worksheet.Cells["A" + rowIndex].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
-                            worksheet.Cells["E" + rowIndex].Value = data[i].GroupDept;
-                            worksheet.Cells["F" + rowIndex].Value = data[i].UserRole;
-                            worksheet.Cells["G" + rowIndex].Value = data[i].Action;
+                            worksheet.Cells["B" + rowIndex].Value = data[i].IP;
+                            worksheet.Cells["C" + rowIndex].Value = data[i].ModifiedBy;
+                            worksheet.Cells["D" + rowIndex].Value = data[i].Module;
+                            worksheet.Cells["E" + rowIndex].Value = data[i].EmployeeName;
+                            worksheet.Cells["F" + rowIndex].Value = data[i].Action;
+                            worksheet.Cells["G" + rowIndex].Value = data[i].Details;
 
                             // Center the content in all cells
                             var dataCells = worksheet.Cells["A" + rowIndex + ":G" + rowIndex];
@@ -283,13 +274,13 @@ namespace RCBC.Controllers
                     var pdfTable = new PdfPTable(7);
 
                     // Set the width percentage of the table (relative to the page width)
-                    pdfTable.SetWidthPercentage(new float[] { 60f, 110f, 100f, 100f, 80f, 80f, 80f }, PageSize.A4);
+                    pdfTable.SetWidthPercentage(new float[] { 100f, 110f, 60f, 100f, 80f, 80f, 80f }, PageSize.A4);
 
                     // Define font style and size for headers
                     var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 11, BaseColor.BLACK);
 
                     // Add table headers
-                    var headers = new string[] { "User ID", "Modified By", "IP Address", "Date Modified", "Group", "Role", "Action" };
+                    var headers = new string[] { "Date Time", "IP Address", "User ID", "Module", "Modified By", "Activity", "Details" };
                     foreach (var header in headers)
                     {
                         pdfTable.AddCell(new PdfPCell(new Phrase(header, headerFont))
@@ -299,21 +290,13 @@ namespace RCBC.Controllers
                         });
                     }
 
-                    // Fetch audit log data
-                    var data = global.GetAuditLogs().ToList();
-
                     // Define font style and size for data cells
                     var dataFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
 
                     // Add data to the PDF table
                     foreach (var logEntry in data)
                     {
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString(), dataFont))
-                        {
-                            HorizontalAlignment = Element.ALIGN_CENTER
-                        });
-
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToString("MM-dd-yyyy HH:mm:ss"), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
@@ -323,22 +306,27 @@ namespace RCBC.Controllers
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToString("MM-dd-yyyy"), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString(), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.GroupDept, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Module, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.UserRole, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
                         pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Action, dataFont))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Details, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
@@ -358,16 +346,17 @@ namespace RCBC.Controllers
                     using (var writer = new StreamWriter(csvFullPath))
                     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        var data = global.GetAuditLogs().ToList();
+                        // Add table headers
+                        var headers = new string[] { "Date Time", "IP Address", "User ID", "Module", "Modified By", "Activity", "Details" };
 
                         // Write header with formatting
-                        csv.WriteField("User ID");
-                        csv.WriteField("Modified By");
+                        csv.WriteField("Date Time");
                         csv.WriteField("IP Address");
-                        csv.WriteField("Date Modified");
-                        csv.WriteField("Group");
-                        csv.WriteField("Role");
-                        csv.WriteField("Action");
+                        csv.WriteField("User ID");
+                        csv.WriteField("Module");
+                        csv.WriteField("Modified By");
+                        csv.WriteField("Activity");
+                        csv.WriteField("Details");
                         csv.NextRecord();
 
                         // Write data with formatting
@@ -375,13 +364,13 @@ namespace RCBC.Controllers
                         {
                             var rowIndex = i + 2; // Starting from the second row
 
-                            csv.WriteField(data[i].ModifiedBy);
-                            csv.WriteField(data[i].EmployeeName);
-                            csv.WriteField(data[i].IP);
                             csv.WriteField(data[i].DateModified);
-                            csv.WriteField(data[i].GroupDept);
-                            csv.WriteField(data[i].UserRole);
+                            csv.WriteField(data[i].IP);
+                            csv.WriteField(data[i].ModifiedBy);
+                            csv.WriteField(data[i].DateModified);
+                            csv.WriteField(data[i].EmployeeName);
                             csv.WriteField(data[i].Action);
+                            csv.WriteField(data[i].Details);
                             csv.NextRecord();
 
                         }
@@ -398,58 +387,17 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult LoadDPUStatus(DateTime? DateFrom, DateTime? DateTo, string? MachineID, string? BeneficiaryName, string? AccountNumber, string? Status)
+        public IActionResult LoadDPUStatus(DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status)
         {
-            List<AuditLogsModel> qry = new List<AuditLogsModel>();
-
-            qry = global.GetAuditLogs()
-            .Where(x =>
-                (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
-                (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
-                (MachineID == null || x.Id.ToString().ToLower().Contains(MachineID.ToLower())) &&
-                (BeneficiaryName == null || x.EmployeeName.ToLower().Contains(BeneficiaryName.ToLower())) &&
-                (AccountNumber == null || x.ModifiedBy.ToString().ToLower().Contains(AccountNumber.ToLower())) &&
-                (Status == null || x.Action.ToLower().Contains(Status.ToLower())) &&
-                (x.TableId != 0)).OrderBy(x => x.Id)
-            .ToList();
-
-            List<AuditLogsModel> data = new List<AuditLogsModel>();
-
-            int count = 1;
-            foreach (var item in qry)
-            {
-                AuditLogsModel obj = new AuditLogsModel();
-
-                obj.No = count;
-                obj.Id = item.Id;
-                obj.SystemName = item.SystemName;
-                obj.Module = item.Module;
-                obj.SubModule = item.SubModule;
-                obj.ChildModule = item.ChildModule;
-                obj.TableName = item.TableName;
-                obj.TableId = item.TableId;
-                obj.Action = item.Action;
-                obj.GroupDept = item.GroupDept;
-                obj.UserRole = item.UserRole;
-                obj.PreviousData = item.PreviousData;
-                obj.NewData = item.NewData;
-                obj.ModifiedBy = item.ModifiedBy;
-                obj.DateModified = item.DateModified;
-                obj.IP = item.IP;
-                obj.EmployeeName = item.EmployeeName;
-                data.Add(obj);
-                count++;
-            }
+            var data = global.GetDPUStatusReport(DateFrom, DateTo, LocationCode, BeneficiaryName, AccountNumber, Status);
 
             return Json(new { data });
         }
 
-        public IActionResult DownloadDPUStatus(string Type)
+        public IActionResult DownloadDPUStatus(string Type, DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status)
         {
             try
             {
-                ////var contentRootPath = hostingEnvironment.ContentRootPath;
-
                 var timestamp = DateTime.Now.ToString("hhmmss");
                 var excelFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".xlsx";
                 var pdfFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".pdf";
@@ -463,6 +411,8 @@ namespace RCBC.Controllers
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
                 var DLFullPath = string.Empty;
 
+                var data = global.GetDPUStatusReport(DateFrom, DateTo, LocationCode, BeneficiaryName, AccountNumber, Status);
+
                 if (Type == "EXCEL")
                 {
                     var fullPathWithName = Path.Combine(downloadsFolderPath, excelFileName);
@@ -473,42 +423,43 @@ namespace RCBC.Controllers
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Sheet1");
 
-                        var headerCells = worksheet.Cells["A1:J1"];
+                        var headerCells = worksheet.Cells["A1:K1"];
                         headerCells.Style.Font.Bold = true;
 
                         // Merge and center cells A2:G2
-                        worksheet.Cells["A2:J2"].Merge = true;
-                        worksheet.Cells["A2:J2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        worksheet.Cells["A2:J2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        worksheet.Cells["A2:J2"].Style.Font.Bold = true;
-                        worksheet.Cells["A2:J2"].Value = "DPU TELLERLESS DPU STATUS REPORT";
+                        worksheet.Cells["A2:K2"].Merge = true;
+                        worksheet.Cells["A2:K2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A2:K2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A2:K2"].Style.Font.Bold = true;
+                        worksheet.Cells["A2:K2"].Value = "DPU TELLERLESS DPU STATUS REPORT";
 
-                        worksheet.Cells["A4:J4"].Merge = true;
-                        worksheet.Cells["A4:J4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        worksheet.Cells["A4:J4"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        worksheet.Cells["A4:J4"].Value = "Subject: Credit Advice Report";
+                        worksheet.Cells["A4:K4"].Merge = true;
+                        worksheet.Cells["A4:K4"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["A4:K4"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A4:K4"].Value = "Subject: Credit Advice Report";
 
-                        worksheet.Cells["A5:J5"].Merge = true;
-                        worksheet.Cells["A5:J5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        worksheet.Cells["A5:J5"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        worksheet.Cells["A5:J5"].Value = "Report Date: " + DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
+                        worksheet.Cells["A5:K5"].Merge = true;
+                        worksheet.Cells["A5:K5"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["A5:K5"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A5:K5"].Value = "Report Date: " + DateTime.Now.ToString("MM-dd-yyyy HH:mm:ss");
 
-                        worksheet.Cells["A6:J6"].Merge = true;
-                        worksheet.Cells["A6:J6"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        worksheet.Cells["A6:J6"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        worksheet.Cells["A6:J6"].Value = "Value Date: " + DateTime.Now.ToString("MM-dd-yyyy");
+                        worksheet.Cells["A6:K6"].Merge = true;
+                        worksheet.Cells["A6:K6"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["A6:K6"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A6:K6"].Value = "Value Date: " + DateTime.Now.ToString("MM-dd-yyyy");
 
-                        worksheet.Cells["A7:J7"].Merge = true;
-                        worksheet.Cells["A7:J7"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-                        worksheet.Cells["A7:J7"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-                        worksheet.Cells["A7:J7"].Value = "Batch: 1";
+                        worksheet.Cells["A7:K7"].Merge = true;
+                        worksheet.Cells["A7:K7"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
+                        worksheet.Cells["A7:K7"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A7:K7"].Value = "Batch: 1";
 
-                        worksheet.Cells["A9:J9"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        worksheet.Cells["A9:J9"].Style.Font.Bold = true;
+                        worksheet.Cells["A9:K9"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A9:K9"].Style.Font.Bold = true;
 
                         var headers = new string[] {
                             "No.",
-                            "Machine Name",
+                            "Location Code",
+                            "Location Name",
                             "Transaction Date",
                             "Transaction Time",
                             "Card Number",
@@ -521,26 +472,26 @@ namespace RCBC.Controllers
 
                         worksheet.Cells["A9"].Value = "No.";
                         worksheet.Column(1).Width = 5;
-                        worksheet.Cells["B9"].Value = "Machine Name";
+                        worksheet.Cells["B9"].Value = "Location Code";
                         worksheet.Column(2).Width = 25;
-                        worksheet.Cells["C9"].Value = "Transaction Date";
+                        worksheet.Cells["C9"].Value = "Location Name";
                         worksheet.Column(3).Width = 25;
-                        worksheet.Cells["D9"].Value = "Transaction Time";
+                        worksheet.Cells["D9"].Value = "Transaction Date";
                         worksheet.Column(4).Width = 25;
-                        worksheet.Cells["E9"].Value = "Card Number";
-                        worksheet.Column(5).Width = 15;
-                        worksheet.Cells["F9"].Value = "Account Number";
-                        worksheet.Column(6).Width = 18;
-                        worksheet.Cells["G9"].Value = "Beneficiary Name";
-                        worksheet.Column(7).Width = 25;
-                        worksheet.Cells["H9"].Value = "Amount";
-                        worksheet.Column(8).Width = 10;
-                        worksheet.Cells["I9"].Value = "Credit Description";
-                        worksheet.Column(9).Width = 25;
-                        worksheet.Cells["J9"].Value = "External Reference";
+                        worksheet.Cells["E9"].Value = "Transaction Time";
+                        worksheet.Column(5).Width = 25;
+                        worksheet.Cells["F9"].Value = "Card Number";
+                        worksheet.Column(6).Width = 15;
+                        worksheet.Cells["G9"].Value = "Account Number";
+                        worksheet.Column(7).Width = 15;
+                        worksheet.Cells["H9"].Value = "Beneficiary Name";
+                        worksheet.Column(8).Width = 25;
+                        worksheet.Cells["I9"].Value = "Amount";
+                        worksheet.Column(9).Width = 10;
+                        worksheet.Cells["J9"].Value = "Credit Description";
                         worksheet.Column(10).Width = 25;
-
-                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).OrderBy(x => x.Id).ToList();
+                        worksheet.Cells["K9"].Value = "External Reference";
+                        worksheet.Column(11).Width = 25;
 
                         int count = 1;
                         for (int i = 0; i < data.Count; i++)
@@ -548,40 +499,41 @@ namespace RCBC.Controllers
                             var rowIndex = i + 10; // Starting from the 10th row
 
                             worksheet.Cells["A" + rowIndex].Value = count;
-                            worksheet.Cells["B" + rowIndex].Value = data[i].SubModule;
-                            worksheet.Cells["C" + rowIndex].Value = data[i].DateModified;
-                            worksheet.Cells["C" + rowIndex].Style.Numberformat.Format = "MM/dd/yyyy";
-                            worksheet.Cells["D" + rowIndex].Value = data[i].DateModified;
-                            worksheet.Cells["D" + rowIndex].Style.Numberformat.Format = "HH:mm:ss";
-                            worksheet.Cells["E" + rowIndex].Value = data[i].ModifiedBy;
-                            worksheet.Cells["F" + rowIndex].Value = data[i].ModifiedBy;
-                            worksheet.Cells["G" + rowIndex].Value = data[i].EmployeeName;
-                            worksheet.Cells["H" + rowIndex].Value = data[i].TableId;
-                            worksheet.Cells["I" + rowIndex].Value = data[i].ChildModule;
-                            worksheet.Cells["J" + rowIndex].Value = data[i].ChildModule;
+                            worksheet.Cells["B" + rowIndex].Value = data[i].LocationCode;
+                            worksheet.Cells["C" + rowIndex].Value = data[i].LocationName;
+                            worksheet.Cells["D" + rowIndex].Value = data[i].TransactionDate;
+                            worksheet.Cells["D" + rowIndex].Style.Numberformat.Format = "MM/dd/yyyy";
+                            worksheet.Cells["E" + rowIndex].Value = data[i].TransactionTime;
+                            worksheet.Cells["E" + rowIndex].Style.Numberformat.Format = "HH:mm:ss";
+                            worksheet.Cells["F" + rowIndex].Value = data[i].CardNumber;
+                            worksheet.Cells["G" + rowIndex].Value = data[i].AccountNumber;
+                            worksheet.Cells["H" + rowIndex].Value = data[i].BeneficiaryName;
+                            worksheet.Cells["I" + rowIndex].Value = data[i].Amount;
+                            worksheet.Cells["J" + rowIndex].Value = data[i].CreditDescription;
+                            worksheet.Cells["K" + rowIndex].Value = data[i].ExternalReference;
 
                             // Center the content in all cells
-                            var dataCells = worksheet.Cells["A" + rowIndex + ":J" + rowIndex];
-                            worksheet.Cells["H" + rowIndex].Style.Numberformat.Format = "0.00";
+                            var dataCells = worksheet.Cells["A" + rowIndex + ":K" + rowIndex];
+                            worksheet.Cells["I" + rowIndex].Style.Numberformat.Format = "0.00";
                             dataCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                             count++;
                         }
 
                         // Calculate grand total
-                        double grandTotal = data.Sum(item => item.TableId); // Assuming TableId represents the "Amount" column
+                        decimal? grandTotal = data.Sum(item => item.Amount); 
 
                         // Add grand total row
                         var grandTotalRowIndex = data.Count + 10; // Row index after the last data row
-                        worksheet.Cells["G" + grandTotalRowIndex].Value = "Grand Total: ";
-                        worksheet.Cells["H" + grandTotalRowIndex].Value = grandTotal;
+                        worksheet.Cells["H" + grandTotalRowIndex].Value = "Grand Total: ";
+                        worksheet.Cells["I" + grandTotalRowIndex].Value = grandTotal;
 
                         // Center the content in grand total row
-                        var grandTotalCells = worksheet.Cells["G" + grandTotalRowIndex + ":H" + (grandTotalRowIndex)];
+                        var grandTotalCells = worksheet.Cells["H" + grandTotalRowIndex + ":I" + (grandTotalRowIndex)];
                         grandTotalCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        worksheet.Cells["G" + grandTotalRowIndex + ":H" + grandTotalRowIndex].Style.Font.Bold = true;
+                        worksheet.Cells["H" + grandTotalRowIndex + ":I" + grandTotalRowIndex].Style.Font.Bold = true;
 
                         // Set money format for column H
-                        worksheet.Cells["H" + grandTotalRowIndex].Style.Numberformat.Format = "0.00";
+                        worksheet.Cells["I" + grandTotalRowIndex].Style.Numberformat.Format = "0.00";
 
                         package.SaveAs(fullPathWithName);
                     }
@@ -646,17 +598,17 @@ namespace RCBC.Controllers
                     pdfDocument.Add(new Paragraph("\n"));
 
                     // Add a table to the PDF document
-                    var pdfTable = new PdfPTable(10);
+                    var pdfTable = new PdfPTable(11);
 
 
                     // Set the width percentage of the table (relative to the page width)
-                    pdfTable.SetWidthPercentage(new float[] { 45f, 120f, 116f, 116f, 100f, 100f, 105f, 85f, 105f, 100f }, PageSize.LEGAL.Rotate());
+                    pdfTable.SetWidthPercentage(new float[] { 45f, 80f, 80f, 116f, 116f, 80f, 80f, 105f, 85f, 105f, 100f }, PageSize.LEGAL.Rotate());
 
                     // Define font style and size for headers
                     var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 9, BaseColor.BLACK);
 
                     // Add table headers
-                    var headers = new string[] { "No.", "Machine Name", "Transaction Date", "Transaction Time", "Card Number", "Account Number", "Beneficiary Name", "Amount", "Credit Description", "External Reference" };
+                    var headers = new string[] { "No.", "Location Code", "Location Name", "Transaction Date", "Transaction Time", "Card Number", "Account Number", "Beneficiary Name", "Amount", "Credit Description", "External Reference" };
                     foreach (var header in headers)
                     {
                         pdfTable.AddCell(new PdfPCell(new Phrase(header, headerFont))
@@ -666,42 +618,11 @@ namespace RCBC.Controllers
                         });
                     }
 
-                    // Fetch audit log data
-                    var qry = global.GetAuditLogs().Where(x => x.TableId != 0).OrderBy(x => x.Id).ToList();
-
-                    List<AuditLogsModel> data = new List<AuditLogsModel>();
-
-                    int count = 1;
-                    foreach (var item in qry)
-                    {
-                        AuditLogsModel obj = new AuditLogsModel();
-
-                        obj.No = count;
-                        obj.Id = item.Id;
-                        obj.SystemName = item.SystemName;
-                        obj.Module = item.Module;
-                        obj.SubModule = item.SubModule;
-                        obj.ChildModule = item.ChildModule;
-                        obj.TableName = item.TableName;
-                        obj.TableId = item.TableId;
-                        obj.Action = item.Action;
-                        obj.GroupDept = item.GroupDept;
-                        obj.UserRole = item.UserRole;
-                        obj.PreviousData = item.PreviousData;
-                        obj.NewData = item.NewData;
-                        obj.ModifiedBy = item.ModifiedBy;
-                        obj.DateModified = item.DateModified;
-                        obj.IP = item.IP;
-                        obj.EmployeeName = item.EmployeeName;
-                        data.Add(obj);
-                        count++;
-                    }
-
                     // Define font style and size for data cells
                     var dataFont = FontFactory.GetFont(FontFactory.HELVETICA, 9, BaseColor.BLACK);
 
                     // Calculate grand total of TableId
-                    int grandTotal = 0;
+                    decimal? grandTotal = 0;
 
                     // Add data to the PDF table
                     foreach (var logEntry in data)
@@ -711,60 +632,65 @@ namespace RCBC.Controllers
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.SubModule, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.LocationCode, dataFont))
+                        {
+                            HorizontalAlignment = Element.ALIGN_CENTER
+                        });
+                        
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.LocationName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToString("MM/dd/yyyy"), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TransactionTime.Value.ToString("MM/dd/yyyy"), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.DateModified.ToString("HH:mm:ss"), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TransactionTime.Value.ToString("HH:mm:ss"), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString(), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.CardNumber.ToString(), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ModifiedBy.ToString(), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.AccountNumber.ToString(), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.EmployeeName, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.BeneficiaryName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.TableId.ToString("C", CultureInfo.CreateSpecificCulture("en-PH")), dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.Amount.Value.ToString("C", CultureInfo.CreateSpecificCulture("en-PH")), dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_RIGHT
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ChildModule, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.CreditDescription, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
-                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ChildModule, dataFont))
+                        pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.ExternalReference, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
 
                         // Add the TableId value to the grand total
-                        grandTotal += logEntry.TableId;
+                        grandTotal += logEntry.Amount;
                     }
 
                     // Add table footers
-                    int[] footers = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                    int[] footers = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
                     foreach (int footer in footers)
                     {
-                        if (footer == 7)
+                        if (footer == 8)
                         {
                             pdfTable.AddCell(new PdfPCell(new Phrase("Grand Total:", dataFont))
                             {
@@ -772,9 +698,9 @@ namespace RCBC.Controllers
                                 Border = PdfPCell.RIGHT_BORDER | PdfPCell.BOTTOM_BORDER,
                             });
                         }
-                        else if (footer == 8)
+                        else if (footer == 9)
                         {
-                            pdfTable.AddCell(new PdfPCell(new Phrase(grandTotal.ToString("C", CultureInfo.CreateSpecificCulture("en-PH")), dataFont))
+                            pdfTable.AddCell(new PdfPCell(new Phrase(grandTotal.Value.ToString("C", CultureInfo.CreateSpecificCulture("en-PH")), dataFont))
                             {
                                 HorizontalAlignment = Element.ALIGN_RIGHT,
                                 Border = PdfPCell.RIGHT_BORDER | PdfPCell.BOTTOM_BORDER,
@@ -788,7 +714,7 @@ namespace RCBC.Controllers
                                 Border = PdfPCell.LEFT_BORDER | PdfPCell.BOTTOM_BORDER,
                             });
                         }
-                        else if (footer == 10)
+                        else if (footer == 11)
                         {
                             pdfTable.AddCell(new PdfPCell(new Phrase("", dataFont))
                             {
@@ -820,11 +746,10 @@ namespace RCBC.Controllers
                     using (var writer = new StreamWriter(csvFullPath))
                     using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        var data = global.GetAuditLogs().Where(x => x.TableId != 0).OrderBy(x => x.Id).ToList();
-
                         var headers = new string[] {
                             "No.",
-                            "Machine Name",
+                            "Location Code",
+                            "Location Name",
                             "Transaction Date",
                             "Transaction Time",
                             "Card Number",
@@ -837,7 +762,8 @@ namespace RCBC.Controllers
 
                         // Write header with formatting
                         csv.WriteField("No.");
-                        csv.WriteField("Machine Name");
+                        csv.WriteField("Location Name");
+                        csv.WriteField("Location Name");
                         csv.WriteField("Transaction Date");
                         csv.WriteField("Transaction Time");
                         csv.WriteField("Card Number");
@@ -854,20 +780,21 @@ namespace RCBC.Controllers
                         {
                             var rowIndex = i + 2; // Starting from the second row
 
-                            // Format DateModified as date and time
-                            string DateModified = data[i].DateModified.ToString("MM/dd/yyyy");
-                            string TimeModified = data[i].DateModified.ToString("HH:mm:ss");
+                            // Format TransactionDate as date and time
+                            string TransactionDate = data[i].TransactionDate.Value.ToString("MM/dd/yyyy");
+                            string TransactionTime = data[i].TransactionTime.Value.ToString("HH:mm:ss");
 
                             csv.WriteField(count);
-                            csv.WriteField(data[i].SubModule);
-                            csv.WriteField(DateModified);
-                            csv.WriteField(TimeModified);
-                            csv.WriteField(data[i].ModifiedBy);
-                            csv.WriteField(data[i].ModifiedBy);
-                            csv.WriteField(data[i].EmployeeName);
-                            csv.WriteField(data[i].TableId);
-                            csv.WriteField(data[i].ChildModule);
-                            csv.WriteField(data[i].ChildModule);
+                            csv.WriteField(data[i].LocationCode);
+                            csv.WriteField(data[i].LocationName);
+                            csv.WriteField(TransactionDate);
+                            csv.WriteField(TransactionTime);
+                            csv.WriteField(data[i].CardNumber);
+                            csv.WriteField(data[i].AccountNumber);
+                            csv.WriteField(data[i].BeneficiaryName);
+                            csv.WriteField(data[i].Amount);
+                            csv.WriteField(data[i].CreditDescription);
+                            csv.WriteField(data[i].ExternalReference);
                             csv.NextRecord();
                             count++;
                         }

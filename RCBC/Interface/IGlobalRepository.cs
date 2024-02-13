@@ -43,6 +43,12 @@ namespace RCBC.Interface
         
         public List<AccountModel> GetAccounts();
 
+        public List<TransmittalDetailModel> GetTransmittalDetails();
+
+        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status);
+
+        public List<DPUStatusModel> GetDPUStatusReport(DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status);
+
         public List<ApprovalUpdatesModel> GetApprovalUpdates();
 
         bool IsStrongPassword(string password);
@@ -66,6 +72,8 @@ namespace RCBC.Interface
         public string GeneratePassword();
 
         public bool SaveUserInformation(UserModel model);
+
+        public string GetColumnDetails(AuditLogsModel model);
 
     }
 }

@@ -13,6 +13,7 @@
         public string? GroupDept { get; set; }
         public string? UserRole { get; set; }
         public string? PreviousData { get; set; }
+        public string? Details { get; set; }
 
         public string? NewData { get; set; }
         public int ModifiedBy { get; set; }
