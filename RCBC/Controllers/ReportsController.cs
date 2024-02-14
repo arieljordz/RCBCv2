@@ -124,9 +124,9 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Action)
+        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
         {
-            var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Action);
+            var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Status);
 
             return Json(new { data });
         }
@@ -196,7 +196,7 @@ namespace RCBC.Controllers
                         worksheet.Cells["F7"].Value = "Activity";
                         worksheet.Column(6).Width = 20;
                         worksheet.Cells["G7"].Value = "Details";
-                        worksheet.Column(7).Width = 25;
+                        worksheet.Column(7).Width = 30;
 
                         // Add data to the Excel worksheet
                         for (int i = 0; i < data.Count; i++)
@@ -399,9 +399,9 @@ namespace RCBC.Controllers
             try
             {
                 var timestamp = DateTime.Now.ToString("hhmmss");
-                var excelFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".xlsx";
-                var pdfFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".pdf";
-                var csvFileName = "DPU_REPORT_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".csv";
+                var excelFileName = "DPU_STATUS_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".xlsx";
+                var pdfFileName = "DPU_STATUS_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".pdf";
+                var csvFileName = "DPU_STATUS_" + DateTime.Now.ToString("MMddyyyy") + timestamp + ".csv";
 
                 string userProfilePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string downloadsFolderPath = Path.Combine(userProfilePath, "Downloads");
