@@ -22,6 +22,7 @@ using System.Reflection.PortableExecutable;
 using System.Data.SqlClient;
 using System.Data;
 using Dapper;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace RCBC.Controllers
 {
@@ -218,6 +219,15 @@ namespace RCBC.Controllers
                             var dataCells = worksheet.Cells["A" + rowIndex + ":G" + rowIndex];
                             dataCells.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                         }
+                        // Add grand total row
+                        var footerRowIndex = data.Count + 8; // Row index after the last data row
+                        worksheet.Cells["A" + footerRowIndex + ":" + "G" + footerRowIndex].Value = "--Nothing Follows--";
+
+                        // Merge and center cells A:G
+                        worksheet.Cells["A" + footerRowIndex + ":" + "G" + footerRowIndex].Merge = true;
+                        worksheet.Cells["A" + footerRowIndex + ":" + "G" + footerRowIndex].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                        worksheet.Cells["A" + footerRowIndex + ":" + "G" + footerRowIndex].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+                        worksheet.Cells["A" + footerRowIndex + ":" + "G" + footerRowIndex].Style.Font.Bold = true;
 
                         package.SaveAs(fullPathWithName);
 
@@ -334,6 +344,15 @@ namespace RCBC.Controllers
 
                     // Add the table to the PDF document
                     pdfDocument.Add(pdfTable);
+
+                    // footer
+                    var footer = new PdfPTable(1);
+                    footer.SetWidthPercentage(new float[] { 610f }, PageSize.A4);
+                    var _footer = new PdfPCell(new Phrase("--Nothing Follows--", headerFont));
+                    _footer.HorizontalAlignment = Element.ALIGN_CENTER;
+                    _footer.Border = PdfPCell.NO_BORDER;
+                    footer.AddCell(_footer);
+                    pdfDocument.Add(footer);
 
                     // Close the PDF document
                     pdfDocument.Close();
@@ -520,7 +539,7 @@ namespace RCBC.Controllers
                         }
 
                         // Calculate grand total
-                        decimal? grandTotal = data.Sum(item => item.Amount); 
+                        decimal? grandTotal = data.Sum(item => item.Amount);
 
                         // Add grand total row
                         var grandTotalRowIndex = data.Count + 10; // Row index after the last data row
@@ -636,7 +655,7 @@ namespace RCBC.Controllers
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
                         });
-                        
+
                         pdfTable.AddCell(new PdfPCell(new Phrase(logEntry.LocationName, dataFont))
                         {
                             HorizontalAlignment = Element.ALIGN_CENTER
