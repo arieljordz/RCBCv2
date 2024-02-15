@@ -68,7 +68,7 @@
 
                 <form id="form_partner" novalidate="novalidate">
 
-                    <div class="p-3">   
+                    <div class="p-3">
                         @Html.HiddenFor(x => x.Id)
                         @Html.HiddenFor(x => x.IsApproved)
                         <div class="row">
@@ -133,10 +133,12 @@
 </div>
 <!-- /.content-wrapper -->
 @section Scripts
-    {
+{
     <script>
         $(document).ready(function () {
+
             var isApproved = null;
+            var role = $("#user_role").html();
 
             LoadPartnerVendors();
             function LoadPartnerVendors() {
@@ -153,6 +155,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadPartnerVendors",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

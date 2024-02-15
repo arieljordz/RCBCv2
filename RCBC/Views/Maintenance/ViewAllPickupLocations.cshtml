@@ -151,8 +151,10 @@
     {
     <script>
         $(document).ready(function () {
+
             var isApproved = null;
-            
+            var role = $("#user_role").html();
+
             LoadPickupLocation();
             function LoadPickupLocation() {
                 $('#tbl_location').DataTable({
@@ -168,6 +170,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadPickupLocation",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

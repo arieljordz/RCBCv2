@@ -128,6 +128,7 @@
 
             var checkedCheckboxIds = [];
             var selectedChildModuleIds = [];
+            var role = $("#user_role").html();
 
             LoadUsersForApproval();
             function LoadUsersForApproval() {
@@ -144,6 +145,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadUsersForApproval",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

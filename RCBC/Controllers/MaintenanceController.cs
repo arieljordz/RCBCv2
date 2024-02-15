@@ -254,12 +254,11 @@ namespace RCBC.Controllers
                         {
                             var chkUsername = global.GetUserInformation().FirstOrDefault(x => x.Username.ToLower() == model.Username.ToLower());
 
-                            if (chkUsername == null)
+                            if (model.ModuleIds != null && model.ChildModuleIds != null)
                             {
-                                if (model.ModuleIds != null && model.ChildModuleIds != null)
+                                if (model.Id == 0)
                                 {
-
-                                    if (model.Id == 0)
+                                    if (chkUsername == null)
                                     {
                                         var usersInfoParameters = new
                                         {
@@ -328,178 +327,177 @@ namespace RCBC.Controllers
                                             con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
                                         }
-
-                                        msg = "Successfully Saved.";
-                                        action = "Add";
-                                        previousData = null;
                                     }
                                     else
                                     {
-                                        var userInfo = global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id);
+                                        return Json(new { success = false, message = "The username is already exist." });
+                                    }
+                                    msg = "Successfully Saved.";
+                                    action = "Add";
+                                    previousData = null;
+                                }
+                                else
+                                {
+                                    var userInfo = global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id);
 
-                                        var usersInfoParameters = new
+                                    var usersInfoParameters = new
+                                    {
+                                        Id = model.Id,
+                                        HashPassword = userInfo.HashPassword,
+                                        Salt = userInfo.Salt,
+                                        Username = model.Username,
+                                        EmployeeName = model.EmployeeName,
+                                        Email = model.Email,
+                                        MobileNumber = model.MobileNumber,
+                                        GroupDept = model.GroupDept,
+                                        UserRole = model.UserRole,
+                                        Active = model.Active,
+                                        LoginAttempt = userInfo.LoginAttempt,
+                                        IsApproved = userInfo.IsApproved,
+                                        IsFirstLogged = userInfo.IsFirstLogged,
+                                    };
+
+                                    var approvalParameters = new
+                                    {
+                                        JsonData = JsonConvert.SerializeObject(usersInfoParameters),
+                                        TableId = model.Id,
+                                        TableName = "UsersInformation",
+                                        ModifiedBy = GlobalUserId,
+                                        DateModified = DateTime.Now,
+                                    };
+                                    con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    var parameters = new
+                                    {
+                                        Id = model.Id,
+                                        tableName = "users",
+                                        status = (bool?)null,
+                                        reason = string.Empty,
+                                    };
+                                    con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                    var allAccess = global.GetModulesAndSubModules();
+
+                                    var userAccesss = global.GetUserAccessModules().Where(x => x.UserId == model.Id).ToList();
+
+                                    foreach (var item in allAccess)
+                                    {
+                                        int SubModuleId = Convert.ToInt32(item.SubModuleId);
+                                        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
+                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+
+                                        string[] moduleIdsArray = model.ModuleIds.Split(',');
+                                        string[] childModuleIdsArray = model.ChildModuleIds.Split(',');
+
+                                        bool isExistsModule = Array.Exists<string>(moduleIdsArray, x => x.Equals(SubModuleId.ToString()));
+                                        bool isExistsChild = Array.Exists<string>(childModuleIdsArray, x => x.Equals(item.ChildModuleId.ToString()));
+
+                                        bool? isActive = null;
+
+                                        if (isExistsModule && userAccesss != null)
                                         {
-                                            Id = model.Id,
-                                            HashPassword = userInfo.HashPassword,
-                                            Salt = userInfo.Salt,
-                                            Username = model.Username,
-                                            EmployeeName = model.EmployeeName,
-                                            Email = model.Email,
-                                            MobileNumber = model.MobileNumber,
-                                            GroupDept = model.GroupDept,
-                                            UserRole = model.UserRole,
-                                            Active = model.Active,
-                                            LoginAttempt = userInfo.LoginAttempt,
-                                            IsApproved = userInfo.IsApproved,
-                                            IsFirstLogged = userInfo.IsFirstLogged,
-                                        };
-
-                                        var approvalParameters = new
-                                        {
-                                            JsonData = JsonConvert.SerializeObject(usersInfoParameters),
-                                            TableId = model.Id,
-                                            TableName = "UsersInformation",
-                                            ModifiedBy = GlobalUserId,
-                                            DateModified = DateTime.Now,
-                                        };
-                                        con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        var parameters = new
-                                        {
-                                            Id = model.Id,
-                                            tableName = "users",
-                                            status = (bool?)null,
-                                            reason = string.Empty,
-                                        };
-                                        con.Execute("sp_updateApproval", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        var allAccess = global.GetModulesAndSubModules();
-
-                                        var userAccesss = global.GetUserAccessModules().Where(x => x.UserId == model.Id).ToList();
-
-                                        foreach (var item in allAccess)
-                                        {
-                                            int SubModuleId = Convert.ToInt32(item.SubModuleId);
-                                            var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                            var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
-
-                                            string[] moduleIdsArray = model.ModuleIds.Split(',');
-                                            string[] childModuleIdsArray = model.ChildModuleIds.Split(',');
-
-                                            bool isExistsModule = Array.Exists<string>(moduleIdsArray, x => x.Equals(SubModuleId.ToString()));
-                                            bool isExistsChild = Array.Exists<string>(childModuleIdsArray, x => x.Equals(item.ChildModuleId.ToString()));
-
-                                            bool? isActive = null;
-
-                                            if (isExistsModule && userAccesss != null)
+                                            var access = userAccesss.Where(x => x.SubModuleId == SubModuleId && x.ChildModuleId == item.ChildModuleId).FirstOrDefault();
+                                            if (access != null)
                                             {
-                                                var access = userAccesss.Where(x => x.SubModuleId == SubModuleId && x.ChildModuleId == item.ChildModuleId).FirstOrDefault();
-                                                if (access != null)
-                                                {
-                                                    isActive = access.IsActive;
+                                                isActive = access.IsActive;
 
-                                                    if (access.IsActive == true)
+                                                if (access.IsActive == true)
+                                                {
+                                                    if (item.ChildModuleId != 0)
                                                     {
-                                                        if (item.ChildModuleId != 0)
+                                                        if (isExistsChild)
                                                         {
-                                                            if (isExistsChild)
-                                                            {
-                                                                isActive = true;
-                                                            }
-                                                            else
-                                                            {
-                                                                isActive = null;
-                                                            }
+                                                            isActive = true;
                                                         }
                                                         else
                                                         {
-                                                            isActive = true;
+                                                            isActive = null;
                                                         }
                                                     }
                                                     else
                                                     {
-                                                        if (item.ChildModuleId != 0)
-                                                        {
-                                                            if (isExistsChild)
-                                                            {
-                                                                isActive = false;
-                                                            }
-                                                            else
-                                                            {
-                                                                isActive = null;
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            isActive = false;
-                                                        }
+                                                        isActive = true;
                                                     }
                                                 }
                                                 else
                                                 {
-
-                                                    var insertParameters = new
+                                                    if (item.ChildModuleId != 0)
                                                     {
-                                                        UserId = model.Id,
-                                                        RoleId = Roles?.Id ?? 0,
-                                                        ModuleId = Modules?.ModuleId ?? 0,
-                                                        SubModuleId = SubModuleId,
-                                                        ChildModuleId = item.ChildModuleId,
-                                                        Active = isExistsChild == true ? false : (bool?)null
-                                                    };
-
-                                                    con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                                        if (isExistsChild)
+                                                        {
+                                                            isActive = false;
+                                                        }
+                                                        else
+                                                        {
+                                                            isActive = null;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        isActive = false;
+                                                    }
                                                 }
                                             }
-
-                                            var updateParameters = new
+                                            else
                                             {
-                                                UserId = model.Id,
-                                                RoleId = Roles?.Id ?? 0,
-                                                ModuleId = Modules?.ModuleId ?? 0,
-                                                SubModuleId = SubModuleId,
-                                                ChildModuleId = item.ChildModuleId,
-                                                Active = isActive
-                                            };
 
-                                            con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                                var insertParameters = new
+                                                {
+                                                    UserId = model.Id,
+                                                    RoleId = Roles?.Id ?? 0,
+                                                    ModuleId = Modules?.ModuleId ?? 0,
+                                                    SubModuleId = SubModuleId,
+                                                    ChildModuleId = item.ChildModuleId,
+                                                    Active = isExistsChild == true ? false : (bool?)null
+                                                };
+
+                                                con.Execute("sp_saveUserAccessModules", insertParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                            }
                                         }
 
-                                        msg = "Successfully saved. \n Subject for approval.";
-                                        action = "Update";
-                                        previousData = JsonConvert.SerializeObject(userInfo);
+                                        var updateParameters = new
+                                        {
+                                            UserId = model.Id,
+                                            RoleId = Roles?.Id ?? 0,
+                                            ModuleId = Modules?.ModuleId ?? 0,
+                                            SubModuleId = SubModuleId,
+                                            ChildModuleId = item.ChildModuleId,
+                                            Active = isActive
+                                        };
+
+                                        con.Execute("sp_updateUserAccessModules", updateParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
                                     }
 
-                                    transaction.Commit();
-
-                                    var auditlogs = new AuditLogsModel
-                                    {
-                                        Module = "Maintenance",
-                                        SubModule = "User Maintenance",
-                                        ChildModule = "View All Users",
-                                        TableName = "UsersInformation",
-                                        TableId = model.Id,
-                                        Action = action,
-                                        PreviousData = previousData,
-                                        NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id)),
-                                        ModifiedBy = GlobalUserId,
-                                        DateModified = DateTime.Now,
-                                        IP = global.GetLocalIPAddress(),
-                                    };
-
-                                    var logs = global.SaveAuditLogs(auditlogs);
-
-                                    return Json(new { success = true, message = msg });
-
+                                    msg = "Successfully saved. \n Subject for approval.";
+                                    action = "Update";
+                                    previousData = JsonConvert.SerializeObject(userInfo);
                                 }
-                                else
+
+                                transaction.Commit();
+
+                                var auditlogs = new AuditLogsModel
                                 {
-                                    return Json(new { success = false, message = "Please select access for user." });
-                                }
+                                    Module = "Maintenance",
+                                    SubModule = "User Maintenance",
+                                    ChildModule = "View All Users",
+                                    TableName = "UsersInformation",
+                                    TableId = model.Id,
+                                    Action = action,
+                                    PreviousData = previousData,
+                                    NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id)),
+                                    ModifiedBy = GlobalUserId,
+                                    DateModified = DateTime.Now,
+                                    IP = global.GetLocalIPAddress(),
+                                };
+
+                                var logs = global.SaveAuditLogs(auditlogs);
+
+                                return Json(new { success = true, message = msg });
+
                             }
                             else
                             {
-                                return Json(new { success = false, message = "The username is already exist." });
+                                return Json(new { success = false, message = "Please select access for user." });
                             }
                         }
                         catch (Exception ex)
@@ -743,9 +741,14 @@ namespace RCBC.Controllers
 
         }
 
-        public IActionResult LoadUsersForApproval()
+        public IActionResult LoadUsersForApproval(string role)
         {
             var data = global.GetUserInformation().OrderBy(x => x.Id).ToList();
+
+            if (role.ToLower().Contains("approver"))
+            {
+                //data = global.GetUserInformation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+            }
 
             return Json(new { data });
         }
@@ -1053,19 +1056,16 @@ namespace RCBC.Controllers
             return Json(new { data });
         }
 
-        public IActionResult LoadPartnerVendors()
+        public IActionResult LoadPartnerVendors(string role)
         {
-            try
-            {
-                var data = global.GetPartnerVendor().OrderBy(x => x.Id).ToList();
+            var data = global.GetPartnerVendor().OrderBy(x => x.Id).ToList();
 
-                return Json(new { data = data });
-            }
-            catch (Exception ex)
+            if (role.ToLower().Contains("approver"))
             {
-                return Json(new { success = false, message = ex.Message });
+                //data = global.GetPartnerVendor().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
             }
 
+            return Json(new { data });
         }
 
         public IActionResult SavePartnerVendor(PartnerVendorModel model)
@@ -1256,19 +1256,16 @@ namespace RCBC.Controllers
             }
         }
 
-        public IActionResult LoadPickupLocation()
+        public IActionResult LoadPickupLocation(string role)
         {
-            try
-            {
-                var data = global.GetPickupLocation().OrderBy(x => x.Id).ToList();
+            var data = global.GetPickupLocation().OrderBy(x => x.Id).ToList();
 
-                return Json(new { data = data });
-            }
-            catch (Exception ex)
+            if (role.ToLower().Contains("approver"))
             {
-                return Json(new { success = false, message = ex.Message });
+                //data = global.GetPickupLocation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
             }
 
+            return Json(new { data });
         }
 
         public IActionResult SavePickupLocation(PickupLocationModel model)

@@ -344,6 +344,8 @@
     <script>
         $(document).ready(function () {
 
+            var role = $("#user_role").html();
+
             $('#cmb_contacts').select2()
 
             $('#tab_corporate_client').addClass('active');
@@ -622,6 +624,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../CorporateManagement/LoadClientDetails",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },
@@ -903,6 +906,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../CorporateManagement/LoadClientDetails",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

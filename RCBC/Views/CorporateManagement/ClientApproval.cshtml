@@ -185,6 +185,8 @@
     <script>
         $(document).ready(function () {
 
+            var role = $("#user_role").html();
+
             LoadClientDetails();
             function LoadClientDetails() {
                 $('#tbl_client_details').DataTable({
@@ -200,6 +202,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../CorporateManagement/LoadClientDetails",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

@@ -173,6 +173,8 @@
     <script>
         $(document).ready(function () {
 
+            var role = $("#user_role").html();
+
             LoadPartnerVendors();
             function LoadPartnerVendors() {
                 $('#tbl_partner_vendor').DataTable({
@@ -188,6 +190,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadPartnerVendors",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

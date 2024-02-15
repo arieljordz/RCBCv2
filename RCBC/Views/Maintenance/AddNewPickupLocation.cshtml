@@ -115,13 +115,13 @@
                                                                 @Html.ValidationMessageFor(x => x.SOLID)
                                                             </div>
                                                         </div>
-                                                      @*   <div class="col-md-4 pt-4">
-                                                            <div class="form-group clearfix pt-3">
-                                                                <div class="icheck-primary d-inline">
-                                                                    @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
-                                                                    @Html.Label("Active", "Active Status")
-                                                                </div>
-                                                            </div>
+                                                        @*   <div class="col-md-4 pt-4">
+                                                        <div class="form-group clearfix pt-3">
+                                                        <div class="icheck-primary d-inline">
+                                                        @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                                        @Html.Label("Active", "Active Status")
+                                                        </div>
+                                                        </div>
                                                         </div> *@
                                                     </div>
 
@@ -343,6 +343,8 @@
 {
     <script>
         $(document).ready(function () {
+
+            var role = $("#user_role").html();
 
             $('#cmb_contacts').select2()
 
@@ -618,6 +620,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadPickupLocation",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },
@@ -908,6 +911,7 @@
                     lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "All"]],
                     ajax: {
                         "url": "../Maintenance/LoadPickupLocation",
+                        "data": { role: role },
                         "type": "GET",
                         "datatype": "JSON",
                     },

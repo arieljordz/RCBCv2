@@ -105,11 +105,16 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult LoadClientDetails()
+        public IActionResult LoadClientDetails(string role)
         {
             try
             {
                 var data = global.GetCorporateClient().OrderBy(x => x.Id).ToList();
+
+                if (role.ToLower().Contains("approver"))
+                {
+                    //data = global.GetCorporateClient().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+                }
 
                 return Json(new { data = data });
             }

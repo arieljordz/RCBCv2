@@ -740,6 +740,7 @@ namespace RCBC.Repository
             try
             {
                 string bodyMsg = "";
+                string subject = "";
 
                 if (type == "create")
                 {
@@ -761,6 +762,8 @@ namespace RCBC.Repository
                               "DPU System Administrator" +
                               "</p>" +
                               "</body>";
+
+                    subject = "DPU Tellerless Portal User Registration";
                 }
                 else if (type == "reset")
                 {
@@ -781,6 +784,8 @@ namespace RCBC.Repository
                               "DPU System Administrator" +
                               "</p>" +
                               "</body>";
+
+                    subject = "DPU Reset Password Link";
                 }
                 else if (type == "forgot")
                 {
@@ -802,12 +807,14 @@ namespace RCBC.Repository
                               "DPU System Administrator" +
                               "</p>" +
                               "</body>";
+
+                    subject = "DPU Reset Password Link";
                 }
 
                 MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress("arlene@yuna.somee.com");
+                mailMessage.From = new MailAddress("DPU System Administrator <notify@rcbc.com>");
                 mailMessage.To.Add(email);
-                mailMessage.Subject = "Subject";
+                mailMessage.Subject = subject;
                 mailMessage.Body = bodyMsg;
                 mailMessage.IsBodyHtml = true;
 
