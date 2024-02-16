@@ -233,7 +233,11 @@
                     success: function (res) {
                         console.log(res);
                         if (res.success) {
-                            Swal.fire('Information!', res.message, 'info');
+                            Swal.fire({
+                                title: 'Downloading Completed!',
+                                html: `File Path: ${res.downloadPath}<br>File Name: ${res.fileName}<br><br>Open the file location manually in your file explorer.`,
+                                icon: 'success'
+                            });
                         } else {
                             Swal.fire('Warming!', res.message, 'warning');
                         }

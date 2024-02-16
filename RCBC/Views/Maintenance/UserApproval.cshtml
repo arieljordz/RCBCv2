@@ -78,7 +78,7 @@
 
                             <div class="card-footer">
                                 <div class="d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-primary" id="btnApproved">Approved</button>
+                                    <button type="submit" class="btn btn-primary" id="btnApproved" disabled="disabled">Approved</button>
                                     <button type="button" class="btn btn-secondary ml-3" id="btnReject">Reject</button>
                                 </div>
                             </div>
@@ -194,7 +194,13 @@
                             LoadUserAccessById(0);
                         }
                     }
-
+                    var isApproved = SelectedValue("tbl_users_approval", "isApproved");
+                    if (isApproved == null || isApproved == false) {
+                        $('#btnApproved').removeAttr('disabled');
+                    }
+                    else {
+                        $('#btnApproved').attr('disabled', 'disabled');
+                    }
                 });
             }
 

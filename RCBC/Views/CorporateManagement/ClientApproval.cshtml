@@ -139,7 +139,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">Approved</button>
+                            <button type="submit" class="btn btn-primary" id="btnApproved" disabled="disabled">Approved</button>
                             <button type="button" class="btn btn-secondary ml-3 float-right" id="btnReject">Reject</button>
                             <button type="button" id="btnCancel" class="btn btn-danger ml-3">Cancel</button>
                         </div>
@@ -289,6 +289,15 @@
                         processData: false,
                         success: function (res) {
                             if (res.data != null) {
+                                console.log(res.data.isApproved);
+                                var isApproved = res.data.isApproved;
+                                if (isApproved == null || isApproved == false) {
+                                    $('#btnApproved').removeAttr('disabled');
+                                }
+                                else {
+                                    $('#btnApproved').attr('disabled', 'disabled');
+                                }
+
                                 $("#modal_update_client").modal("show");
                                 $("[name='Id']").val(res.data.id);
                                 $("[name='CorporateGroup']").val(res.data.corporateGroup);

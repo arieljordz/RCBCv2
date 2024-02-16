@@ -263,12 +263,12 @@
                             { "data": "modifiedBy", title: "User ID", sClass: "text-center", orderable: false },
                             { "data": "module", title: "Module", sClass: "text-center", orderable: false },
                             { "data": "employeeName", title: "Modified By", sClass: "text-center", orderable: false },
-                            { "data": "groupDept", title: "Group", sClass: "text-center", orderable: false},
+                            { "data": "groupDept", title: "Group", sClass: "text-center", orderable: false },
                             { "data": "userRole", title: "Role", sClass: "text-center", orderable: false },
                             { "data": "action", title: "Activity", sClass: "text-center", orderable: false },
                             { "data": "details", title: "Details", sClass: "text-center", orderable: false },
 
-                         
+
                             { "data": "previousData", title: "PreviousData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "newData", title: "NewData", sClass: "text-center", orderable: false, visible: false },
                             { "data": "tableName", title: "TableName", sClass: "text-center", orderable: false, visible: false },
@@ -394,9 +394,13 @@
                     success: function (res) {
                         console.log(res);
                         if (res.success) {
-                            Swal.fire('Information!', res.message, 'info');
+                            Swal.fire({
+                                title: 'Downloading Completed!',
+                                html: `File Path: ${res.downloadPath}<br>File Name: ${res.fileName}<br><br>Open the file location manually in your file explorer.`,
+                                icon: 'success'
+                            });
                         } else {
-                            Swal.fire('Warming!', res.message, 'warning');
+                            Swal.fire('Warning!', res.message, 'warning');
                         }
                         $('#loading-image').hide();
                     },

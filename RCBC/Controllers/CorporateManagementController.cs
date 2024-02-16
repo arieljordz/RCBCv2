@@ -113,7 +113,7 @@ namespace RCBC.Controllers
 
                 if (role.ToLower().Contains("approver"))
                 {
-                    //data = global.GetCorporateClient().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+                    data = global.GetCorporateClient().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
                 }
 
                 return Json(new { data = data });

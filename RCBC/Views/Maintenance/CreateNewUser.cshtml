@@ -87,13 +87,13 @@
                                             @Html.ValidationMessageFor(x => x.UserRole)
                                         </div>
                                     </div>
-                                 @*    <div class="col-md-3 pt-4">
-                                        <div class="form-group clearfix pt-3">
-                                            <div class="icheck-primary d-inline">
-                                                @Html.CheckBoxFor(x => x.Active, new { @id = "Active", @disabled = "disabled" })
-                                                @Html.Label("Active", "Active Status")
-                                            </div>
-                                        </div>
+                                    @*    <div class="col-md-3 pt-4">
+                                    <div class="form-group clearfix pt-3">
+                                    <div class="icheck-primary d-inline">
+                                    @Html.CheckBoxFor(x => x.Active, new { @id = "Active", @disabled = "disabled" })
+                                    @Html.Label("Active", "Active Status")
+                                    </div>
+                                    </div>
                                     </div> *@
                                 </div>
                                 <div class="row pb-2 pt-2">
@@ -130,8 +130,20 @@
             var checkedCheckboxIds = [];
             var selectedChildModuleIds = [];
 
+            // Validate input to allow only numbers
+            $('.mask-mobile').on('input', function () {
+                var sanitized = $(this).val().replace(/\D/g, ''); // Remove non-numeric characters
+                $(this).val(sanitized); // Update input value with sanitized version
+            });
+
             ValidateForm();
             function ValidateForm() {
+
+                // Add custom method to check if a string contains only letters
+                $.validator.addMethod("lettersOnly", function (value, element) {
+                    return /^[a-zA-Z\s]*$/.test(value);
+                }, "The field must contain only letters.");
+
                 $.validator.setDefaults({
                     submitHandler: function () {
                         Register();
@@ -140,10 +152,12 @@
                 $('#frmRegister').validate({
                     rules: {
                         Username: {
-                            required: true
+                            required: true,
+                            minlength: 8
                         },
                         EmployeeName: {
-                            required: true
+                            required: true,
+                            lettersOnly: true
                         },
                         Email: {
                             required: true
@@ -154,7 +168,8 @@
                     },
                     messages: {
                         Username: {
-                            required: "This field is required"
+                            required: "This field is required",
+                            minlength: "Username must be at least 8 characters long"
                         },
                         EmployeeName: {
                             required: "This field is required"
@@ -163,7 +178,8 @@
                             required: "This field is required"
                         },
                         MobileNumber: {
-                            required: "This field is required"
+                            required: "This field is required",
+                            number: "Please enter a valid phone number"
                         },
                     },
                     errorElement: 'span',
@@ -186,80 +202,56 @@
                 $("#frmRegister").trigger("reset");
             })
 
-            $("[name='Username']").keyup(function () {
-                var Username = $("[name='Username']").val();
-                var IsTrue = CheckMinimunChars(Username);
-
-                if (IsTrue) {
-                    $('#string_validation').removeClass("text-danger");
-                    $('#string_validation').hide();
-                }
-                else {
-                    $('#string_validation').show();
-                    $('#string_validation').addClass("text-danger").html("username should be 8 or more characters");
-                }
-            });
-
             function Register() {
+                $('#loading-image').show();
 
-                var Username = $("[name='Username']").val();
-                var IsTrue = CheckMinimunChars(Username);
+                var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
+                var checkedCheckboxIds = [];
 
-                if (IsTrue) {
+                checkedCheckboxes.each(function () {
+                    if ($(this).attr('id') !== 'checkAllHeader') {
+                        var checkboxId = $(this).attr('id');
+                        checkedCheckboxIds.push(checkboxId);
 
-                    $('#loading-image').show();
+                        var childModuleId = $(this).val();
+                        selectedChildModuleIds.push(childModuleId);
+                    }
+                });
 
-                    var checkedCheckboxes = $('#tbl_modules input[type="checkbox"]:checked');
-                    var checkedCheckboxIds = [];
+                console.log('IDs of checked checkboxes:', checkedCheckboxIds);
+                console.log('ChildModuleIDs of selected rows:', selectedChildModuleIds);
 
-                    checkedCheckboxes.each(function () {
-                        if ($(this).attr('id') !== 'checkAllHeader') {
-                            var checkboxId = $(this).attr('id');
-                            checkedCheckboxIds.push(checkboxId);
+                var formData = new FormData($("#frmRegister")[0]);
 
-                            var childModuleId = $(this).val();
-                            selectedChildModuleIds.push(childModuleId);
+                formData.append("ModuleIds", checkedCheckboxIds.join(','));
+                formData.append("ChildModuleIds", selectedChildModuleIds.join(','));
+
+                console.log(formData);
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("Register", "Maintenance")',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $('#loading-image').hide();
+                        if (response.success == true) {
+                            Swal.fire('Success!', 'User successfully registered.', 'success');
+                            $("#frmRegister").trigger("reset");
+                        } else {
+                            Swal.fire('Warning!', response.message, 'warning');
                         }
-                    });
-
-                    console.log('IDs of checked checkboxes:', checkedCheckboxIds);
-                    console.log('ChildModuleIDs of selected rows:', selectedChildModuleIds);
-
-                    var formData = new FormData($("#frmRegister")[0]);
-
-                    formData.append("ModuleIds", checkedCheckboxIds.join(','));
-                    formData.append("ChildModuleIds", selectedChildModuleIds.join(','));
-
-                    console.log(formData);
-
-                    $.ajax({
-                        type: "POST",
-                        url: '@Url.Action("Register", "Maintenance")',
-                        data: formData,
-                        contentType: false,
-                        processData: false,
-                        success: function (response) {
-                            $('#loading-image').hide();
-                            if (response.success == true) {
-                                Swal.fire('Success!', 'User successfully registered.', 'success');
-                                $("#frmRegister").trigger("reset");
-                            } else {
-                                Swal.fire('Warning!', response.message, 'warning');
-                            }
-                        },
-                        failure: function (response) {
-                            $('#loading-image').hide();
-                            alert(response.responseText);
-                        },
-                        error: function (response) {
-                            $('#loading-image').hide();
-                            alert(response.responseText);
-                        }
-                    });
-                }
-                else {
-                    Swal.fire('Warning!', 'Username should be 8 or more characters.', 'warning');
-                }
+                    },
+                    failure: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    },
+                    error: function (response) {
+                        $('#loading-image').hide();
+                        alert(response.responseText);
+                    }
+                });
 
             }
 

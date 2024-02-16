@@ -637,20 +637,28 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        var parameters = new
+                        var isExist = global.GetUserRole().FirstOrDefault(x => x.UserRole.ToLower() == model.UserRole.ToLower());
+                        if (isExist == null)
                         {
-                            UserRole = model.UserRole,
-                            DateCreated = DateTime.Now,
-                            CreatedBy = GlobalUserId,
-                            DateApproved = DateTime.Now,
-                            ApprovedBy = GlobalUserId,
-                        };
+                            var parameters = new
+                            {
+                                UserRole = model.UserRole,
+                                DateCreated = DateTime.Now,
+                                CreatedBy = GlobalUserId,
+                                DateApproved = DateTime.Now,
+                                ApprovedBy = GlobalUserId,
+                            };
 
-                        model.Id = con.QuerySingle<int>("sp_saveUserRole", parameters, commandType: CommandType.StoredProcedure);
+                            model.Id = con.QuerySingle<int>("sp_saveUserRole", parameters, commandType: CommandType.StoredProcedure);
 
-                        msg = "Successfully saved.";
-                        action = "Add";
-                        previousData = null;
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "The User Role is already exist." });
+                        }
                     }
                     else
                     {
@@ -747,7 +755,7 @@ namespace RCBC.Controllers
 
             if (role.ToLower().Contains("approver"))
             {
-                //data = global.GetUserInformation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+                data = global.GetUserInformation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
             }
 
             return Json(new { data });
@@ -936,20 +944,28 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        var parameters = new
+                        var isExist = global.GetDepartment().FirstOrDefault(x => x.GroupDept.ToLower() == model.GroupDept.ToLower());
+                        if (isExist == null)
                         {
-                            GroupDept = model.GroupDept,
-                            DateCreated = DateTime.Now,
-                            CreatedBy = GlobalUserId,
-                            DateApproved = DateTime.Now,
-                            ApprovedBy = GlobalUserId,
-                        };
+                            var parameters = new
+                            {
+                                GroupDept = model.GroupDept,
+                                DateCreated = DateTime.Now,
+                                CreatedBy = GlobalUserId,
+                                DateApproved = DateTime.Now,
+                                ApprovedBy = GlobalUserId,
+                            };
 
-                        model.Id = con.QuerySingle<int>("sp_saveDepartment", parameters, commandType: CommandType.StoredProcedure);
+                            model.Id = con.QuerySingle<int>("sp_saveDepartment", parameters, commandType: CommandType.StoredProcedure);
 
-                        msg = "Successfully saved.";
-                        action = "Add";
-                        previousData = null;
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "The Group/Department is already exist." });
+                        }
                     }
                     else
                     {
@@ -1062,7 +1078,7 @@ namespace RCBC.Controllers
 
             if (role.ToLower().Contains("approver"))
             {
-                //data = global.GetPartnerVendor().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+                data = global.GetPartnerVendor().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
             }
 
             return Json(new { data });
@@ -1155,8 +1171,8 @@ namespace RCBC.Controllers
                                     Email = model.Email,
                                     Active = true,
                                     IsApproved = true,
-                                    DateCreated = DateTime.Now,
-                                    CreatedBy = GlobalUserId,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
                                 };
 
                                 con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure);
@@ -1262,7 +1278,7 @@ namespace RCBC.Controllers
 
             if (role.ToLower().Contains("approver"))
             {
-                //data = global.GetPickupLocation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
+                data = global.GetPickupLocation().Where(x => x.IsApproved == null).OrderBy(x => x.Id).ToList();
             }
 
             return Json(new { data });

@@ -150,6 +150,7 @@ namespace RCBC.Controllers
                 var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
                 var DLFullPath = string.Empty;
+                var fileName = string.Empty;
 
                 var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Status);
 
@@ -232,6 +233,7 @@ namespace RCBC.Controllers
                         package.SaveAs(fullPathWithName);
 
                         DLFullPath = excelFullPath;
+                        fileName = excelFileName;
                     }
                 }
                 else if (Type == "PDF")
@@ -358,6 +360,7 @@ namespace RCBC.Controllers
                     pdfDocument.Close();
 
                     DLFullPath = pdfFullPath;
+                    fileName = pdfFileName;
 
                 }
                 else if (Type == "CSV")
@@ -396,9 +399,10 @@ namespace RCBC.Controllers
                     }
 
                     DLFullPath = csvFullPath;
+                    fileName = csvFileName;
 
                 }
-                return Json(new { success = true, message = $"Downloading Completed.\n File Path: {DLFullPath}" });
+                return Json(new { success = true, fullPath = DLFullPath, fileName = fileName, downloadPath = downloadsFolderPath });
             }
             catch (Exception ex)
             {
@@ -429,6 +433,7 @@ namespace RCBC.Controllers
                 var pdfFullPath = Path.Combine(downloadsFolderPath, pdfFileName);
                 var csvFullPath = Path.Combine(downloadsFolderPath, csvFileName);
                 var DLFullPath = string.Empty;
+                var fileName = string.Empty;
 
                 var data = global.GetDPUStatusReport(DateFrom, DateTo, LocationCode, BeneficiaryName, AccountNumber, Status);
 
@@ -558,6 +563,7 @@ namespace RCBC.Controllers
                     }
 
                     DLFullPath = excelFullPath;
+                    fileName = excelFileName;
 
                 }
                 else if (Type == "PDF")
@@ -758,6 +764,7 @@ namespace RCBC.Controllers
                     pdfDocument.Close();
 
                     DLFullPath = pdfFullPath;
+                    fileName = pdfFileName;
 
                 }
                 else if (Type == "CSV")
@@ -820,9 +827,10 @@ namespace RCBC.Controllers
                     }
 
                     DLFullPath = csvFullPath;
+                    fileName = csvFileName;
 
                 }
-                return Json(new { success = true, message = $"Downloading Completed.\n File Path: {DLFullPath}" });
+                return Json(new { success = true, fullPath = DLFullPath, fileName = fileName, downloadPath = downloadsFolderPath });
             }
             catch (Exception ex)
             {
