@@ -130,7 +130,6 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmDepartment").trigger("reset");
                             LoadDepartment();
@@ -138,6 +137,7 @@
                         else {
                             Swal.fire('Warning!', 'Department Already Exists.', 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

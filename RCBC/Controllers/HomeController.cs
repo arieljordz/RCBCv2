@@ -579,7 +579,7 @@ namespace RCBC.Controllers
                         string password = finalString + Salt;
                         string HashPassword = Crypto.HashPassword(password);
 
-                        bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email, "create");
+                        //bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email, "create");
 
                         using (var con = new SqlConnection(GetConnectionString()))
                         {

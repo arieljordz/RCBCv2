@@ -130,15 +130,15 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#frmUserRole").trigger("reset");
                             $("[name='Id']").val(0);
                             LoadUserRoles();
                         }
                         else {
-                            Swal.fire('Warning!', 'Role Already Exists.', 'warning');
+                            Swal.fire('Warning!', 'User Role Already Exists.', 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

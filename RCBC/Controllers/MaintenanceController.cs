@@ -252,7 +252,7 @@ namespace RCBC.Controllers
                     {
                         try
                         {
-                            var chkUsername = global.GetUserInformation().FirstOrDefault(x => x.Username.ToLower() == model.Username.ToLower());
+                            var chkUsername = global.GetUserInformation().Where(x => x.Username.ToLower() == model.Username.ToLower()).FirstOrDefault();
 
                             if (model.ModuleIds != null && model.ChildModuleIds != null)
                             {
@@ -338,7 +338,7 @@ namespace RCBC.Controllers
                                 }
                                 else
                                 {
-                                    var userInfo = global.GetUserInformation().FirstOrDefault(x => x.Id == model.Id);
+                                    var userInfo = global.GetUserInformation().Where(x => x.Id == model.Id).FirstOrDefault();
 
                                     var usersInfoParameters = new
                                     {
@@ -383,8 +383,8 @@ namespace RCBC.Controllers
                                     foreach (var item in allAccess)
                                     {
                                         int SubModuleId = Convert.ToInt32(item.SubModuleId);
-                                        var Roles = global.GetUserRole().FirstOrDefault(x => x.UserRole == model.UserRole);
-                                        var Modules = global.GetSubModule().FirstOrDefault(x => x.SubModuleId == SubModuleId);
+                                        var Roles = global.GetUserRole().Where(x => x.UserRole == model.UserRole).FirstOrDefault();
+                                        var Modules = global.GetSubModule().Where(x => x.SubModuleId == SubModuleId).FirstOrDefault();
 
                                         string[] moduleIdsArray = model.ModuleIds.Split(',');
                                         string[] childModuleIdsArray = model.ChildModuleIds.Split(',');
@@ -637,7 +637,7 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        var isExist = global.GetUserRole().FirstOrDefault(x => x.UserRole.ToLower() == model.UserRole.ToLower());
+                        var isExist = global.GetUserRole().Where(x => x.UserRole.ToLower() == model.UserRole.ToLower()).FirstOrDefault();
                         if (isExist == null)
                         {
                             var parameters = new
@@ -944,7 +944,7 @@ namespace RCBC.Controllers
 
                     if (model.Id == 0)
                     {
-                        var isExist = global.GetDepartment().FirstOrDefault(x => x.GroupDept.ToLower() == model.GroupDept.ToLower());
+                        var isExist = global.GetDepartment().Where(x => x.GroupDept.ToLower() == model.GroupDept.ToLower()).FirstOrDefault();
                         if (isExist == null)
                         {
                             var parameters = new
