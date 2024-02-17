@@ -402,18 +402,16 @@
                     success: function (res) {
                         console.log(res);
                         if (res.success) {
-                            Swal.fire({
-                                title: 'Downloading Completed!',
-                                html: `File Path: ${res.downloadPath}<br>File Name: ${res.fileName}<br><br>Open the file location manually in your file explorer.`,
-                                icon: 'success'
-                            });
+                            Swal.fire('Information!', 'Downloading completed.', 'info');
                         } else {
                             Swal.fire('Warning!', res.message, 'warning');
                         }
+                        window.location.href = res.url;
                         $('#loading-image').hide();
                     },
                     error: function () {
                         console.log("Error in downloading data.");
+                        $('#loading-image').hide();
                     }
                 });
             }
