@@ -125,14 +125,14 @@ namespace RCBC.Controllers
             return LoadViews();
         }
 
-        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
+        public IActionResult LoadAuditLogs(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status)
         {
-            var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Status);
+            var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, Module, GroupDept, UserRole, Status);
 
             return Json(new { data });
         }
 
-        public IActionResult DownloadAuditLogs(string Type, DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
+        public IActionResult DownloadAuditLogs(string Type, DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace RCBC.Controllers
                 var DLFullPath = string.Empty;
                 var fileName = string.Empty;
 
-                var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName, GroupDept, UserRole, Status);
+                var data = global.GetAuditlogsReport(DateFrom, DateTo, EmployeeName,Module, GroupDept, UserRole, Status);
 
                 if (Type == "EXCEL")
                 {

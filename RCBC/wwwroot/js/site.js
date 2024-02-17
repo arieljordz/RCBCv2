@@ -74,6 +74,7 @@ function TotalAmountFormat(tableID, Value, ColStart) {
         .append($('<td colspan="' + ColStart + '"/>').addClass('text-right').append('Grand Total'))
         .append($('<td />').addClass('text-right').append('₱ ' + Value))
         .append($('<td />').addClass('text-center').append(""))
+        .append($('<td />').addClass('text-center').append(""))
         .append($('<td />').addClass('text-center').append("")));
 }
 

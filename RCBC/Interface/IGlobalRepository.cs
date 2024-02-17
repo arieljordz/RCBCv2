@@ -45,7 +45,7 @@ namespace RCBC.Interface
 
         public List<TransmittalDetailModel> GetTransmittalDetails();
 
-        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status);
+        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status);
 
         public List<DPUStatusModel> GetDPUStatusReport(DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status);
 

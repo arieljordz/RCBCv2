@@ -70,7 +70,13 @@
                                             @Html.TextBoxFor(x => x.EmployeeName, new { @class = "form-control" })
                                         </div>
                                     </div>
-                                    <div class="col-lg-3">
+                                    <div class="col-lg-2">
+                                        <div class="form-group">
+                                            @Html.LabelForModel("Module", new { @class = "label-control" })
+                                            @Html.TextBoxFor(x => x.Module, new { @class = "form-control" })
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-2">
                                         <div class="form-group">
                                             @Html.LabelForModel("Group", new { @class = "label-control" })
                                             @Html.TextBoxFor(x => x.GroupDept, new { @class = "form-control" })
@@ -227,6 +233,7 @@
                 var DateFrom = $("[name='DateFrom']").val();
                 var DateTo = $("[name='DateTo']").val();
                 var EmployeeName = $("[name='EmployeeName']").val();
+                var Module = $("[name='Module']").val();
                 var GroupDept = $("[name='GroupDept']").val();
                 var UserRole = $("[name='UserRole']").val();
                 var Status = $("[name='Action']").val();
@@ -246,7 +253,7 @@
                     ajax: {
                         "url": "../Reports/LoadAuditLogs",
                         "type": "POST",
-                        "data": { DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
+                        "data": { DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, Module: Module, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
                         "datatype": "JSON",
                     },
                     columns:
@@ -381,6 +388,7 @@
                 var DateFrom = $("[name='DateFrom']").val();
                 var DateTo = $("[name='DateTo']").val();
                 var EmployeeName = $("[name='EmployeeName']").val();
+                var Module = $("[name='Module']").val();
                 var GroupDept = $("[name='GroupDept']").val();
                 var UserRole = $("[name='UserRole']").val();
                 var Status = $("[name='Action']").val();
@@ -388,7 +396,7 @@
                 $('#loading-image').show();
                 $.ajax({
                     url: "../Reports/DownloadAuditLogs",
-                    data: { Type: Type, DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
+                    data: { Type: Type, DateFrom: DateFrom, DateTo: DateTo, EmployeeName: EmployeeName, Module: Module, GroupDept: GroupDept, UserRole: UserRole, Status: Status },
                     type: "GET",
                     dataType: "JSON",
                     success: function (res) {

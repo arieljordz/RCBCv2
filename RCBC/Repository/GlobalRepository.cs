@@ -398,7 +398,7 @@ namespace RCBC.Repository
             }
         }
 
-        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? GroupDept, string? UserRole, string? Status)
+        public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status)
         {
             try
             {
@@ -409,6 +409,7 @@ namespace RCBC.Repository
                     (!DateFrom.HasValue || x.DateModified.Date >= DateFrom.Value.Date) &&
                     (!DateTo.HasValue || x.DateModified.Date <= DateTo.Value.Date) &&
                     (EmployeeName == null || x.EmployeeName.ToString().ToLower().Contains(EmployeeName.ToLower())) &&
+                    (Module == null || x.Module.ToString().ToLower().Contains(Module.ToLower())) &&
                     (GroupDept == null || x.GroupDept.ToLower().Contains(GroupDept.ToLower())) &&
                     (UserRole == null || x.UserRole.ToString().ToLower().Contains(UserRole)) &&
                     (Status == null || x.Action.ToLower().Contains(Status.ToLower()))).OrderBy(x => x.Id)
