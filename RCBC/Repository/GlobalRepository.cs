@@ -813,7 +813,8 @@ namespace RCBC.Repository
                 }
 
                 MailMessage mailMessage = new MailMessage();
-                mailMessage.From = new MailAddress("DPU System Administrator <notify@rcbc.com>");
+                //mailMessage.From = new MailAddress("DPU System Administrator <notify@rcbc.com>");
+                mailMessage.From = new MailAddress("arlene@yuna.somee.com", "DPU System Administrator <notify@rcbc.com>");
                 mailMessage.To.Add(email);
                 mailMessage.Subject = subject;
                 mailMessage.Body = bodyMsg;
