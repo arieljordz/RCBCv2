@@ -486,6 +486,18 @@ namespace RCBC.Controllers
                                     }
                                 }
                             }
+                            else
+                            {
+                                var param = new LoginAttemptModel
+                                {
+                                    UserId = user.Id,
+                                    Attempt = user.LoginAttempt + 1,
+                                };
+
+                                global.UpdateLoginAttempt(param);
+
+                                return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
+                            }
                         }
 
                     }
@@ -512,16 +524,6 @@ namespace RCBC.Controllers
 
                 return Json(new { success = true, action = "Index", controller = "Home", message = ex.Message });
             }
-
-            var param = new LoginAttemptModel
-            {
-                UserId = user.Id,
-                Attempt = user.LoginAttempt + 1,
-            };
-
-            global.UpdateLoginAttempt(param);
-
-            return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
         }
 
         public IActionResult SendResetPasswordLink(string UserID)

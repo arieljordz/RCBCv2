@@ -906,11 +906,17 @@ namespace RCBC.Controllers
                             {
                                 //var _status = global.UpdateApprovalStatus(userId, "users", true, null);
 
+                                string salt = Crypto.GenerateSalt();
+                                string finalString = global.GeneratePassword();
+                                string password = finalString + salt;
+                                string hashedPassword = Crypto.HashPassword(password);
+
+                                user.HashPassword = hashedPassword;
+                                user.Salt = salt;
+
                                 bool IsSaved = global.SaveUserInformation(user);
 
-                                string password = global.GeneratePassword();
-
-                                bool IsSuccess = global.SendEmail(password, user.EmployeeName, user.Email, "create");
+                                bool IsSuccess = global.SendEmail(finalString, user.EmployeeName, user.Email, "create");
                             }
                             return Json(new { success = true, message = "Successfully saved.", userId = userId });
                         }
