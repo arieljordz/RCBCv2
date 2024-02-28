@@ -398,6 +398,22 @@ namespace RCBC.Repository
             }
         }
 
+        public List<PasswordHistoryModel> GetPasswordHistory()
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    List<PasswordHistoryModel> data = con.Query<PasswordHistoryModel>("sp_getPasswordHistory", commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<PasswordHistoryModel>();
+            }
+        }
+
         public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status)
         {
             try
@@ -813,7 +829,6 @@ namespace RCBC.Repository
                 }
 
                 MailMessage mailMessage = new MailMessage();
-                //mailMessage.From = new MailAddress("DPU System Administrator <notify@rcbc.com>");
                 mailMessage.From = new MailAddress("arlene@yuna.somee.com", "DPU System Administrator <notify@rcbc.com>");
                 mailMessage.To.Add(email);
                 mailMessage.Subject = subject;
@@ -980,5 +995,26 @@ namespace RCBC.Repository
             return details;
         }
 
+        public int GetDaysCount(int UserId)
+        {
+            int days = 0;
+
+            DateTime? lastUpdate = GetPasswordHistory().Where(x => x.UserId == UserId).Select(x => x.DateUpdated).LastOrDefault();
+
+            if (lastUpdate != null)
+            {
+                DateTime givenDate = lastUpdate.Value;
+                DateTime NinetyDate = givenDate.AddDays(90);
+
+                DateTime startDate = DateTime.Now;
+                DateTime endDate = NinetyDate;
+
+                TimeSpan timeDifference = endDate - startDate;
+
+                //days = timeDifference.Days + 1;
+                days = timeDifference.Days;
+            }
+            return days;
+        }
     }
 }

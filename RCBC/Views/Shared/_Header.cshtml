@@ -38,7 +38,8 @@
                     <span class="float-right text-muted text-sm"> <i class="fa fa-gear mr-2"></i></span>
                 </a>
                 <div class="dropdown-divider"></div>
-                <a href="@Url.Content("~/Home/ChangePassword")" class="dropdown-item text-sm">
+                @* <a id="change_password" href="@Url.Content("~/Home/ChangePassword")" class="dropdown-item text-sm"> *@
+                <a onclick="ChangePassword()" href="#" class="dropdown-item text-sm">
                     Change Password
                     <span class="float-right text-muted text-sm"> <i class="fa fa-lock mr-2"></i></span>
                 </a>

@@ -555,19 +555,11 @@ namespace RCBC.Controllers
             try
             {
                 string? previousData = string.Empty;
-                string salt = Empty.ToString();
-                string OldPassword = Empty.ToString();
-                int LoginAttempt = 0;
-                bool result;
 
-                var user = global.GetUserInformation().Where(x => x.Username == model.Username).FirstOrDefault();
+                var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
 
-                salt = user.Salt;
-                OldPassword = user.HashPassword;
-                LoginAttempt = user.LoginAttempt + 1;
-
-                model.OldPassword = model.OldPassword + salt;
-                result = Crypto.VerifyHashedPassword(OldPassword, model.OldPassword);
+                model.OldPassword = model.OldPassword + user.Salt;
+                bool result = Crypto.VerifyHashedPassword(user.HashPassword, model.OldPassword);
 
                 if (result)
                 {
@@ -575,71 +567,89 @@ namespace RCBC.Controllers
 
                     if (accepted)
                     {
-                        var finalString = new string(model.NewPassword);
-
                         string Salt = Crypto.GenerateSalt();
-                        string password = finalString + Salt;
+                        string password = model.NewPassword + Salt;
                         string HashPassword = Crypto.HashPassword(password);
 
-                        //bool IsSuccess = global.SendEmail(finalString, user.Username, user.Email, "create");
+                        //bool IsSuccess = global.SendEmail(model.NewPassword, user.Username, user.Email, "create");
 
-                        using (var con = new SqlConnection(GetConnectionString()))
+                        var IsExist = CheckPasswordHistory(GlobalUserId, model.NewPassword);
+
+                        if (!IsExist)
                         {
-                            con.Open();
-                            using (var transaction = con.BeginTransaction())
+                            using (var con = new SqlConnection(GetConnectionString()))
                             {
-                                try
+                                con.Open();
+                                using (var transaction = con.BeginTransaction())
                                 {
-                                    var parameters = new
+                                    try
                                     {
-                                        Id = user.Id,
-                                        HashPassword = HashPassword,
-                                        Salt = Salt,
-                                        Username = user.Username,
-                                        EmployeeName = user.EmployeeName,
-                                        Email = user.Email,
-                                        MobileNumber = user.MobileNumber,
-                                        GroupDept = user.GroupDept,
-                                        UserRole = user.UserRole,
-                                        Active = user.Active,
-                                        LoginAttempt = LoginAttempt,
-                                        IsApproved = user.IsApproved,
-                                        IsFirstLogged = false,
-                                    };
+                                        var parameters = new
+                                        {
+                                            Id = user.Id,
+                                            HashPassword = HashPassword,
+                                            Salt = Salt,
+                                            Username = user.Username,
+                                            EmployeeName = user.EmployeeName,
+                                            Email = user.Email,
+                                            MobileNumber = user.MobileNumber,
+                                            GroupDept = user.GroupDept,
+                                            UserRole = user.UserRole,
+                                            Active = user.Active,
+                                            LoginAttempt = user.LoginAttempt,
+                                            IsApproved = user.IsApproved,
+                                            IsFirstLogged = false,
+                                        };
 
-                                    con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+                                        con.Execute("sp_updateUsersInformation", parameters, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                    previousData = JsonConvert.SerializeObject(user);
+                                        previousData = JsonConvert.SerializeObject(user);
 
-                                    transaction.Commit();
+                                        var param = new
+                                        {
+                                            UserId = user.Id,
+                                            HashedPassword = HashPassword,
+                                            Salt = Salt,
+                                            DateUpdated = DateTime.Now,
+                                        };
 
-                                    con.Close();
+                                        con.Execute("sp_savePasswordHistory", param, commandType: CommandType.StoredProcedure, transaction: transaction);
 
-                                    var auditlogs = new AuditLogsModel
+                                        transaction.Commit();
+
+                                        con.Close();
+
+                                        var auditlogs = new AuditLogsModel
+                                        {
+                                            Module = "Maintenance",
+                                            SubModule = "Change Password",
+                                            ChildModule = "Change Password",
+                                            TableName = "UsersInformation",
+                                            TableId = user.Id,
+                                            Action = "Change Password",
+                                            PreviousData = previousData,
+                                            NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
+                                            ModifiedBy = GlobalUserId,
+                                            DateModified = DateTime.Now,
+                                            IP = global.GetLocalIPAddress(),
+                                        };
+
+                                        var logs = global.SaveAuditLogs(auditlogs);
+
+                                        return Json(new { success = true });
+                                    }
+                                    catch (Exception ex)
                                     {
-                                        Module = "Maintenance",
-                                        SubModule = "Change Password",
-                                        ChildModule = "Change Password",
-                                        TableName = "UsersInformation",
-                                        TableId = user.Id,
-                                        Action = "Change Password",
-                                        PreviousData = previousData,
-                                        NewData = JsonConvert.SerializeObject(global.GetUserInformation().FirstOrDefault(x => x.Id == user.Id)),
-                                        ModifiedBy = GlobalUserId,
-                                        DateModified = DateTime.Now,
-                                        IP = global.GetLocalIPAddress(),
-                                    };
-
-                                    var logs = global.SaveAuditLogs(auditlogs);
-
-                                    return Json(new { success = true });
-                                }
-                                catch (Exception ex)
-                                {
-                                    transaction.Rollback();
-                                    return Json(new { success = false, message = "Error in changing password." });
+                                        transaction.Rollback();
+                                        return Json(new { success = false, message = "Error in changing password." });
+                                    }
                                 }
                             }
+
+                        }
+                        else
+                        {
+                            return Json(new { success = false, message = "Password is already been used." });
                         }
                     }
                     else
@@ -656,6 +666,27 @@ namespace RCBC.Controllers
             {
                 return Json(new { success = false, message = "Error in changing password." });
             }
+        }
+
+        public bool CheckPasswordHistory(int UserId, string NewPassword)
+        {
+            bool result = false;
+
+            var passHistory = global.GetPasswordHistory()
+                .Where(x => x.UserId == UserId)
+                .OrderByDescending(x => x.DateUpdated)
+                .Take(4).ToList();
+
+            foreach (var item in passHistory)
+            {
+                result = Crypto.VerifyHashedPassword(item.HashPassword, NewPassword + item.Salt);
+
+                if (result)
+                {
+                    return result;
+                }
+            }
+            return result;
         }
 
         [HttpPost]
@@ -696,6 +727,20 @@ namespace RCBC.Controllers
                 UpdateUserStatus(parameters);
 
                 return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult GetDaysCount()
+        {
+            try
+            {
+                int daysCount = global.GetDaysCount(1);
+
+                return Json(new { success = true, count = daysCount });
             }
             catch (Exception ex)
             {

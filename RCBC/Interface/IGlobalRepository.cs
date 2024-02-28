@@ -45,6 +45,8 @@ namespace RCBC.Interface
 
         public List<TransmittalDetailModel> GetTransmittalDetails();
 
+        public List<PasswordHistoryModel> GetPasswordHistory();
+
         public List<AuditLogsModel> GetAuditlogsReport(DateTime? DateFrom, DateTime? DateTo, string? EmployeeName, string? Module, string? GroupDept, string? UserRole, string? Status);
 
         public List<DPUStatusModel> GetDPUStatusReport(DateTime? DateFrom, DateTime? DateTo, string? LocationCode, string? BeneficiaryName, string? AccountNumber, string? Status);
@@ -75,5 +77,6 @@ namespace RCBC.Interface
 
         public string GetColumnDetails(AuditLogsModel model);
 
+        public int GetDaysCount(int UserId);
     }
 }
