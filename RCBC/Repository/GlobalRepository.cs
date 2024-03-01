@@ -159,6 +159,26 @@ namespace RCBC.Repository
             return modules.OrderBy(x => x.ModuleOrder).ToList();
         }
 
+        public List<AccessModuleModel> GetAccessLinkByUserId(int UserId)
+        {
+            try
+            {
+                using (IDbConnection con = new SqlConnection(GetConnectionString()))
+                {
+                    var parameters = new
+                    {
+                        UserId = UserId,
+                    };
+                    List<AccessModuleModel> data = con.Query<AccessModuleModel>("sp_getAccessLinkByUserId", parameters, commandType: CommandType.StoredProcedure).ToList();
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new List<AccessModuleModel>();
+            }
+        }
+
         public List<UserModel> GetUserInformation()
         {
             try
@@ -1016,5 +1036,13 @@ namespace RCBC.Repository
             }
             return days;
         }
+
+
+        public bool CheckUsersApproval(int userId)
+        {
+            var user = GetUserInformation().FirstOrDefault(x => x.Id == userId);
+            return user?.IsApproved ?? false;
+        }
+
     }
 }

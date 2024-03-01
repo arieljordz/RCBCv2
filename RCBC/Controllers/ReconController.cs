@@ -39,6 +39,7 @@ namespace RCBC.Controllers
                         ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
                         ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
+                        ViewBag.AccessLinks = global.GetAccessLinkByUserId(GlobalUserId);
 
                         var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
                         ViewBag.Department = user.GroupDept;

@@ -110,7 +110,7 @@ function DateDataTable(data) {
 
     //Format the date as you want, for example: "MM/DD/YYYY"
     var formattedDate = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-        
+
     return formattedDate;
 }
 
@@ -120,10 +120,11 @@ function TimeDataTable(data) {
     //Format the date as you want, for example: "HH:mm:ss"
     var formattedDate = date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() +
         ':' + (date.getSeconds() < 10 ? '0' : '') + date.getSeconds();
-        
+
     return formattedDate;
 }
 
+// time out user login 
 let timeout;
 
 function GetTimeout(callback) {
@@ -151,5 +152,56 @@ function sessionTimeout() {
 $(document).on('click keypress', resetIdleTimeout);
 
 resetIdleTimeout();
+// end time out user login
 
+//$("#change_password").click(function (e) {
+//    e.preventDefault();
+//    $.ajax({
+//        url: "../Home/GetDaysCount",
+//        type: "GET",
+//        dataType: "JSON",
+//        success: function (res) {
+//            console.log(res);
+//            if (res.success) {
+//                Swal.fire('Information!', 'Downloading completed.', 'info');
+//            } else {
+//                Swal.fire('Warning!', res.message, 'warning');
+//            }
+//            window.location.href = res.url;
+//            $('#loading-image').hide();
+//        },
+//        error: function () {
+//            console.log("Error in downloading data.");
+//        }
+//    });
+//});
+
+function ChangePassword() {
+    $.ajax({
+        url: "../Home/GetDaysCount",
+        type: "GET",
+        dataType: "JSON",
+        success: function (res) {
+            console.log(res);
+            if (res.success) {
+                if (res.count <= 0) {
+                    window.location.href = "/Home/ChangePassword";
+                }
+                else {
+                    if (res.count == 1) {
+                        Swal.fire('Warning!', 'You have ' + res.count + ' day remaining to change your password again.', 'warning');
+                    }
+                    else {
+                        Swal.fire('Warning!', 'You have ' + res.count + ' days remaining to change your password again.', 'warning');
+                    }
+                }
+            } else {
+                Swal.fire('Warning!', res.message, 'warning');
+            }
+        },
+        error: function () {
+            console.log("Error.");
+        }
+    });
+}
 

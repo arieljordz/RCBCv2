@@ -4,16 +4,18 @@ namespace RCBC.Interface
 {
     public interface IGlobalRepository
     {
-      
-        List<AccessModuleModel> GetModulesByUserId(int UserId);
 
-        List<AccessModuleModel> GetSubModulesByUserId(int UserId);
+        public List<AccessModuleModel> GetModulesByUserId(int UserId);
 
-        List<AccessModuleModel> GetChildModulesByUserId(int UserId);
+        public List<AccessModuleModel> GetSubModulesByUserId(int UserId);
 
-        List<AccessModuleModel> GetModulesAndSubModules();
+        public List<AccessModuleModel> GetChildModulesByUserId(int UserId);
 
-        List<AccessModuleModel> GetUserAccessById(int UserId);
+        public List<AccessModuleModel> GetModulesAndSubModules();
+
+        public List<AccessModuleModel> GetUserAccessById(int UserId);
+
+        public List<AccessModuleModel> GetAccessLinkByUserId(int UserId);
 
         public List<UserModel> GetUserInformation();
        
@@ -78,5 +80,7 @@ namespace RCBC.Interface
         public string GetColumnDetails(AuditLogsModel model);
 
         public int GetDaysCount(int UserId);
+
+        public bool CheckUsersApproval(int userId);
     }
 }

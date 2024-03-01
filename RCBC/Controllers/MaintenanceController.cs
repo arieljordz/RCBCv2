@@ -62,6 +62,7 @@ namespace RCBC.Controllers
                         ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
                         ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
+                        ViewBag.AccessLinks = global.GetAccessLinkByUserId(GlobalUserId);
 
                         var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
                         ViewBag.Department = user.GroupDept;
@@ -573,8 +574,6 @@ namespace RCBC.Controllers
 
                     return Json(new { success = true, password = finalString });
                 }
-
-
             }
             catch (Exception ex)
             {

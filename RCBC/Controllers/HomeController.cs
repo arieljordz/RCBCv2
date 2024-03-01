@@ -65,6 +65,7 @@ namespace RCBC.Controllers
                         ViewBag.Modules = global.GetModulesByUserId(GlobalUserId);
                         ViewBag.SubModules = global.GetSubModulesByUserId(GlobalUserId);
                         ViewBag.ChildModules = global.GetChildModulesByUserId(GlobalUserId);
+                        ViewBag.AccessLinks = global.GetAccessLinkByUserId(GlobalUserId);
 
                         var user = global.GetUserInformation().Where(x => x.Id == GlobalUserId).FirstOrDefault();
                         ViewBag.Department = user.GroupDept;
@@ -405,112 +406,119 @@ namespace RCBC.Controllers
             {
                 if (user != null)
                 {
-                    var chkStatus = global.CheckUserStatus(user.Id);
-
-                    if (!chkStatus)
+                    bool is_approved = global.CheckUsersApproval(user.Id);
+                    if (is_approved)
                     {
-                        if (user.LoginAttempt >= 3)
-                        {
-                            return Json(new { success = false, action = "Index", controller = "Home", message = "User account has been locked." });
-                        }
-                        else
-                        {
-                            string PlainPass = Password + user.Salt;
+                        var chkStatus = global.CheckUserStatus(user.Id);
 
-                            bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
-
-                            if (result)
+                        if (!chkStatus)
+                        {
+                            if (user.LoginAttempt >= 3)
                             {
-                                var parameters = new UserStatusModel
-                                {
-                                    UserId = user.Id,
-                                    Status = true,
-                                };
-
-                                UpdateUserStatus(parameters);
-
-                                CreateCookies(user);
-
-                                var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
-                                var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
-
-                                if (user.IsFirstLogged == true)
-                                {
-                                    return Json(new { success = true, action = "FirstLogin", controller = "Home" });
-                                }
-                                else
-                                {
-                                    if (SubModules != null)
-                                    {
-                                        string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
-                                        string[] Link = input.Split('/');
-
-                                        var auditlogs = new AuditLogsModel
-                                        {
-                                            Module = "Maintenance",
-                                            SubModule = "Login",
-                                            ChildModule = "Login",
-                                            TableName = "UsersInformation",
-                                            TableId = 0,
-                                            Action = "Login",
-                                            PreviousData = string.Empty,
-                                            NewData = string.Empty,
-                                            ModifiedBy = user.Id,
-                                            DateModified = DateTime.Now,
-                                            IP = global.GetLocalIPAddress(),
-                                        };
-
-                                        var logs = global.SaveAuditLogs(auditlogs);
-
-                                        var paramSuccess = new LoginAttemptModel
-                                        {
-                                            UserId = user.Id,
-                                            Attempt = 0,
-                                        };
-
-                                        global.UpdateLoginAttempt(paramSuccess);
-
-                                        return Json(new { success = true, action = Link[2], controller = Link[1] });
-                                    }
-                                    else
-                                    {
-                                        var paramSubmodules = new LoginAttemptModel
-                                        {
-                                            UserId = user.Id,
-                                            Attempt = user.LoginAttempt + 1,
-                                        };
-
-                                        global.UpdateLoginAttempt(paramSubmodules);
-
-                                        return Json(new { success = true, action = "Index", controller = "Home" });
-                                    }
-                                }
+                                return Json(new { success = false, action = "Index", controller = "Home", message = "User account has been locked." });
                             }
                             else
                             {
-                                var param = new LoginAttemptModel
+                                string PlainPass = Password + user.Salt;
+
+                                bool result = Crypto.VerifyHashedPassword(user.HashPassword, PlainPass);
+
+                                if (result)
                                 {
-                                    UserId = user.Id,
-                                    Attempt = user.LoginAttempt + 1,
-                                };
+                                    var parameters = new UserStatusModel
+                                    {
+                                        UserId = user.Id,
+                                        Status = true,
+                                    };
 
-                                global.UpdateLoginAttempt(param);
+                                    UpdateUserStatus(parameters);
 
-                                return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
+                                    CreateCookies(user);
+
+                                    var SubModules = global.GetSubModulesByUserId(user.Id).FirstOrDefault();
+                                    var ChildModules = global.GetChildModulesByUserId(user.Id).FirstOrDefault();
+
+                                    if (user.IsFirstLogged == true)
+                                    {
+                                        return Json(new { success = true, action = "FirstLogin", controller = "Home" });
+                                    }
+                                    else
+                                    {
+                                        if (SubModules != null)
+                                        {
+                                            string input = (SubModules != null && SubModules.SubModuleLink != null) ? SubModules.SubModuleLink : ChildModules.ChildModuleLink;
+                                            string[] Link = input.Split('/');
+
+                                            var auditlogs = new AuditLogsModel
+                                            {
+                                                Module = "Maintenance",
+                                                SubModule = "Login",
+                                                ChildModule = "Login",
+                                                TableName = "UsersInformation",
+                                                TableId = 0,
+                                                Action = "Login",
+                                                PreviousData = string.Empty,
+                                                NewData = string.Empty,
+                                                ModifiedBy = user.Id,
+                                                DateModified = DateTime.Now,
+                                                IP = global.GetLocalIPAddress(),
+                                            };
+
+                                            var logs = global.SaveAuditLogs(auditlogs);
+
+                                            var paramSuccess = new LoginAttemptModel
+                                            {
+                                                UserId = user.Id,
+                                                Attempt = 0,
+                                            };
+
+                                            global.UpdateLoginAttempt(paramSuccess);
+
+                                            return Json(new { success = true, action = Link[2], controller = Link[1] });
+                                        }
+                                        else
+                                        {
+                                            var paramSubmodules = new LoginAttemptModel
+                                            {
+                                                UserId = user.Id,
+                                                Attempt = user.LoginAttempt + 1,
+                                            };
+
+                                            global.UpdateLoginAttempt(paramSubmodules);
+
+                                            return Json(new { success = true, action = "Index", controller = "Home" });
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    var param = new LoginAttemptModel
+                                    {
+                                        UserId = user.Id,
+                                        Attempt = user.LoginAttempt + 1,
+                                    };
+
+                                    global.UpdateLoginAttempt(param);
+
+                                    return Json(new { success = false, action = "Index", controller = "Home", message = "Invalid login attempt." });
+                                }
                             }
-                        }
 
+                        }
+                        else
+                        {
+                            return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
+                        }
                     }
                     else
                     {
-                        return Json(new { success = true, action = "LogoutAccount", controller = "Home" });
+                        return Json(new { success = false, action = "Index", controller = "Home", message = "The user account is not yet approved." });
                     }
                 }
                 else
                 {
                     return Json(new { success = false, action = "Index", controller = "Home", message = "Username is not registered." });
                 }
-
             }
             catch (Exception ex)
             {
@@ -542,9 +550,13 @@ namespace RCBC.Controllers
 
             if (user != null && !string.IsNullOrEmpty(newUrl))
             {
-                bool IsSuccess = global.SendEmail(newUrl, user.EmployeeName, user.Email, "reset");
-            }
+                bool is_approved = global.CheckUsersApproval(user.Id);
 
+                if (is_approved)
+                {
+                    bool IsSuccess = global.SendEmail(newUrl, user.EmployeeName, user.Email, "reset");
+                }
+            }
             return RedirectToAction("Logout", "Home");
         }
 
@@ -736,11 +748,22 @@ namespace RCBC.Controllers
 
         public IActionResult GetDaysCount()
         {
+            GlobalUserId = Request.Cookies["UserId"] != null ? Convert.ToInt32(Request.Cookies["UserId"]) : 0;
+
             try
             {
-                int daysCount = global.GetDaysCount(1);
+                bool is_approved = global.CheckUsersApproval(GlobalUserId);
 
-                return Json(new { success = true, count = daysCount });
+                if (is_approved)
+                {
+                    int daysCount = global.GetDaysCount(GlobalUserId);
+
+                    return Json(new { success = true, count = daysCount });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "The user account is not yet approved." });
+                }
             }
             catch (Exception ex)
             {
