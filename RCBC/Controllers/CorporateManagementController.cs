@@ -138,102 +138,15 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var qry = global.GetCorporateClient().Where(x => x.Id == model.Id).FirstOrDefault();
-
-                    if (model.Id == 0)
+                    var IsExist = global.GetCorporateClient().Where(x => x.PartnerCode.ToLower() == model.PartnerCode.ToLower()).FirstOrDefault();
+                    if (IsExist == null)
                     {
-                        var parameters = new
-                        {
-                            CorporateGroup = model.CorporateGroup,
-                            PartnerCode = model.PartnerCode,
-                            CorporateName = model.CorporateName,
-                            ContactPerson = model.ContactPerson,
-                            Email = model.Email,
-                            MobileNumber = model.MobileNumber,
-                            GlobalAccount = model.GlobalAccount,
-                            Active = model.Active,
-                            IsApproved = model.IsApproved,
-                            DateCreated = DateTime.Now,
-                            CreatedBy = GlobalUserId,
-                        };
+                        var qry = global.GetCorporateClient().Where(x => x.Id == model.Id).FirstOrDefault();
 
-                        model.Id = con.QuerySingle<int>("sp_saveCorporateClient", parameters, commandType: CommandType.StoredProcedure);
-
-                        msg = "Successfully saved.";
-                        action = "Add";
-                        previousData = null;
-                    }
-                    else
-                    {
-                        if (model.ForApproval)
-                        {
-                            var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
-
-                            if (forUpdate != null)
-                            {
-                                con.Open();
-                                using (var transaction = con.BeginTransaction())
-                                {
-                                    try
-                                    {
-                                        var obj = JsonConvert.DeserializeObject<CorporateClientModel>(forUpdate.JsonData);
-
-                                        var clientParameters = new
-                                        {
-                                            Id = obj.Id,
-                                            CorporateGroup = obj.CorporateGroup,
-                                            PartnerCode = obj.PartnerCode,
-                                            CorporateName = obj.CorporateName,
-                                            ContactPerson = obj.ContactPerson,
-                                            Email = obj.Email,
-                                            MobileNumber = obj.MobileNumber,
-                                            GlobalAccount = obj.GlobalAccount,
-                                            Active = obj.Active,
-                                            IsApproved = true,
-                                            DateApproved = DateTime.Now,
-                                            ApprovedBy = GlobalUserId,
-                                        };
-
-                                        con.Execute("sp_updateCorporateClient", clientParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        transaction.Commit();
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        transaction.Rollback();
-                                        return Json(new { success = false, message = ex.Message });
-                                    }
-                                }
-                                con.Close();
-                            }
-                            else
-                            {
-                                var clientParameters = new
-                                {
-                                    Id = model.Id,
-                                    CorporateGroup = model.CorporateGroup,
-                                    PartnerCode = model.PartnerCode,
-                                    CorporateName = model.CorporateName,
-                                    ContactPerson = model.ContactPerson,
-                                    Email = model.Email,
-                                    MobileNumber = model.MobileNumber,
-                                    GlobalAccount = model.GlobalAccount,
-                                    Active = true,
-                                    IsApproved = true,
-                                    DateApproved = DateTime.Now,
-                                    ApprovedBy = GlobalUserId,
-                                };
-
-                                con.Execute("sp_updateCorporateClient", clientParameters, commandType: CommandType.StoredProcedure);
-                            }
-                        }
-                        else
+                        if (model.Id == 0)
                         {
                             var parameters = new
                             {
-                                Id = model.Id,
                                 CorporateGroup = model.CorporateGroup,
                                 PartnerCode = model.PartnerCode,
                                 CorporateName = model.CorporateName,
@@ -243,46 +156,141 @@ namespace RCBC.Controllers
                                 GlobalAccount = model.GlobalAccount,
                                 Active = model.Active,
                                 IsApproved = model.IsApproved,
-                                DateApproved = DateTime.Now,
-                                ApprovedBy = GlobalUserId,
+                                DateCreated = DateTime.Now,
+                                CreatedBy = GlobalUserId,
                             };
 
-                            var approvalParameters = new
+                            model.Id = con.QuerySingle<int>("sp_saveCorporateClient", parameters, commandType: CommandType.StoredProcedure);
+
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
+                        else
+                        {
+                            if (model.ForApproval)
                             {
-                                JsonData = JsonConvert.SerializeObject(parameters),
-                                TableId = model.Id,
-                                TableName = "CorporateClient",
-                                ModifiedBy = GlobalUserId,
-                                DateModified = DateTime.Now,
-                            };
-                            con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+                                var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
 
-                            var _status = global.UpdateApprovalStatus(model.Id, "client", null, null);
+                                if (forUpdate != null)
+                                {
+                                    con.Open();
+                                    using (var transaction = con.BeginTransaction())
+                                    {
+                                        try
+                                        {
+                                            var obj = JsonConvert.DeserializeObject<CorporateClientModel>(forUpdate.JsonData);
+
+                                            var clientParameters = new
+                                            {
+                                                Id = obj.Id,
+                                                CorporateGroup = obj.CorporateGroup,
+                                                PartnerCode = obj.PartnerCode,
+                                                CorporateName = obj.CorporateName,
+                                                ContactPerson = obj.ContactPerson,
+                                                Email = obj.Email,
+                                                MobileNumber = obj.MobileNumber,
+                                                GlobalAccount = obj.GlobalAccount,
+                                                Active = obj.Active,
+                                                IsApproved = true,
+                                                DateApproved = DateTime.Now,
+                                                ApprovedBy = GlobalUserId,
+                                            };
+
+                                            con.Execute("sp_updateCorporateClient", clientParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            transaction.Commit();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            transaction.Rollback();
+                                            return Json(new { success = false, message = ex.Message });
+                                        }
+                                    }
+                                    con.Close();
+                                }
+                                else
+                                {
+                                    var clientParameters = new
+                                    {
+                                        Id = model.Id,
+                                        CorporateGroup = model.CorporateGroup,
+                                        PartnerCode = model.PartnerCode,
+                                        CorporateName = model.CorporateName,
+                                        ContactPerson = model.ContactPerson,
+                                        Email = model.Email,
+                                        MobileNumber = model.MobileNumber,
+                                        GlobalAccount = model.GlobalAccount,
+                                        Active = true,
+                                        IsApproved = true,
+                                        DateApproved = DateTime.Now,
+                                        ApprovedBy = GlobalUserId,
+                                    };
+
+                                    con.Execute("sp_updateCorporateClient", clientParameters, commandType: CommandType.StoredProcedure);
+                                }
+                            }
+                            else
+                            {
+                                var parameters = new
+                                {
+                                    Id = model.Id,
+                                    CorporateGroup = model.CorporateGroup,
+                                    PartnerCode = model.PartnerCode,
+                                    CorporateName = model.CorporateName,
+                                    ContactPerson = model.ContactPerson,
+                                    Email = model.Email,
+                                    MobileNumber = model.MobileNumber,
+                                    GlobalAccount = model.GlobalAccount,
+                                    Active = model.Active,
+                                    IsApproved = model.IsApproved,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
+                                };
+
+                                var approvalParameters = new
+                                {
+                                    JsonData = JsonConvert.SerializeObject(parameters),
+                                    TableId = model.Id,
+                                    TableName = "CorporateClient",
+                                    ModifiedBy = GlobalUserId,
+                                    DateModified = DateTime.Now,
+                                };
+                                con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+
+                                var _status = global.UpdateApprovalStatus(model.Id, "client", null, null);
+                            }
+
+                            msg = "Successfully updated.";
+                            action = model.ForApproval ? "Approved" : "Update";
+                            previousData = JsonConvert.SerializeObject(qry);
                         }
 
-                        msg = "Successfully updated.";
-                        action = model.ForApproval ? "Approved" : "Update";
-                        previousData = JsonConvert.SerializeObject(qry);
+                        var auditlogs = new AuditLogsModel
+                        {
+                            Module = "Corporate Management",
+                            SubModule = "Create New Client",
+                            ChildModule = null,
+                            TableName = "CorporateClient",
+                            TableId = model.Id,
+                            Action = action,
+                            PreviousData = previousData,
+                            NewData = JsonConvert.SerializeObject(global.GetCorporateClient().Where(x => x.Id == model.Id).FirstOrDefault()),
+                            ModifiedBy = GlobalUserId,
+                            DateModified = DateTime.Now,
+                            IP = global.GetLocalIPAddress(),
+                        };
+
+                        var logs = global.SaveAuditLogs(auditlogs);
+
+                        return Json(new { success = true, message = msg });
                     }
-
-                    var auditlogs = new AuditLogsModel
+                    else
                     {
-                        Module = "Corporate Management",
-                        SubModule = "Create New Client",
-                        ChildModule = null,
-                        TableName = "CorporateClient",
-                        TableId = model.Id,
-                        Action = action,
-                        PreviousData = previousData,
-                        NewData = JsonConvert.SerializeObject(global.GetCorporateClient().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = GlobalUserId,
-                        DateModified = DateTime.Now,
-                        IP = global.GetLocalIPAddress(),
-                    };
-
-                    var logs = global.SaveAuditLogs(auditlogs);
-
-                    return Json(new { success = true, message = msg });
+                        return Json(new { success = false, message = "Corporate Group already exist." });
+                    }
                 }
             }
             catch (Exception ex)

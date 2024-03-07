@@ -1101,141 +1101,151 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var qry = global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault();
-
-                    if (model.Id == 0)
+                    var IsExist = global.GetPartnerVendor().Where(x => x.VendorName.ToLower() == model.VendorName.ToLower()).FirstOrDefault();
+                    if (IsExist == null)
                     {
-                        var parameters = new
-                        {
-                            VendorName = model.VendorName,
-                            VendorCode = model.VendorCode,
-                            AssignedGL = model.AssignedGL,
-                            Email = model.Email,
-                            Active = model.Active,
-                            IsApproved = model.IsApproved,
-                            DateCreated = DateTime.Now,
-                            CreatedBy = GlobalUserId,
-                        };
+                        var qry = global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault();
 
-                        model.Id = con.QuerySingle<int>("sp_savePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
-
-                        msg = "Successfully saved.";
-                        action = "Add";
-                        previousData = null;
-                    }
-                    else
-                    {
-                        if (model.ForApproval)
-                        {
-                            var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
-
-                            if (forUpdate != null)
-                            {
-                                con.Open();
-                                using (var transaction = con.BeginTransaction())
-                                {
-                                    try
-                                    {
-                                        var obj = JsonConvert.DeserializeObject<PartnerVendorModel>(forUpdate.JsonData);
-
-                                        var partnerParameters = new
-                                        {
-                                            Id = obj.Id,
-                                            VendorName = obj.VendorName,
-                                            VendorCode = obj.VendorCode,
-                                            AssignedGL = obj.AssignedGL,
-                                            Email = obj.Email,
-                                            Active = obj.Active,
-                                            IsApproved = true,
-                                            DateApproved = DateTime.Now,
-                                            ApprovedBy = GlobalUserId,
-                                        };
-
-                                        con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        transaction.Commit();
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        transaction.Rollback();
-                                        return Json(new { success = false, message = ex.Message });
-                                    }
-                                }
-                                con.Close();
-                            }
-                            else
-                            {
-                                var partnerParameters = new
-                                {
-                                    Id = model.Id,
-                                    VendorName = model.VendorName,
-                                    VendorCode = model.VendorCode,
-                                    AssignedGL = model.AssignedGL,
-                                    Email = model.Email,
-                                    Active = true,
-                                    IsApproved = true,
-                                    DateApproved = DateTime.Now,
-                                    ApprovedBy = GlobalUserId,
-                                };
-
-                                con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure);
-
-                                //var _status = global.UpdateApprovalStatus(model.Id, "partner", true, null);
-                            }
-                        }
-                        else
+                        if (model.Id == 0)
                         {
                             var parameters = new
                             {
-                                Id = model.Id,
                                 VendorName = model.VendorName,
                                 VendorCode = model.VendorCode,
                                 AssignedGL = model.AssignedGL,
                                 Email = model.Email,
                                 Active = model.Active,
                                 IsApproved = model.IsApproved,
-                                DateApproved = DateTime.Now,
-                                ApprovedBy = GlobalUserId,
+                                DateCreated = DateTime.Now,
+                                CreatedBy = GlobalUserId,
                             };
 
-                            var approvalParameters = new
+                            model.Id = con.QuerySingle<int>("sp_savePartnerVendor", parameters, commandType: CommandType.StoredProcedure);
+
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
+                        else
+                        {
+                            if (model.ForApproval)
                             {
-                                JsonData = JsonConvert.SerializeObject(parameters),
-                                TableId = model.Id,
-                                TableName = "PartnerVendor",
-                                ModifiedBy = GlobalUserId,
-                                DateModified = DateTime.Now,
-                            };
-                            con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+                                var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
 
-                            var _status = global.UpdateApprovalStatus(model.Id, "partner", null, null);
+                                if (forUpdate != null)
+                                {
+                                    con.Open();
+                                    using (var transaction = con.BeginTransaction())
+                                    {
+                                        try
+                                        {
+                                            var obj = JsonConvert.DeserializeObject<PartnerVendorModel>(forUpdate.JsonData);
+
+                                            var partnerParameters = new
+                                            {
+                                                Id = obj.Id,
+                                                VendorName = obj.VendorName,
+                                                VendorCode = obj.VendorCode,
+                                                AssignedGL = obj.AssignedGL,
+                                                Email = obj.Email,
+                                                Active = obj.Active,
+                                                IsApproved = true,
+                                                DateApproved = DateTime.Now,
+                                                ApprovedBy = GlobalUserId,
+                                            };
+
+                                            con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            transaction.Commit();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            transaction.Rollback();
+                                            return Json(new { success = false, message = ex.Message });
+                                        }
+                                    }
+                                    con.Close();
+                                }
+                                else
+                                {
+                                    var partnerParameters = new
+                                    {
+                                        Id = model.Id,
+                                        VendorName = model.VendorName,
+                                        VendorCode = model.VendorCode,
+                                        AssignedGL = model.AssignedGL,
+                                        Email = model.Email,
+                                        Active = true,
+                                        IsApproved = true,
+                                        DateApproved = DateTime.Now,
+                                        ApprovedBy = GlobalUserId,
+                                    };
+
+                                    con.Execute("sp_updatePartnerVendor", partnerParameters, commandType: CommandType.StoredProcedure);
+
+                                    //var _status = global.UpdateApprovalStatus(model.Id, "partner", true, null);
+                                }
+                            }
+                            else
+                            {
+                                var parameters = new
+                                {
+                                    Id = model.Id,
+                                    VendorName = model.VendorName,
+                                    VendorCode = model.VendorCode,
+                                    AssignedGL = model.AssignedGL,
+                                    Email = model.Email,
+                                    Active = model.Active,
+                                    IsApproved = model.IsApproved,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
+                                };
+
+                                var approvalParameters = new
+                                {
+                                    JsonData = JsonConvert.SerializeObject(parameters),
+                                    TableId = model.Id,
+                                    TableName = "PartnerVendor",
+                                    ModifiedBy = GlobalUserId,
+                                    DateModified = DateTime.Now,
+                                };
+                                con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+
+                                var _status = global.UpdateApprovalStatus(model.Id, "partner", null, null);
+                            }
+
+                            msg = "Successfully updated.";
+                            action = model.ForApproval ? "Approved" : "Update";
+                            previousData = JsonConvert.SerializeObject(qry);
                         }
 
-                        msg = "Successfully updated.";
-                        action = model.ForApproval ? "Approved" : "Update";
-                        previousData = JsonConvert.SerializeObject(qry);
+                        var auditlogs = new AuditLogsModel
+                        {
+                            Module = "Maintenance",
+                            SubModule = "Partner Vendor",
+                            ChildModule = "Add New Partner Vendor",
+                            TableName = "PartnerVendor",
+                            TableId = model.Id,
+                            Action = action,
+                            PreviousData = previousData,
+                            NewData = JsonConvert.SerializeObject(global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault()),
+                            ModifiedBy = GlobalUserId,
+                            DateModified = DateTime.Now,
+                            IP = global.GetLocalIPAddress(),
+                        };
+
+                        var logs = global.SaveAuditLogs(auditlogs);
+
+                        return Json(new { success = true, message = msg });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Vendor Name already exist." });
                     }
 
-                    var auditlogs = new AuditLogsModel
-                    {
-                        Module = "Maintenance",
-                        SubModule = "Partner Vendor",
-                        ChildModule = "Add New Partner Vendor",
-                        TableName = "PartnerVendor",
-                        TableId = model.Id,
-                        Action = action,
-                        PreviousData = previousData,
-                        NewData = JsonConvert.SerializeObject(global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = GlobalUserId,
-                        DateModified = DateTime.Now,
-                        IP = global.GetLocalIPAddress(),
-                    };
 
-                    var logs = global.SaveAuditLogs(auditlogs);
-
-                    return Json(new { success = true, message = msg });
                 }
             }
             catch (Exception ex)
@@ -1301,117 +1311,19 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var qry = global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault();
-
-                    var AccountNumber = global.GetAccounts().Where(x => x.Id == model.AccountNumberId).FirstOrDefault().AccountNumber;
-                    var CorporateName = global.GetCorporateClient().Where(x => x.Id == model.CorporateNameId).FirstOrDefault().CorporateName;
-                    var PartnerCode = global.GetCorporateClient().Where(x => x.Id == model.PartnerCodeId).FirstOrDefault().PartnerCode;
-
-                    if (model.Id == 0)
+                    var IsExist = global.GetPickupLocation().Where(x => x.PartnerCodeId == model.PartnerCodeId).FirstOrDefault();
+                    if (IsExist == null)
                     {
-                        var parameters = new
-                        {
-                            CorporateName = CorporateName,
-                            Site = model.Site,
-                            SiteAddress = model.SiteAddress,
-                            PartnerCode = PartnerCode,
-                            Location = model.Location,
-                            SOLID = model.SOLID,
-                            Active = model.Active,
-                            IsApproved = model.IsApproved,
-                            AccountNumber = AccountNumber,
-                            AccountNumberId = model.AccountNumberId,
-                            CorporateNameId = model.CorporateNameId,
-                            PartnerCodeId = model.PartnerCodeId,
-                            DateCreated = DateTime.Now,
-                            CreatedBy = GlobalUserId,
-                        };
+                        var qry = global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault();
 
-                        model.Id = con.QuerySingle<int>("sp_savePickupLocation", parameters, commandType: CommandType.StoredProcedure);
+                        var AccountNumber = global.GetAccounts().Where(x => x.Id == model.AccountNumberId).FirstOrDefault().AccountNumber;
+                        var CorporateName = global.GetCorporateClient().Where(x => x.Id == model.CorporateNameId).FirstOrDefault().CorporateName;
+                        var PartnerCode = global.GetCorporateClient().Where(x => x.Id == model.PartnerCodeId).FirstOrDefault().PartnerCode;
 
-                        msg = "Successfully saved.";
-                        action = "Add";
-                        previousData = null;
-                    }
-                    else
-                    {
-                        if (model.ForApproval)
-                        {
-                            var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
-
-                            if (forUpdate != null)
-                            {
-                                con.Open();
-                                using (var transaction = con.BeginTransaction())
-                                {
-                                    try
-                                    {
-                                        var obj = JsonConvert.DeserializeObject<PickupLocationModel>(forUpdate.JsonData);
-
-                                        var pickupParameters = new
-                                        {
-                                            Id = obj.Id,
-                                            CorporateName = obj.CorporateName,
-                                            Site = obj.Site,
-                                            SiteAddress = obj.SiteAddress,
-                                            PartnerCode = obj.PartnerCode,
-                                            Location = obj.Location,
-                                            SOLID = obj.SOLID,
-                                            Active = obj.Active,
-                                            IsApproved = true,
-                                            AccountNumber = obj.AccountNumber,
-                                            AccountNumberId = obj.AccountNumberId,
-                                            CorporateNameId = obj.CorporateNameId,
-                                            PartnerCodeId = obj.PartnerCodeId,
-                                            DateApproved = DateTime.Now,
-                                            ApprovedBy = GlobalUserId,
-                                        };
-
-                                        con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
-
-                                        transaction.Commit();
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        transaction.Rollback();
-                                        return Json(new { success = false, message = ex.Message });
-                                    }
-                                }
-                                con.Close();
-                            }
-                            else
-                            {
-                                var pickupParameters = new
-                                {
-                                    Id = model.Id,
-                                    CorporateName = model.CorporateName,
-                                    Site = model.Site,
-                                    SiteAddress = model.SiteAddress,
-                                    PartnerCode = model.PartnerCode,
-                                    Location = model.Location,
-                                    SOLID = model.SOLID,
-                                    Active = true,
-                                    IsApproved = true,
-                                    AccountNumber = model.AccountNumber,
-                                    AccountNumberId = model.AccountNumberId,
-                                    CorporateNameId = model.CorporateNameId,
-                                    PartnerCodeId = model.PartnerCodeId,
-                                    DateApproved = DateTime.Now,
-                                    ApprovedBy = GlobalUserId,
-                                };
-
-                                con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure);
-
-                                //var _status = global.UpdateApprovalStatus(model.Id, "pickup", true, null);
-                            }
-                        }
-                        else
+                        if (model.Id == 0)
                         {
                             var parameters = new
                             {
-                                Id = model.Id,
                                 CorporateName = CorporateName,
                                 Site = model.Site,
                                 SiteAddress = model.SiteAddress,
@@ -1424,46 +1336,152 @@ namespace RCBC.Controllers
                                 AccountNumberId = model.AccountNumberId,
                                 CorporateNameId = model.CorporateNameId,
                                 PartnerCodeId = model.PartnerCodeId,
-                                DateApproved = DateTime.Now,
-                                ApprovedBy = GlobalUserId,
+                                DateCreated = DateTime.Now,
+                                CreatedBy = GlobalUserId,
                             };
 
-                            var approvalParameters = new
+                            model.Id = con.QuerySingle<int>("sp_savePickupLocation", parameters, commandType: CommandType.StoredProcedure);
+
+                            msg = "Successfully saved.";
+                            action = "Add";
+                            previousData = null;
+                        }
+                        else
+                        {
+                            if (model.ForApproval)
                             {
-                                JsonData = JsonConvert.SerializeObject(parameters),
-                                TableId = model.Id,
-                                TableName = "PickupLocation",
-                                ModifiedBy = GlobalUserId,
-                                DateModified = DateTime.Now,
-                            };
-                            con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+                                var forUpdate = global.GetApprovalUpdates().Where(x => x.TableId == model.Id).FirstOrDefault();
 
-                            var _status = global.UpdateApprovalStatus(model.Id, "pickup", null, null);
+                                if (forUpdate != null)
+                                {
+                                    con.Open();
+                                    using (var transaction = con.BeginTransaction())
+                                    {
+                                        try
+                                        {
+                                            var obj = JsonConvert.DeserializeObject<PickupLocationModel>(forUpdate.JsonData);
+
+                                            var pickupParameters = new
+                                            {
+                                                Id = obj.Id,
+                                                CorporateName = obj.CorporateName,
+                                                Site = obj.Site,
+                                                SiteAddress = obj.SiteAddress,
+                                                PartnerCode = obj.PartnerCode,
+                                                Location = obj.Location,
+                                                SOLID = obj.SOLID,
+                                                Active = obj.Active,
+                                                IsApproved = true,
+                                                AccountNumber = obj.AccountNumber,
+                                                AccountNumberId = obj.AccountNumberId,
+                                                CorporateNameId = obj.CorporateNameId,
+                                                PartnerCodeId = obj.PartnerCodeId,
+                                                DateApproved = DateTime.Now,
+                                                ApprovedBy = GlobalUserId,
+                                            };
+
+                                            con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            con.Execute("sp_deleteApprovalUpdates", new { Id = model.Id }, commandType: CommandType.StoredProcedure, transaction: transaction);
+
+                                            transaction.Commit();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            transaction.Rollback();
+                                            return Json(new { success = false, message = ex.Message });
+                                        }
+                                    }
+                                    con.Close();
+                                }
+                                else
+                                {
+                                    var pickupParameters = new
+                                    {
+                                        Id = model.Id,
+                                        CorporateName = model.CorporateName,
+                                        Site = model.Site,
+                                        SiteAddress = model.SiteAddress,
+                                        PartnerCode = model.PartnerCode,
+                                        Location = model.Location,
+                                        SOLID = model.SOLID,
+                                        Active = true,
+                                        IsApproved = true,
+                                        AccountNumber = model.AccountNumber,
+                                        AccountNumberId = model.AccountNumberId,
+                                        CorporateNameId = model.CorporateNameId,
+                                        PartnerCodeId = model.PartnerCodeId,
+                                        DateApproved = DateTime.Now,
+                                        ApprovedBy = GlobalUserId,
+                                    };
+
+                                    con.Execute("sp_updatePickupLocation", pickupParameters, commandType: CommandType.StoredProcedure);
+
+                                    //var _status = global.UpdateApprovalStatus(model.Id, "pickup", true, null);
+                                }
+                            }
+                            else
+                            {
+                                var parameters = new
+                                {
+                                    Id = model.Id,
+                                    CorporateName = CorporateName,
+                                    Site = model.Site,
+                                    SiteAddress = model.SiteAddress,
+                                    PartnerCode = PartnerCode,
+                                    Location = model.Location,
+                                    SOLID = model.SOLID,
+                                    Active = model.Active,
+                                    IsApproved = model.IsApproved,
+                                    AccountNumber = AccountNumber,
+                                    AccountNumberId = model.AccountNumberId,
+                                    CorporateNameId = model.CorporateNameId,
+                                    PartnerCodeId = model.PartnerCodeId,
+                                    DateApproved = DateTime.Now,
+                                    ApprovedBy = GlobalUserId,
+                                };
+
+                                var approvalParameters = new
+                                {
+                                    JsonData = JsonConvert.SerializeObject(parameters),
+                                    TableId = model.Id,
+                                    TableName = "PickupLocation",
+                                    ModifiedBy = GlobalUserId,
+                                    DateModified = DateTime.Now,
+                                };
+                                con.Execute("sp_saveApprovalUpdates", approvalParameters, commandType: CommandType.StoredProcedure);
+
+                                var _status = global.UpdateApprovalStatus(model.Id, "pickup", null, null);
+                            }
+
+                            msg = "Successfully updated.";
+                            action = model.ForApproval ? "Approved" : "Update";
+                            previousData = JsonConvert.SerializeObject(qry);
                         }
 
-                        msg = "Successfully updated.";
-                        action = model.ForApproval ? "Approved" : "Update";
-                        previousData = JsonConvert.SerializeObject(qry);
+                        var auditlogs = new AuditLogsModel
+                        {
+                            Module = "Maintenance",
+                            SubModule = "Pickup Location",
+                            ChildModule = "Add New Pickup Locations",
+                            TableName = "PickupLocation",
+                            TableId = model.Id,
+                            Action = action,
+                            PreviousData = previousData,
+                            NewData = JsonConvert.SerializeObject(global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault()),
+                            ModifiedBy = GlobalUserId,
+                            DateModified = DateTime.Now,
+                            IP = global.GetLocalIPAddress(),
+                        };
+
+                        var logs = global.SaveAuditLogs(auditlogs);
+
+                        return Json(new { success = true, message = msg });
                     }
-
-                    var auditlogs = new AuditLogsModel
+                    else
                     {
-                        Module = "Maintenance",
-                        SubModule = "Pickup Location",
-                        ChildModule = "Add New Pickup Locations",
-                        TableName = "PickupLocation",
-                        TableId = model.Id,
-                        Action = action,
-                        PreviousData = previousData,
-                        NewData = JsonConvert.SerializeObject(global.GetPickupLocation().Where(x => x.Id == model.Id).FirstOrDefault()),
-                        ModifiedBy = GlobalUserId,
-                        DateModified = DateTime.Now,
-                        IP = global.GetLocalIPAddress(),
-                    };
-
-                    var logs = global.SaveAuditLogs(auditlogs);
-
-                    return Json(new { success = true, message = msg });
+                        return Json(new { success = false, message = "Corporate Group already exist." });
+                    }
                 }
             }
             catch (Exception ex)

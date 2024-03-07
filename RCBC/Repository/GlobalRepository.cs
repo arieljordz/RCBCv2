@@ -465,7 +465,7 @@ namespace RCBC.Repository
                     obj.ChildModule = item.ChildModule;
                     obj.TableName = item.TableName;
                     obj.TableId = item.TableId;
-                    obj.Action = item.Action;
+                    obj.Action = item.Action == "Login" ? "Back Office Login" : (item.Action == "Logout" ? "Back Office Logout / Expired Session" : item.Action);
                     obj.GroupDept = item.GroupDept;
                     obj.UserRole = item.UserRole;
                     obj.PreviousData = item.PreviousData;
