@@ -426,13 +426,13 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#form_location").trigger("reset");
                         }
                         else {
-                            Swal.fire('Warning!', 'Location Already Exists.', 'warning');
+                            Swal.fire('Warning!', response.message, 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

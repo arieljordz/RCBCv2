@@ -289,7 +289,7 @@ namespace RCBC.Controllers
                     }
                     else
                     {
-                        return Json(new { success = false, message = "Corporate Group already exist." });
+                        return Json(new { success = false, message = "Partner Code already exist." });
                     }
                 }
             }

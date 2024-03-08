@@ -465,7 +465,7 @@ namespace RCBC.Repository
                     obj.ChildModule = item.ChildModule;
                     obj.TableName = item.TableName;
                     obj.TableId = item.TableId;
-                    obj.Action = item.Action == "Login" ? "Back Office Login" : (item.Action == "Logout" ? "Back Office Logout / Expired Session" : item.Action);
+                    obj.Action = item.Action;
                     obj.GroupDept = item.GroupDept;
                     obj.UserRole = item.UserRole;
                     obj.PreviousData = item.PreviousData;
@@ -976,6 +976,14 @@ namespace RCBC.Repository
                         {
                             var user = GetUserInformation().Where(x => x.Id == model.ModifiedBy).FirstOrDefault();
                             details = "Username = " + user?.Username;
+                        }
+                        else if (model.Action?.ToLower().ToString() == "login")
+                        {
+                            details = "Back Office Login";
+                        }
+                        else if (model.Action?.ToLower().ToString() == "logout")
+                        {
+                            details = "Back Office Logout / Expired Session";
                         }
                         else
                         {

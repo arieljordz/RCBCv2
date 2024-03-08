@@ -111,22 +111,22 @@
                                                     </div>
                                                 </div>
                                                 @*<div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group clearfix">
-                                                            <div class="icheck-primary d-inline">
-                                                                @Html.CheckBoxFor(x => x.GlobalAccount, new { @id = "GlobalAccount" })
-                                                                @Html.Label("GlobalAccount", "Global Account")
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                  <div class="col-md-6">
-                                                        <div class="form-group clearfix">
-                                                            <div class="icheck-primary d-inline">
-                                                                @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
-                                                                @Html.Label("Active", "Active Status")
-                                                            </div>
-                                                        </div>
-                                                    </div> 
+                                                <div class="col-md-6">
+                                                <div class="form-group clearfix">
+                                                <div class="icheck-primary d-inline">
+                                                @Html.CheckBoxFor(x => x.GlobalAccount, new { @id = "GlobalAccount" })
+                                                @Html.Label("GlobalAccount", "Global Account")
+                                                </div>
+                                                </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                <div class="form-group clearfix">
+                                                <div class="icheck-primary d-inline">
+                                                @Html.CheckBoxFor(x => x.Active, new { @id = "Active" })
+                                                @Html.Label("Active", "Active Status")
+                                                </div>
+                                                </div>
+                                                </div>
                                                 </div>*@
 
                                                 <div class="d-flex justify-content-end">
@@ -364,6 +364,9 @@
                         CorporateGroup: {
                             required: true
                         },
+                        PartnerCode: {
+                            required: true
+                        },
                         CorporateCode: {
                             required: true
                         },
@@ -382,6 +385,9 @@
                     },
                     messages: {
                         CorporateGroup: {
+                            required: "This field is required"
+                        },
+                        PartnerCode: {
                             required: "This field is required"
                         },
                         CorporateCode: {
@@ -426,13 +432,13 @@
                     data: formData,
                     success: function (response) {
                         if (response.success == true) {
-                            $('#loading-image').hide();
                             Swal.fire('Success!', response.message, 'success');
                             $("#form_client").trigger("reset");
                         }
                         else {
-                            Swal.fire('Warning!', 'Client Already Exists.', 'warning');
+                            Swal.fire('Warning!', response.message, 'warning');
                         }
+                        $('#loading-image').hide();
                     },
                     failure: function (response) {
                         $('#loading-image').hide();

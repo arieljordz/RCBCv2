@@ -1101,7 +1101,7 @@ namespace RCBC.Controllers
 
                 using (SqlConnection con = new SqlConnection(GetConnectionString()))
                 {
-                    var IsExist = global.GetPartnerVendor().Where(x => x.VendorName.ToLower() == model.VendorName.ToLower()).FirstOrDefault();
+                    var IsExist = global.GetPartnerVendor().Where(x => x.VendorCode?.ToLower() == model.VendorCode?.ToLower()).FirstOrDefault();
                     if (IsExist == null)
                     {
                         var qry = global.GetPartnerVendor().Where(x => x.Id == model.Id).FirstOrDefault();
