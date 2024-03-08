@@ -972,7 +972,15 @@ namespace RCBC.Repository
                 {
                     if (model.TableName.Contains("UsersInformation"))
                     {
-                        details = "User ID = " + model.ModifiedBy.ToString();
+                        if (model.Action?.ToLower().ToString() == "approved")
+                        {
+                            var user = GetUserInformation().Where(x => x.Id == model.ModifiedBy).FirstOrDefault();
+                            details = "Username = " + user?.Username;
+                        }
+                        else
+                        {
+                            details = "User ID = " + model.ModifiedBy.ToString();
+                        }
                     }
                     else if (model.TableName.Contains("PartnerVendor"))
                     {
